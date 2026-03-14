@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MVP Nylas Connect</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        margin: 0;
+        padding: 24px;
+        font-family: sans-serif;
+        background: #111827;
+        color: #e5e7eb;
+      }
+      .card {
+        max-width: 840px;
+        margin: 0 auto;
+        background: #1f2937;
+        border: 1px solid #374151;
+        border-radius: 12px;
+        padding: 20px;
+      }
+      h1 {
+        margin-top: 0;
+        font-size: 1.4rem;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 14px 0;
+      }
+      button {
+        background: #2563eb;
+        color: white;
+        border: 0;
+        border-radius: 8px;
+        padding: 10px 14px;
+        cursor: pointer;
+      }
+      button.secondary {
+        background: #374151;
+      }
+      pre {
+        background: #111827;
+        border: 1px solid #374151;
+        border-radius: 8px;
+        padding: 12px;
+        overflow: auto;
+      }
+      code {
+        color: #a7f3d0;
+      }
+      .hint {
+        color: #9ca3af;
+        font-size: 0.9rem;
+      }
+      .ok {
+        color: #34d399;
+      }
+      .err {
+        color: #f87171;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>MVP Nylas Connect (Standalone OAuth)</h1>
+      <p class="hint">
+        Ce MVP n'utilise pas d'IDP externe. Mets ton <code>clientId</code> dans
+        <code>config.local.js</code>, puis clique sur Connecter Gmail.
+      </p>
+
+      <div id="status">Etat: initialisation...</div>
+
+      <div class="row">
+        <button id="connectBtn">Connecter Gmail</button>
+        <button id="debugBtn" class="secondary">Debug OAuth URL</button>
+        <button id="logoutBtn" class="secondary">Déconnecter la session</button>
+        <button id="checkBtn" class="secondary">Vérifier le statut</button>
+        <button id="testApiBtn" class="secondary">Tester API Nylas</button>
+      </div>
+
+      <h3>Session</h3>
+      <pre id="sessionOutput">-</pre>
+
+      <h3>Résultat API</h3>
+      <pre id="apiOutput">-</pre>
+    </div>
+
+    <script src="./config.local.js"></script>
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>

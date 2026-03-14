@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Callback OAuth Nylas</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 24px;
+        background: #111827;
+        color: #e5e7eb;
+      }
+      .hint {
+        color: #9ca3af;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Finalisation de la connexion Gmail...</h2>
+    <p class="hint">Tu peux fermer cette fenêtre si elle ne se ferme pas automatiquement.</p>
+    <pre id="out">Traitement en cours...</pre>
+
+    <script src="/config.local.js"></script>
+    <script type="module">
+      import { NylasConnect } from "https://esm.sh/@nylas/connect";
+
+      const out = document.getElementById("out");
+      const cfg = window.NYLAS_CONFIG || {};
+      const connect = new NylasConnect({
+        clientId: cfg.clientId,
+        redirectUri: cfg.redirectUri,
+        apiUrl: cfg.apiUrl || "https://api.eu.nylas.com",
+        environment: "development",
+        persistTokens: true
+      });
+
+      function serializeError(err) {
+        const base = {
+          name: err?.name,
+          message: err?.message,
+          stack: err?.stack
+        };
+        const extra = {};
+        if (err && typeof err === "object") {
+          for (const key of Object.getOwnPropertyNames(err)) {
+            try {
+              extra[key] = err[key];
+            } catch (_) {
+              extra[key] = "[unreadable]";
+            }
+          }
+        }
+        return { ...base, extra };
+      }
+
+      try {
+        const result = await connect.callback();
+        out.textContent = JSON.stringify(
+          {
+            ok: true,
+            location: window.location.href,
+            result
+          },
+          null,
+          2
+        );
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 1000);
+      } catch (error) {
+        out.textContent = JSON.stringify(
+          {
+            ok: false,
+            location: window.location.href,
+            error: serializeError(error),
+            // Helps detect whether the PKCE/state storage exists at callback time.
+            localStorageKeys: Object.keys(localStorage),
+            sessionStorageKeys: Object.keys(sessionStorage)
+          },
+          null,
+          2
+        );
+      }
+    </script>
+  </body>
+  </html>
