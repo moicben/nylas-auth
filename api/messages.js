@@ -9,7 +9,8 @@ module.exports = async function handler(req, res) {
   const cursor = typeof req.query.cursor === "string" ? req.query.cursor.trim() : "";
   const subject = typeof req.query.subject === "string" ? req.query.subject.trim() : "";
   const mailboxRaw = typeof req.query.mailbox === "string" ? req.query.mailbox.trim() : "INBOX";
-  const mailbox = mailboxRaw.toUpperCase() === "TRASH" ? "TRASH" : "INBOX";
+  const mailboxCandidate = mailboxRaw.toUpperCase();
+  const mailbox = ["INBOX", "SENT", "TRASH"].includes(mailboxCandidate) ? mailboxCandidate : "INBOX";
   const readRaw = typeof req.query.read === "string" ? req.query.read.trim().toLowerCase() : "all";
   const readFilter = readRaw === "read" || readRaw === "unread" ? readRaw : "all";
 
