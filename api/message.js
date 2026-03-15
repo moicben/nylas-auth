@@ -7,6 +7,11 @@ function stripHtml(html) {
     .trim();
 }
 
+function normalizeEscapedNewlines(value) {
+  if (typeof value !== "string") return "";
+  return value.replace(/\\r\\n/g, "\n").replace(/\\n/g, "\n");
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method Not Allowed" });
@@ -54,12 +59,13 @@ module.exports = async function handler(req, res) {
         ? payload.data
         : payload;
     const htmlBody = typeof source?.body === "string" ? source.body : "";
-    const textBody =
+    const textBodyRaw =
       typeof source?.body_plain === "string"
         ? source.body_plain
         : htmlBody
           ? stripHtml(htmlBody)
           : "";
+    const textBody = normalizeEscapedNewlines(textBodyRaw);
 
     return res.status(200).json({
       data: {

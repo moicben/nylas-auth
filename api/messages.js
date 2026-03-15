@@ -21,6 +21,7 @@ module.exports = async function handler(req, res) {
   const apiUrl = process.env.NYLAS_API_URL || "https://api.eu.nylas.com";
   const params = new URLSearchParams();
   params.set("limit", String(limit));
+  params.set("in", "INBOX");
   if (cursor) {
     params.set("page_token", cursor);
   }
