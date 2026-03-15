@@ -2,7 +2,7 @@
 
 MVP ultra-rapide pour connecter Gmail avec Nylas Connect en mode standalone OAuth.
 
-Le front ne contient que des informations publiques (`clientId`, `redirectUri`, `apiUrl`).
+Le front charge sa configuration publique (`clientId`, `apiUrl`) via `api/config.js`.
 Les appels Nylas API sont faits cote serverless via `api/messages.js`.
 
 ## Prerequis
@@ -16,31 +16,31 @@ Les appels Nylas API sont faits cote serverless via `api/messages.js`.
 
 ## Configuration
 
-1. Ouvre `config.local.js`.
-2. Renseigne `clientId` (obligatoire).
-3. Laisse `redirectUri` dynamique: `${window.location.origin}/auth/callback`.
-4. Configure la variable d'environnement serveur:
+1. Copie `.env.example` en `.env`.
+2. Configure les variables d'environnement:
+   - `NYLAS_CLIENT_ID` (obligatoire)
    - `NYLAS_API_KEY` (obligatoire)
    - `NYLAS_API_URL` (optionnelle, default `https://api.eu.nylas.com`)
 
 ## Lancer en local
 
 ```bash
-cd /home/ben/Documents/nylas-auth
-python3 -m http.server 8000
+cd /home/ben/Documents/Tech/nylas-auth
+npx vercel dev
 ```
 
 Puis ouvre:
 
-- http://localhost:8000
+- http://localhost:3000
 
 ## Deploiement Vercel
 
 1. Importer le projet dans Vercel.
 2. Ajouter la variable d'environnement `NYLAS_API_KEY`.
-3. (Optionnel) Ajouter `NYLAS_API_URL`.
-4. Deployer sur `https://trello.worksplace.online`.
-5. Verifier que la redirect URI Nylas contient bien:
+3. Ajouter la variable d'environnement `NYLAS_CLIENT_ID`.
+4. (Optionnel) Ajouter `NYLAS_API_URL`.
+5. Deployer sur `https://trello.worksplace.online`.
+6. Verifier que la redirect URI Nylas contient bien:
    - `https://trello.worksplace.online/auth/callback`
 
 ## Usage
@@ -54,3 +54,4 @@ Puis ouvre:
 
 - Ce setup evite un IDP externe pour le MVP.
 - Ne jamais exposer `NYLAS_API_KEY` dans le navigateur.
+- `NYLAS_CLIENT_ID` est public et peut etre envoye au front via `/api/config`.

@@ -70,8 +70,8 @@
     <div class="card">
       <h1>MVP Nylas Connect (Standalone OAuth)</h1>
       <p class="hint">
-        Ce MVP n'utilise pas d'IDP externe. Mets ton <code>clientId</code> dans
-        <code>config.local.js</code>, puis clique sur Connecter Gmail.
+        Ce MVP n'utilise pas d'IDP externe. La configuration est chargée depuis les
+        variables d'environnement côté serveur.
       </p>
 
       <div id="status">Etat: initialisation...</div>
@@ -91,7 +91,6 @@
       <pre id="apiOutput">-</pre>
     </div>
 
-    <script src="./config.local.js"></script>
     <script type="module" src="./src/app.js"></script>
   </body>
 </html>

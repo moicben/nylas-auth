@@ -21,19 +21,19 @@
     <p class="hint">Tu peux fermer cette fenêtre si elle ne se ferme pas automatiquement.</p>
     <pre id="out">Traitement en cours...</pre>
 
-    <script src="/config.local.js"></script>
     <script type="module">
       import { NylasConnect } from "https://esm.sh/@nylas/connect";
 
       const out = document.getElementById("out");
-      const cfg = window.NYLAS_CONFIG || {};
-      const connect = new NylasConnect({
-        clientId: cfg.clientId,
-        redirectUri: cfg.redirectUri,
-        apiUrl: cfg.apiUrl || "https://api.eu.nylas.com",
-        environment: "development",
-        persistTokens: true
-      });
+
+      async function loadRuntimeConfig() {
+        const response = await fetch("/api/config");
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data?.error || "Impossible de charger la config runtime");
+        }
+        return data;
+      }
 
       function serializeError(err) {
         const base = {
@@ -55,6 +55,15 @@
       }
 
       try {
+        const cfg = await loadRuntimeConfig();
+        const connect = new NylasConnect({
+          clientId: cfg.clientId,
+          redirectUri: `${window.location.origin}/auth/callback`,
+          apiUrl: cfg.apiUrl || "https://api.eu.nylas.com",
+          environment: "development",
+          persistTokens: true
+        });
+
         const result = await connect.callback();
         out.textContent = JSON.stringify(
           {

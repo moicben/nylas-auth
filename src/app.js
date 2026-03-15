@@ -9,8 +9,7 @@ const logoutBtn = document.getElementById("logoutBtn");
 const checkBtn = document.getElementById("checkBtn");
 const testApiBtn = document.getElementById("testApiBtn");
 
-const cfg = window.NYLAS_CONFIG || {};
-const hasClientId = !!cfg.clientId && cfg.clientId !== "REPLACE_WITH_NYLAS_CLIENT_ID";
+let nylasConnect = null;
 
 function setStatus(message, ok = true) {
   statusEl.textContent = `Etat: ${message}`;
@@ -20,22 +19,6 @@ function setStatus(message, ok = true) {
 function pretty(data) {
   return JSON.stringify(data, null, 2);
 }
-
-if (!hasClientId) {
-  setStatus("clientId manquant dans config.local.js", false);
-} else {
-  setStatus("prêt");
-}
-
-const nylasConnect = new NylasConnect({
-  clientId: cfg.clientId,
-  redirectUri: cfg.redirectUri || window.location.origin,
-  apiUrl: cfg.apiUrl || "https://api.eu.nylas.com",
-  environment: "development",
-  persistTokens: true,
-  debug: true,
-  logLevel: "info"
-});
 
 async function handleCallbackIfNeeded() {
   const qs = new URLSearchParams(window.location.search);
@@ -76,8 +59,8 @@ async function refreshSession() {
 }
 
 connectBtn.addEventListener("click", async () => {
-  if (!hasClientId) {
-    setStatus("renseigne clientId dans config.local.js", false);
+  if (!nylasConnect) {
+    setStatus("config Nylas non chargée", false);
     return;
   }
 
@@ -99,6 +82,11 @@ connectBtn.addEventListener("click", async () => {
 });
 
 debugBtn.addEventListener("click", async () => {
+  if (!nylasConnect) {
+    setStatus("config Nylas non chargée", false);
+    return;
+  }
+
   try {
     // Inline returns the URL so we can inspect exact query params sent to Nylas.
     const url = await nylasConnect.connect({
@@ -124,6 +112,11 @@ debugBtn.addEventListener("click", async () => {
 });
 
 logoutBtn.addEventListener("click", async () => {
+  if (!nylasConnect) {
+    setStatus("config Nylas non chargée", false);
+    return;
+  }
+
   try {
     await nylasConnect.logout();
     setStatus("session déconnectée");
@@ -140,6 +133,11 @@ logoutBtn.addEventListener("click", async () => {
 checkBtn.addEventListener("click", refreshSession);
 
 testApiBtn.addEventListener("click", async () => {
+  if (!nylasConnect) {
+    setStatus("config Nylas non chargée", false);
+    return;
+  }
+
   const session = await nylasConnect.getSession();
   const grantId = session?.grantId;
   if (!grantId) {
@@ -162,5 +160,40 @@ testApiBtn.addEventListener("click", async () => {
   }
 });
 
-await handleCallbackIfNeeded();
-await refreshSession();
+async function loadRuntimeConfig() {
+  const response = await fetch("/api/config");
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error || "Impossible de charger la config runtime");
+  }
+  return data;
+}
+
+async function bootstrap() {
+  try {
+    setStatus("chargement de la configuration...");
+    const cfg = await loadRuntimeConfig();
+
+    nylasConnect = new NylasConnect({
+      clientId: cfg.clientId,
+      redirectUri: `${window.location.origin}/auth/callback`,
+      apiUrl: cfg.apiUrl || "https://api.eu.nylas.com",
+      environment: "development",
+      persistTokens: true,
+      debug: true,
+      logLevel: "info"
+    });
+
+    setStatus("prêt");
+    await handleCallbackIfNeeded();
+    await refreshSession();
+  } catch (error) {
+    setStatus("impossible de charger la configuration", false);
+    sessionOutput.textContent = pretty({
+      message: error?.message || "Erreur inconnue",
+      name: error?.name
+    });
+  }
+}
+
+await bootstrap();
