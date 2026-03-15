@@ -29,7 +29,9 @@ module.exports = async function handler(req, res) {
   }
 
   const apiUrl = process.env.NYLAS_API_URL || "https://api.eu.nylas.com";
-  const url = `${apiUrl}/v3/grants/${encodeURIComponent(grantId)}/messages/${encodeURIComponent(messageId)}`;
+  const baseUrl = `${apiUrl}/v3/grants/${encodeURIComponent(grantId)}/messages/${encodeURIComponent(messageId)}`;
+  const url =
+    req.method === "DELETE" ? `${baseUrl}?hard_delete=true` : baseUrl;
   const requestBody =
     req.method === "PATCH" ? JSON.stringify({ folders: ["TRASH"] }) : undefined;
 
@@ -52,6 +54,14 @@ module.exports = async function handler(req, res) {
     }
 
     if (!upstream.ok) {
+      const upstreamMessage = payload?.error?.message || payload?.message || "";
+      if (req.method === "DELETE" && upstream.status === 403 && /hard_delete/i.test(upstreamMessage)) {
+        return res.status(409).json({
+          error:
+            "La suppression definitive n'est pas active sur ce compte Nylas (hard_delete). Active-la dans le dashboard Nylas.",
+          details: payload
+        });
+      }
       return res.status(upstream.status).json({
         error: "Nylas API request failed",
         details: payload

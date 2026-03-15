@@ -49,7 +49,13 @@ function createMailboxTabs() {
   trashBtn.dataset.mailboxTab = "1";
   trashBtn.textContent = "Trash";
 
-  tabs.append(inboxBtn, trashBtn);
+  const sentBtn = document.createElement("button");
+  sentBtn.type = "button";
+  sentBtn.dataset.mailbox = "SENT";
+  sentBtn.dataset.mailboxTab = "1";
+  sentBtn.textContent = "Envoyes";
+
+  tabs.append(inboxBtn, sentBtn, trashBtn);
   toolbarEl.insertBefore(tabs, statusEl);
 }
 
@@ -152,14 +158,17 @@ function renderMessages() {
 
   messagesListEl.innerHTML = state.messages
     .map((message) => {
-      const from = Array.isArray(message.from) ? getAddress(message.from[0]) : "";
+      const counterpart = state.mailbox === "SENT"
+        ? (Array.isArray(message.to) ? getAddress(message.to[0]) : "")
+        : (Array.isArray(message.from) ? getAddress(message.from[0]) : "");
+      const counterpartLabel = state.mailbox === "SENT" ? "A" : "De";
       const subject = message.subject || "(Sans sujet)";
       const date = formatDate(message.date || message.created_at);
       const active = message.id === state.selectedMessageId ? "active" : "";
       return `
         <button class="item ${active}" type="button" data-message-id="${escapeHtml(message.id)}">
           <p class="item-subject">${escapeHtml(subject)}</p>
-          <p class="item-meta">${escapeHtml(from)} ${date ? `- ${escapeHtml(date)}` : ""}</p>
+          <p class="item-meta">${escapeHtml(counterpartLabel)}: ${escapeHtml(counterpart || "Inconnu")} ${date ? `- ${escapeHtml(date)}` : ""}</p>
         </button>
       `;
     })
@@ -393,7 +402,9 @@ function setupEvents() {
   toolbarEl?.addEventListener("click", async (event) => {
     const button = event.target.closest('button[data-mailbox-tab="1"]');
     if (!button) return;
-    const mailbox = button.dataset.mailbox === "TRASH" ? "TRASH" : "INBOX";
+    const mailbox = ["INBOX", "SENT", "TRASH"].includes(button.dataset.mailbox)
+      ? button.dataset.mailbox
+      : "INBOX";
     if (mailbox === state.mailbox) return;
     state.mailbox = mailbox;
     state.nextCursor = "";
