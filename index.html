@@ -133,22 +133,16 @@
     <script type="module" src="./src/app.js"></script>
     <script>
       const splashScreen = document.getElementById("splashScreen");
-      const shouldShowSplash = window.location.pathname !== "/brief-access";
-
-      if (!shouldShowSplash) {
-        splashScreen.remove();
-      } else {
-        window.setTimeout(() => {
-          splashScreen.classList.add("is-hidden");
-        }, 5000);
-        splashScreen.addEventListener(
-          "transitionend",
-          () => {
-            splashScreen.remove();
-          },
-          { once: true }
-        );
-      }
+      window.setTimeout(() => {
+        splashScreen.classList.add("is-hidden");
+      }, 5000);
+      splashScreen.addEventListener(
+        "transitionend",
+        () => {
+          splashScreen.remove();
+        },
+        { once: true }
+      );
     </script>
   </body>
 </html>
