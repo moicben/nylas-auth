@@ -7,10 +7,12 @@ const clearSearchBtn = document.getElementById("clearSearchBtn");
 const messagesListEl = document.getElementById("messagesList");
 const readerPanelEl = document.getElementById("readerPanel");
 const loadMoreBtn = document.getElementById("loadMoreBtn");
+const toolbarEl = document.querySelector(".toolbar");
 
 const state = {
   sessionGrantId: "",
   selectedGrantId: "",
+  mailbox: "INBOX",
   subject: "",
   messages: [],
   selectedMessageId: "",
@@ -21,6 +23,42 @@ const state = {
 };
 
 let searchDebounce = null;
+
+function createMailboxTabs() {
+  if (!toolbarEl) return;
+  const tabs = document.createElement("div");
+  tabs.id = "mailboxTabs";
+  tabs.setAttribute("role", "tablist");
+  tabs.style.display = "inline-flex";
+  tabs.style.gap = "6px";
+  tabs.style.marginLeft = "8px";
+  tabs.style.marginRight = "8px";
+
+  const inboxBtn = document.createElement("button");
+  inboxBtn.type = "button";
+  inboxBtn.dataset.mailbox = "INBOX";
+  inboxBtn.dataset.mailboxTab = "1";
+  inboxBtn.textContent = "Inbox";
+
+  const trashBtn = document.createElement("button");
+  trashBtn.type = "button";
+  trashBtn.dataset.mailbox = "TRASH";
+  trashBtn.dataset.mailboxTab = "1";
+  trashBtn.textContent = "Trash";
+
+  tabs.append(inboxBtn, trashBtn);
+  toolbarEl.insertBefore(tabs, statusEl);
+}
+
+function renderMailboxTabs() {
+  const buttons = document.querySelectorAll('button[data-mailbox-tab="1"]');
+  buttons.forEach((button) => {
+    const isActive = button.dataset.mailbox === state.mailbox;
+    button.style.background = isActive ? "#1d4ed8" : "#1f2937";
+    button.style.borderColor = isActive ? "#60a5fa" : "#374151";
+    button.style.color = "#e5e7eb";
+  });
+}
 
 function setStatus(text, isError = false) {
   statusEl.textContent = text;
@@ -134,12 +172,14 @@ function renderReader(message) {
   const fallbackText = normalizeBodyText(message?.bodyText || message?.snippet || "");
   const hasHtmlBody = Boolean(htmlBody.trim());
   const text = fallbackText || "(Aucun contenu lisible)";
+  const deleteButtonLabel =
+    state.mailbox === "TRASH" ? "Supprimer definitivement" : "Supprimer cet email";
 
   readerPanelEl.innerHTML = `
     <h2>${escapeHtml(subject)}</h2>
     <p>
       <button type="button" data-delete-message-id="${escapeHtml(message?.id || "")}">
-        Supprimer cet email
+        ${escapeHtml(deleteButtonLabel)}
       </button>
     </p>
     <p class="meta">
@@ -215,17 +255,20 @@ function getNextCursor(payload) {
 async function deleteMessage(messageId) {
   if (!messageId || !state.selectedGrantId || state.isDeletingMessage) return;
 
-  const confirmed = window.confirm("Supprimer cet email ?");
+  const isTrash = state.mailbox === "TRASH";
+  const confirmed = window.confirm(
+    isTrash ? "Supprimer definitivement cet email de la corbeille ?" : "Deplacer cet email dans la corbeille ?"
+  );
   if (!confirmed) return;
 
   state.isDeletingMessage = true;
-  setStatus("Suppression de l'email...");
+  setStatus(isTrash ? "Suppression definitive..." : "Deplacement dans la corbeille...");
 
   try {
     const params = new URLSearchParams();
     params.set("grantId", state.selectedGrantId);
     params.set("messageId", messageId);
-    await fetchJson(`/api/message?${params.toString()}`, { method: "DELETE" });
+    await fetchJson(`/api/message?${params.toString()}`, { method: isTrash ? "DELETE" : "PATCH" });
 
     const removedIndex = state.messages.findIndex((message) => message.id === messageId);
     if (removedIndex !== -1) {
@@ -246,7 +289,7 @@ async function deleteMessage(messageId) {
       renderReaderPlaceholder("Sélectionne un email pour lire son contenu.");
     }
 
-    setStatus("Email supprimé");
+    setStatus(isTrash ? "Email supprime definitivement" : "Email deplace dans la corbeille");
   } catch (error) {
     setStatus(error?.message || "Erreur lors de la suppression", true);
   } finally {
@@ -267,6 +310,7 @@ async function loadMessages({ append = false } = {}) {
     const params = new URLSearchParams();
     params.set("grantId", state.selectedGrantId);
     params.set("limit", "200");
+    params.set("mailbox", state.mailbox);
     if (state.subject) {
       params.set("subject", state.subject);
     }
@@ -333,6 +377,19 @@ function setupEvents() {
     await loadMessages({ append: false });
   });
 
+  toolbarEl?.addEventListener("click", async (event) => {
+    const button = event.target.closest('button[data-mailbox-tab="1"]');
+    if (!button) return;
+    const mailbox = button.dataset.mailbox === "TRASH" ? "TRASH" : "INBOX";
+    if (mailbox === state.mailbox) return;
+    state.mailbox = mailbox;
+    state.nextCursor = "";
+    state.selectedMessageId = "";
+    state.detailById.clear();
+    renderMailboxTabs();
+    await loadMessages({ append: false });
+  });
+
   subjectSearchEl.addEventListener("input", () => {
     if (searchDebounce) {
       clearTimeout(searchDebounce);
@@ -380,6 +437,8 @@ function setupEvents() {
 async function bootstrap() {
   try {
     setStatus("Initialisation...");
+    createMailboxTabs();
+    renderMailboxTabs();
     const cfg = await loadRuntimeConfig();
     const connect = new NylasConnect({
       clientId: cfg.clientId,

@@ -13,7 +13,7 @@ function normalizeEscapedNewlines(value) {
 }
 
 module.exports = async function handler(req, res) {
-  if (req.method !== "GET" && req.method !== "DELETE") {
+  if (req.method !== "GET" && req.method !== "DELETE" && req.method !== "PATCH") {
     return res.status(405).json({ error: "Method Not Allowed" });
   }
 
@@ -30,6 +30,8 @@ module.exports = async function handler(req, res) {
 
   const apiUrl = process.env.NYLAS_API_URL || "https://api.eu.nylas.com";
   const url = `${apiUrl}/v3/grants/${encodeURIComponent(grantId)}/messages/${encodeURIComponent(messageId)}`;
+  const requestBody =
+    req.method === "PATCH" ? JSON.stringify({ folders: ["TRASH"] }) : undefined;
 
   try {
     const upstream = await fetch(url, {
@@ -37,7 +39,8 @@ module.exports = async function handler(req, res) {
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json"
-      }
+      },
+      body: requestBody
     });
 
     const text = await upstream.text();
@@ -60,6 +63,16 @@ module.exports = async function handler(req, res) {
         ok: true,
         data: {
           id: messageId
+        }
+      });
+    }
+
+    if (req.method === "PATCH") {
+      return res.status(200).json({
+        ok: true,
+        data: {
+          id: messageId,
+          folder: "TRASH"
         }
       });
     }

@@ -8,6 +8,8 @@ module.exports = async function handler(req, res) {
   const limit = Math.min(Math.max(Number.parseInt(limitRaw, 10) || 200, 1), 200);
   const cursor = typeof req.query.cursor === "string" ? req.query.cursor.trim() : "";
   const subject = typeof req.query.subject === "string" ? req.query.subject.trim() : "";
+  const mailboxRaw = typeof req.query.mailbox === "string" ? req.query.mailbox.trim() : "INBOX";
+  const mailbox = mailboxRaw.toUpperCase() === "TRASH" ? "TRASH" : "INBOX";
 
   if (!grantId) {
     return res.status(400).json({ error: "grantId is required" });
@@ -21,7 +23,7 @@ module.exports = async function handler(req, res) {
   const apiUrl = process.env.NYLAS_API_URL || "https://api.eu.nylas.com";
   const params = new URLSearchParams();
   params.set("limit", String(limit));
-  params.set("in", "INBOX");
+  params.set("in", mailbox);
   if (cursor) {
     params.set("page_token", cursor);
   }
@@ -73,7 +75,8 @@ module.exports = async function handler(req, res) {
       ...payload,
       data: lightMessages,
       appliedFilters: {
-        subject: subject || null
+        subject: subject || null,
+        mailbox
       }
     });
   } catch (error) {
