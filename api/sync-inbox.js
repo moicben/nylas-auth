@@ -100,6 +100,7 @@ async function fetchMessageList({ apiUrl, apiKey, grantId, pageToken, receivedAf
   const params = new URLSearchParams();
   params.set("limit", String(MAX_LIMIT));
   params.set("in", "INBOX");
+  params.set("unread", "false");
   params.set("received_after", String(receivedAfter));
   if (pageToken) {
     params.set("page_token", pageToken);
@@ -187,6 +188,14 @@ function splitIntoChunks(list, size) {
   return chunks;
 }
 
+function getMessageUnixTimestamp(message) {
+  const dateValue = Number(message?.date);
+  if (Number.isFinite(dateValue)) return dateValue;
+  const receivedAtValue = Number(message?.received_at);
+  if (Number.isFinite(receivedAtValue)) return receivedAtValue;
+  return 0;
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method Not Allowed" });
@@ -243,8 +252,11 @@ module.exports = async function handler(req, res) {
         totalListed > maxMessages
           ? listed.slice(0, Math.max(0, maxMessages - (totalListed - listed.length)))
           : listed;
+      const newestFirstListed = [...limitedListed].sort(
+        (a, b) => getMessageUnixTimestamp(b) - getMessageUnixTimestamp(a)
+      );
 
-      const details = await mapWithConcurrency(limitedListed, DETAIL_CONCURRENCY, async (message) => {
+      const details = await mapWithConcurrency(newestFirstListed, DETAIL_CONCURRENCY, async (message) => {
         const messageId = typeof message?.id === "string" ? message.id : "";
         if (!messageId) return null;
         try {
