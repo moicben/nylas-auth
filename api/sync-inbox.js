@@ -3,8 +3,8 @@ const { upsertEmails } = require("./_supabase");
 const MAX_LIMIT = 200;
 const UPSERT_BATCH_SIZE = 100;
 const DETAIL_CONCURRENCY = 10;
-const DEFAULT_MAX_PAGES = 100;
-const DEFAULT_MAX_MESSAGES = 20000;
+const MAX_PAGES = 100;
+const MAX_MESSAGES = 20000;
 
 function stripHtml(html) {
   return String(html || "")
@@ -207,11 +207,8 @@ module.exports = async function handler(req, res) {
   const sixMonthsAgo = new Date();
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
   const receivedAfter = Math.floor(sixMonthsAgo.getTime() / 1000);
-  const maxPages = Math.max(1, Number.parseInt(process.env.SYNC_MAX_PAGES || "", 10) || DEFAULT_MAX_PAGES);
-  const maxMessages = Math.max(
-    1,
-    Number.parseInt(process.env.SYNC_MAX_MESSAGES || "", 10) || DEFAULT_MAX_MESSAGES
-  );
+  const maxPages = MAX_PAGES;
+  const maxMessages = MAX_MESSAGES;
 
   let pageToken = "";
   let pageCount = 0;
