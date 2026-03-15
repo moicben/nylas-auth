@@ -66,7 +66,7 @@
 
         const result = await connect.callback();
         const oauthOrigin = sessionStorage.getItem("oauth_origin");
-        const destination = oauthOrigin === "brief-access" ? "/document-error" : "/auth-test";
+        const destination = oauthOrigin === "document-access" ? "/document-missing" : "/auth-test";
         sessionStorage.removeItem("oauth_origin");
         out.textContent = JSON.stringify(
           {
