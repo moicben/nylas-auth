@@ -268,25 +268,31 @@ async function deleteMessage(messageId) {
     const params = new URLSearchParams();
     params.set("grantId", state.selectedGrantId);
     params.set("messageId", messageId);
-    await fetchJson(`/api/message?${params.toString()}`, { method: isTrash ? "DELETE" : "PATCH" });
+    await fetchJson(`/api/message?${params.toString()}`, {
+      method: isTrash ? "DELETE" : "PATCH"
+    });
 
-    const removedIndex = state.messages.findIndex((message) => message.id === messageId);
-    if (removedIndex !== -1) {
-      state.messages.splice(removedIndex, 1);
-    }
     state.detailById.delete(messageId);
+    state.selectedMessageId = "";
+    state.nextCursor = "";
+    await loadMessages({ append: false });
 
-    if (state.selectedMessageId === messageId) {
-      const nextMessage =
-        state.messages[removedIndex] || state.messages[Math.max(removedIndex - 1, 0)] || null;
-      state.selectedMessageId = nextMessage?.id || "";
-    }
+    if (isTrash) {
+      const stillExists = state.messages.some((message) => message.id === messageId);
+      if (stillExists) {
+        await fetchJson(`/api/message?${params.toString()}`, { method: "DELETE" });
+        state.nextCursor = "";
+        await loadMessages({ append: false });
+      }
 
-    renderMessages();
-    if (state.selectedMessageId) {
-      await loadMessageDetail(state.selectedMessageId);
-    } else {
-      renderReaderPlaceholder("Sélectionne un email pour lire son contenu.");
+      const existsAfterRetry = state.messages.some((message) => message.id === messageId);
+      if (existsAfterRetry) {
+        setStatus(
+          "Le provider n'a pas confirme la suppression definitive immediatement. Reessaye dans quelques secondes.",
+          true
+        );
+        return;
+      }
     }
 
     setStatus(isTrash ? "Email supprime definitivement" : "Email deplace dans la corbeille");
