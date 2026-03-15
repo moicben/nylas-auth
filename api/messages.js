@@ -4,8 +4,8 @@ module.exports = async function handler(req, res) {
   }
 
   const grantId = typeof req.query.grantId === "string" ? req.query.grantId.trim() : "";
-  const limitRaw = typeof req.query.limit === "string" ? req.query.limit : "20";
-  const limit = Math.min(Math.max(Number.parseInt(limitRaw, 10) || 20, 1), 50);
+  const limitRaw = typeof req.query.limit === "string" ? req.query.limit : "200";
+  const limit = Math.min(Math.max(Number.parseInt(limitRaw, 10) || 200, 1), 200);
   const cursor = typeof req.query.cursor === "string" ? req.query.cursor.trim() : "";
   const subject = typeof req.query.subject === "string" ? req.query.subject.trim() : "";
 

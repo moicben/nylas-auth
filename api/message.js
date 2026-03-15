@@ -13,7 +13,7 @@ function normalizeEscapedNewlines(value) {
 }
 
 module.exports = async function handler(req, res) {
-  if (req.method !== "GET") {
+  if (req.method !== "GET" && req.method !== "DELETE") {
     return res.status(405).json({ error: "Method Not Allowed" });
   }
 
@@ -33,6 +33,7 @@ module.exports = async function handler(req, res) {
 
   try {
     const upstream = await fetch(url, {
+      method: req.method,
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json"
@@ -51,6 +52,15 @@ module.exports = async function handler(req, res) {
       return res.status(upstream.status).json({
         error: "Nylas API request failed",
         details: payload
+      });
+    }
+
+    if (req.method === "DELETE") {
+      return res.status(200).json({
+        ok: true,
+        data: {
+          id: messageId
+        }
       });
     }
 

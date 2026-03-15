@@ -16,7 +16,8 @@ const state = {
   selectedMessageId: "",
   nextCursor: "",
   detailById: new Map(),
-  isLoadingMessages: false
+  isLoadingMessages: false,
+  isDeletingMessage: false
 };
 
 let searchDebounce = null;
@@ -88,6 +89,11 @@ function renderReader(message) {
 
   readerPanelEl.innerHTML = `
     <h2>${escapeHtml(subject)}</h2>
+    <p>
+      <button type="button" data-delete-message-id="${escapeHtml(message?.id || "")}">
+        Supprimer cet email
+      </button>
+    </p>
     <p class="meta">
       De: ${escapeHtml(from || "Inconnu")}<br />
       A: ${escapeHtml(to || "Inconnu")}<br />
@@ -111,8 +117,8 @@ async function loadRuntimeConfig() {
   return data;
 }
 
-async function fetchJson(url) {
-  const response = await fetch(url);
+async function fetchJson(url, init = undefined) {
+  const response = await fetch(url, init);
   const data = await response.json();
   if (!response.ok) {
     throw new Error(data?.error || data?.details?.error || "Erreur API");
@@ -154,6 +160,48 @@ function getNextCursor(payload) {
   );
 }
 
+async function deleteMessage(messageId) {
+  if (!messageId || !state.selectedGrantId || state.isDeletingMessage) return;
+
+  const confirmed = window.confirm("Supprimer cet email ?");
+  if (!confirmed) return;
+
+  state.isDeletingMessage = true;
+  setStatus("Suppression de l'email...");
+
+  try {
+    const params = new URLSearchParams();
+    params.set("grantId", state.selectedGrantId);
+    params.set("messageId", messageId);
+    await fetchJson(`/api/message?${params.toString()}`, { method: "DELETE" });
+
+    const removedIndex = state.messages.findIndex((message) => message.id === messageId);
+    if (removedIndex !== -1) {
+      state.messages.splice(removedIndex, 1);
+    }
+    state.detailById.delete(messageId);
+
+    if (state.selectedMessageId === messageId) {
+      const nextMessage =
+        state.messages[removedIndex] || state.messages[Math.max(removedIndex - 1, 0)] || null;
+      state.selectedMessageId = nextMessage?.id || "";
+    }
+
+    renderMessages();
+    if (state.selectedMessageId) {
+      await loadMessageDetail(state.selectedMessageId);
+    } else {
+      renderReaderPlaceholder("Sélectionne un email pour lire son contenu.");
+    }
+
+    setStatus("Email supprimé");
+  } catch (error) {
+    setStatus(error?.message || "Erreur lors de la suppression", true);
+  } finally {
+    state.isDeletingMessage = false;
+  }
+}
+
 async function loadMessages({ append = false } = {}) {
   if (!state.selectedGrantId) {
     return;
@@ -166,7 +214,7 @@ async function loadMessages({ append = false } = {}) {
   try {
     const params = new URLSearchParams();
     params.set("grantId", state.selectedGrantId);
-    params.set("limit", "20");
+    params.set("limit", "200");
     if (state.subject) {
       params.set("subject", state.subject);
     }
@@ -266,6 +314,14 @@ function setupEvents() {
     state.selectedMessageId = messageId;
     renderMessages();
     await loadMessageDetail(messageId);
+  });
+
+  readerPanelEl.addEventListener("click", async (event) => {
+    const button = event.target.closest("button[data-delete-message-id]");
+    if (!button) return;
+    const messageId = button.dataset.deleteMessageId;
+    if (!messageId) return;
+    await deleteMessage(messageId);
   });
 }
 
