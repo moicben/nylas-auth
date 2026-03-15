@@ -159,16 +159,18 @@ function normalizeAttachments(value) {
   return value
     .map((attachment) => {
       if (!attachment || typeof attachment !== "object") return null;
+      const id = typeof attachment.id === "string" && attachment.id.trim() ? attachment.id.trim() : "";
       const filename =
         typeof attachment.filename === "string" && attachment.filename.trim()
           ? attachment.filename.trim()
           : "Fichier sans nom";
       const contentType =
         typeof attachment.contentType === "string" && attachment.contentType.trim()
-          ? attachment.contentType.trim()
+          ? attachment.contentType.trim().split(";")[0].trim()
           : "";
       const size = Number(attachment.size);
       return {
+        id,
         filename,
         contentType,
         size: Number.isFinite(size) && size >= 0 ? size : null
@@ -225,7 +227,18 @@ function renderReader(message) {
             .map((attachment) => {
               const fileSize = formatFileSize(attachment.size);
               const metaParts = [attachment.contentType, fileSize].filter(Boolean);
-              return `<li>${escapeHtml(attachment.filename)}${
+              const hasDownloadLink = Boolean(attachment.id && state.selectedGrantId);
+              const params = new URLSearchParams();
+              if (hasDownloadLink) {
+                params.set("grantId", state.selectedGrantId);
+                params.set("attachmentId", attachment.id);
+                params.set("messageId", message?.id || "");
+                params.set("filename", attachment.filename);
+              }
+              const attachmentLabel = hasDownloadLink
+                ? `<a href="/api/attachment?${params.toString()}" target="_blank" rel="noopener noreferrer">${escapeHtml(attachment.filename)}</a>`
+                : escapeHtml(attachment.filename);
+              return `<li>${attachmentLabel}${
                 metaParts.length ? ` <span class="meta">(${escapeHtml(metaParts.join(" - "))})</span>` : ""
               }</li>`;
             })

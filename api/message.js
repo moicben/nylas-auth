@@ -17,6 +17,12 @@ function normalizeAttachments(value) {
   return value
     .map((attachment) => {
       if (!attachment || typeof attachment !== "object") return null;
+      const attachmentId =
+        typeof attachment.id === "string" && attachment.id.trim()
+          ? attachment.id.trim()
+          : typeof attachment.file_id === "string" && attachment.file_id.trim()
+            ? attachment.file_id.trim()
+            : "";
       const filename =
         typeof attachment.filename === "string" && attachment.filename.trim()
           ? attachment.filename.trim()
@@ -31,7 +37,7 @@ function normalizeAttachments(value) {
             : "";
       const size = Number(attachment.size);
       return {
-        id: typeof attachment.id === "string" ? attachment.id : "",
+        id: attachmentId,
         filename,
         contentType: mimeType,
         size: Number.isFinite(size) && size >= 0 ? size : null
