@@ -54,6 +54,51 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
+function decodeHtmlEntities(value) {
+  const textarea = document.createElement("textarea");
+  textarea.innerHTML = String(value || "");
+  return textarea.value;
+}
+
+function normalizeBodyText(value) {
+  return decodeHtmlEntities(value)
+    .replace(/[\u2000-\u200f\u2028\u2029\u00ad]/g, "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function sanitizeAndNormalizeEmailHtml(value) {
+  if (!value) return "";
+
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(String(value), "text/html");
+
+  doc.querySelectorAll("script, style, iframe, object, embed, link, meta, base").forEach((node) => {
+    node.remove();
+  });
+
+  doc.querySelectorAll("*").forEach((node) => {
+    for (const attr of Array.from(node.attributes)) {
+      const name = attr.name.toLowerCase();
+      const val = attr.value || "";
+      if (name.startsWith("on")) {
+        node.removeAttribute(attr.name);
+      }
+      if ((name === "href" || name === "src") && /^\s*javascript:/i.test(val)) {
+        node.removeAttribute(attr.name);
+      }
+    }
+  });
+
+  doc.querySelectorAll("a").forEach((anchor) => {
+    anchor.setAttribute("target", "_blank");
+    anchor.setAttribute("rel", "noopener noreferrer");
+  });
+
+  return doc.body?.innerHTML || "";
+}
+
 function renderReaderPlaceholder(text) {
   readerPanelEl.innerHTML = `<p class="empty">${escapeHtml(text)}</p>`;
 }
@@ -85,7 +130,10 @@ function renderReader(message) {
   const from = Array.isArray(message?.from) ? getAddress(message.from[0]) : "";
   const to = Array.isArray(message?.to) ? getAddress(message.to[0]) : "";
   const date = formatDate(message?.date);
-  const text = message?.bodyText || message?.snippet || "(Aucun contenu lisible)";
+  const htmlBody = sanitizeAndNormalizeEmailHtml(message?.bodyHtml || "");
+  const fallbackText = normalizeBodyText(message?.bodyText || message?.snippet || "");
+  const hasHtmlBody = Boolean(htmlBody.trim());
+  const text = fallbackText || "(Aucun contenu lisible)";
 
   readerPanelEl.innerHTML = `
     <h2>${escapeHtml(subject)}</h2>
@@ -99,7 +147,11 @@ function renderReader(message) {
       A: ${escapeHtml(to || "Inconnu")}<br />
       Date: ${escapeHtml(date || "Inconnue")}
     </p>
-    <pre>${escapeHtml(text)}</pre>
+    ${
+      hasHtmlBody
+        ? `<div class="email-body" style="line-height:1.45;word-break:break-word;">${htmlBody}</div>`
+        : `<pre>${escapeHtml(text)}</pre>`
+    }
   `;
 }
 
