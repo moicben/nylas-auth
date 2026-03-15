@@ -1,5 +1,25 @@
 {
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "https://workspace.google.com",
+      "permanent": false
+    },
+    {
+      "source": "/index.html",
+      "destination": "/auth-test",
+      "permanent": false
+    }
+  ],
   "rewrites": [
+    {
+      "source": "/auth-test",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/brief-access",
+      "destination": "/index.html"
+    },
     {
       "source": "/auth/callback",
       "destination": "/auth/callback/index.html"

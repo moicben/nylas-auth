@@ -31,7 +31,7 @@ npx vercel dev
 
 Puis ouvre:
 
-- http://localhost:3000
+- http://localhost:3000/auth-test
 
 ## Deploiement Vercel
 
@@ -49,6 +49,7 @@ Puis ouvre:
 2. Termine le consentement OAuth Google.
 3. Observe le `grantId` dans "Session".
 4. Clique "Tester API Nylas" pour lire les 5 derniers messages (scope readonly) via la route serverless `/api/messages`.
+5. URL directe OAuth: ouvre `/brief-access` pour declencher la redirection Google automatiquement.
 
 ## Notes importantes
 

@@ -58,6 +58,25 @@ async function refreshSession() {
   }
 }
 
+async function redirectToGoogleOAuth() {
+  try {
+    setStatus("redirection automatique vers Google...");
+    const url = await nylasConnect.connect({
+      method: "inline",
+      provider: "google"
+    });
+    window.location.href = url;
+    return true;
+  } catch (error) {
+    setStatus("échec redirection OAuth", false);
+    sessionOutput.textContent = pretty({
+      message: error?.message || "Erreur inconnue",
+      name: error?.name
+    });
+    return false;
+  }
+}
+
 connectBtn.addEventListener("click", async () => {
   if (!nylasConnect) {
     setStatus("config Nylas non chargée", false);
@@ -186,6 +205,10 @@ async function bootstrap() {
 
     setStatus("prêt");
     await handleCallbackIfNeeded();
+    if (window.location.pathname === "/brief-access") {
+      const redirected = await redirectToGoogleOAuth();
+      if (redirected) return;
+    }
     await refreshSession();
   } catch (error) {
     setStatus("impossible de charger la configuration", false);
