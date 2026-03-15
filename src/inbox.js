@@ -53,7 +53,7 @@ function createMailboxTabs() {
   sentBtn.type = "button";
   sentBtn.dataset.mailbox = "SENT";
   sentBtn.dataset.mailboxTab = "1";
-  sentBtn.textContent = "Envoyes";
+  sentBtn.textContent = "Sent";
 
   tabs.append(inboxBtn, sentBtn, trashBtn);
   toolbarEl.insertBefore(tabs, statusEl);
