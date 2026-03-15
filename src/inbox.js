@@ -259,11 +259,6 @@ async function deleteMessage(messageId) {
   if (!messageId || !state.selectedGrantId || state.isDeletingMessage) return;
 
   const isTrash = state.mailbox === "TRASH";
-  const confirmed = window.confirm(
-    isTrash ? "Supprimer definitivement cet email de la corbeille ?" : "Deplacer cet email dans la corbeille ?"
-  );
-  if (!confirmed) return;
-
   state.isDeletingMessage = true;
   setStatus(isTrash ? "Suppression definitive..." : "Deplacement dans la corbeille...");
 

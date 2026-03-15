@@ -20,8 +20,9 @@
       }
       .layout {
         height: 100vh;
-        display: grid;
-        grid-template-rows: auto 1fr;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
       }
       .topbar {
         display: flex;
@@ -80,6 +81,7 @@
       }
       .split {
         min-height: 0;
+        flex: 1 1 auto;
         display: grid;
         grid-template-columns: 340px 1fr;
         overflow: hidden;
@@ -118,9 +120,6 @@
       .reader {
         min-height: 0;
         overflow-y: auto;
-        position: sticky;
-        top: 0;
-        align-self: start;
         padding: 16px;
       }
       .reader h2 {
@@ -138,6 +137,16 @@
         word-break: break-word;
         font-family: inherit;
         line-height: 1.45;
+      }
+      .reader .email-body {
+        overflow-wrap: anywhere;
+      }
+      .reader .email-body img,
+      .reader .email-body table {
+        max-width: 100% !important;
+      }
+      .reader .email-body img {
+        height: auto !important;
       }
       .empty {
         color: #9ca3af;
