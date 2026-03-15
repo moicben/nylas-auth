@@ -1,3 +1,30 @@
+function getFolderNames(message) {
+  if (!Array.isArray(message?.folders)) return [];
+  return message.folders
+    .map((folder) => {
+      if (typeof folder === "string") return folder.trim().toUpperCase();
+      if (folder && typeof folder === "object") {
+        const value =
+          typeof folder.name === "string"
+            ? folder.name
+            : typeof folder.display_name === "string"
+              ? folder.display_name
+              : typeof folder.id === "string"
+                ? folder.id
+                : "";
+        return value.trim().toUpperCase();
+      }
+      return "";
+    })
+    .filter(Boolean);
+}
+
+function isOthersMailboxMessage(message) {
+  const folders = getFolderNames(message);
+  if (!folders.length) return true;
+  return !folders.some((folder) => folder === "INBOX" || folder === "SENT" || folder === "TRASH");
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method Not Allowed" });
@@ -10,7 +37,9 @@ module.exports = async function handler(req, res) {
   const subject = typeof req.query.subject === "string" ? req.query.subject.trim() : "";
   const mailboxRaw = typeof req.query.mailbox === "string" ? req.query.mailbox.trim() : "INBOX";
   const mailboxCandidate = mailboxRaw.toUpperCase();
-  const mailbox = ["INBOX", "SENT", "TRASH"].includes(mailboxCandidate) ? mailboxCandidate : "INBOX";
+  const mailbox = ["INBOX", "SENT", "TRASH", "OTHERS"].includes(mailboxCandidate)
+    ? mailboxCandidate
+    : "INBOX";
   const readRaw = typeof req.query.read === "string" ? req.query.read.trim().toLowerCase() : "all";
   const readFilter = readRaw === "read" || readRaw === "unread" ? readRaw : "all";
 
@@ -26,7 +55,9 @@ module.exports = async function handler(req, res) {
   const apiUrl = process.env.NYLAS_API_URL || "https://api.eu.nylas.com";
   const params = new URLSearchParams();
   params.set("limit", String(limit));
-  params.set("in", mailbox);
+  if (mailbox !== "OTHERS") {
+    params.set("in", mailbox);
+  }
   if (readFilter === "unread") {
     params.set("unread", "true");
   } else if (readFilter === "read") {
@@ -68,10 +99,12 @@ module.exports = async function handler(req, res) {
           return value.toLowerCase().includes(normalizedSubject);
         })
       : list;
+    const withMailboxFilter =
+      mailbox === "OTHERS" ? withSubjectFilter.filter(isOthersMailboxMessage) : withSubjectFilter;
     const filteredData =
       readFilter === "all"
-        ? withSubjectFilter
-        : withSubjectFilter.filter((message) => {
+        ? withMailboxFilter
+        : withMailboxFilter.filter((message) => {
             const unread = Boolean(message?.unread);
             return readFilter === "unread" ? unread : !unread;
           });

@@ -55,7 +55,13 @@ function createMailboxTabs() {
   sentBtn.dataset.mailboxTab = "1";
   sentBtn.textContent = "Sent";
 
-  tabs.append(inboxBtn, sentBtn, trashBtn);
+  const othersBtn = document.createElement("button");
+  othersBtn.type = "button";
+  othersBtn.dataset.mailbox = "OTHERS";
+  othersBtn.dataset.mailboxTab = "1";
+  othersBtn.textContent = "Others";
+
+  tabs.append(inboxBtn, sentBtn, othersBtn, trashBtn);
   toolbarEl.insertBefore(tabs, statusEl);
 }
 
@@ -466,7 +472,7 @@ function setupEvents() {
   toolbarEl?.addEventListener("click", async (event) => {
     const button = event.target.closest('button[data-mailbox-tab="1"]');
     if (!button) return;
-    const mailbox = ["INBOX", "SENT", "TRASH"].includes(button.dataset.mailbox)
+    const mailbox = ["INBOX", "SENT", "OTHERS", "TRASH"].includes(button.dataset.mailbox)
       ? button.dataset.mailbox
       : "INBOX";
     if (mailbox === state.mailbox) return;
