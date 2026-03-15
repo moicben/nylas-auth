@@ -57,10 +57,20 @@ module.exports = async function handler(req, res) {
           return value.toLowerCase().includes(normalizedSubject);
         })
       : list;
+    const lightMessages = filteredData.map((message) => ({
+      id: message?.id || "",
+      subject: message?.subject || "(Sans sujet)",
+      from: Array.isArray(message?.from) ? message.from : [],
+      to: Array.isArray(message?.to) ? message.to : [],
+      date: message?.date || null,
+      snippet: typeof message?.snippet === "string" ? message.snippet : "",
+      unread: Boolean(message?.unread),
+      starred: Boolean(message?.starred)
+    }));
 
     return res.status(200).json({
       ...payload,
-      data: filteredData,
+      data: lightMessages,
       appliedFilters: {
         subject: subject || null
       }

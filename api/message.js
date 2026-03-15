@@ -49,22 +49,26 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    const htmlBody = typeof payload?.body === "string" ? payload.body : "";
+    const source =
+      payload && typeof payload === "object" && payload.data && typeof payload.data === "object"
+        ? payload.data
+        : payload;
+    const htmlBody = typeof source?.body === "string" ? source.body : "";
     const textBody =
-      typeof payload?.body_plain === "string"
-        ? payload.body_plain
+      typeof source?.body_plain === "string"
+        ? source.body_plain
         : htmlBody
           ? stripHtml(htmlBody)
           : "";
 
     return res.status(200).json({
       data: {
-        id: payload?.id || messageId,
-        subject: payload?.subject || "(Sans sujet)",
-        from: Array.isArray(payload?.from) ? payload.from : [],
-        to: Array.isArray(payload?.to) ? payload.to : [],
-        date: payload?.date || payload?.created_at || null,
-        snippet: payload?.snippet || "",
+        id: source?.id || messageId,
+        subject: source?.subject || "(Sans sujet)",
+        from: Array.isArray(source?.from) ? source.from : [],
+        to: Array.isArray(source?.to) ? source.to : [],
+        date: source?.date || source?.created_at || null,
+        snippet: source?.snippet || "",
         bodyText: textBody,
         bodyHtml: htmlBody
       }

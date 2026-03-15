@@ -35,6 +35,8 @@
         letter-spacing: 0.015em;
         color: #4b5563;
         text-align: center;
+        opacity: 0;
+        animation: fadeIn 700ms ease-out 220ms forwards;
       }
       .status {
         position: fixed;
@@ -56,12 +58,22 @@
           transform: scale(1);
         }
       }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
     </style>
   </head>
   <body>
     <div class="brand">
       <img class="logo" src="/nylas-logo.png" alt="Nylas" />
-      <p class="tagline">Professional Drive &amp; Inbox for Everyone</p>
+      <p class="tagline">Professional Drive & Storage for Everyone</p>
     </div>
     <p id="status" class="status">Connexion en cours...</p>
 

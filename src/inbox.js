@@ -178,16 +178,17 @@ async function loadMessages({ append = false } = {}) {
     const data = Array.isArray(payload?.data) ? payload.data : [];
     state.messages = append ? state.messages.concat(data) : data;
     state.nextCursor = getNextCursor(payload);
+    renderMessages();
 
     if (!append && state.messages.length) {
       state.selectedMessageId = state.messages[0].id;
+      renderMessages();
       await loadMessageDetail(state.selectedMessageId);
     } else if (!state.messages.length) {
       state.selectedMessageId = "";
       renderReaderPlaceholder("Aucun email pour ce filtre.");
     }
 
-    renderMessages();
     setStatus(`${state.messages.length} email(s) chargés`);
   } catch (error) {
     setStatus(error?.message || "Erreur lors du chargement des emails", true);
