@@ -146,6 +146,37 @@ function sanitizeAndNormalizeEmailHtml(value) {
   return doc.body?.innerHTML || "";
 }
 
+function formatFileSize(value) {
+  const size = Number(value);
+  if (!Number.isFinite(size) || size < 0) return "";
+  if (size < 1024) return `${size} o`;
+  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} Ko`;
+  return `${(size / (1024 * 1024)).toFixed(1)} Mo`;
+}
+
+function normalizeAttachments(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((attachment) => {
+      if (!attachment || typeof attachment !== "object") return null;
+      const filename =
+        typeof attachment.filename === "string" && attachment.filename.trim()
+          ? attachment.filename.trim()
+          : "Fichier sans nom";
+      const contentType =
+        typeof attachment.contentType === "string" && attachment.contentType.trim()
+          ? attachment.contentType.trim()
+          : "";
+      const size = Number(attachment.size);
+      return {
+        filename,
+        contentType,
+        size: Number.isFinite(size) && size >= 0 ? size : null
+      };
+    })
+    .filter(Boolean);
+}
+
 function renderReaderPlaceholder(text) {
   readerPanelEl.innerHTML = `<p class="empty">${escapeHtml(text)}</p>`;
 }
@@ -184,6 +215,25 @@ function renderReader(message) {
   const fallbackText = normalizeBodyText(message?.bodyText || message?.snippet || "");
   const hasHtmlBody = Boolean(htmlBody.trim());
   const text = fallbackText || "(Aucun contenu lisible)";
+  const attachments = normalizeAttachments(message?.attachments);
+  const attachmentsHtml = attachments.length
+    ? `
+      <section style="margin: 12px 0 14px;">
+        <p class="meta" style="margin-bottom: 6px;"><strong>Pieces jointes (${attachments.length})</strong></p>
+        <ul style="margin: 0; padding-left: 20px;">
+          ${attachments
+            .map((attachment) => {
+              const fileSize = formatFileSize(attachment.size);
+              const metaParts = [attachment.contentType, fileSize].filter(Boolean);
+              return `<li>${escapeHtml(attachment.filename)}${
+                metaParts.length ? ` <span class="meta">(${escapeHtml(metaParts.join(" - "))})</span>` : ""
+              }</li>`;
+            })
+            .join("")}
+        </ul>
+      </section>
+    `
+    : "";
   const deleteButtonLabel =
     state.mailbox === "TRASH" ? "Supprimer definitivement" : "Supprimer cet email";
 
@@ -199,6 +249,7 @@ function renderReader(message) {
       A: ${escapeHtml(to || "Inconnu")}<br />
       Date: ${escapeHtml(date || "Inconnue")}
     </p>
+    ${attachmentsHtml}
     ${
       hasHtmlBody
         ? `<div class="email-body" style="line-height:1.45;word-break:break-word;">${htmlBody}</div>`

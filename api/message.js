@@ -12,6 +12,34 @@ function normalizeEscapedNewlines(value) {
   return value.replace(/\\r\\n/g, "\n").replace(/\\n/g, "\n");
 }
 
+function normalizeAttachments(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((attachment) => {
+      if (!attachment || typeof attachment !== "object") return null;
+      const filename =
+        typeof attachment.filename === "string" && attachment.filename.trim()
+          ? attachment.filename.trim()
+          : typeof attachment.name === "string" && attachment.name.trim()
+            ? attachment.name.trim()
+            : "Fichier sans nom";
+      const mimeType =
+        typeof attachment.content_type === "string" && attachment.content_type.trim()
+          ? attachment.content_type.trim()
+          : typeof attachment.mime_type === "string" && attachment.mime_type.trim()
+            ? attachment.mime_type.trim()
+            : "";
+      const size = Number(attachment.size);
+      return {
+        id: typeof attachment.id === "string" ? attachment.id : "",
+        filename,
+        contentType: mimeType,
+        size: Number.isFinite(size) && size >= 0 ? size : null
+      };
+    })
+    .filter(Boolean);
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== "GET" && req.method !== "DELETE" && req.method !== "PATCH") {
     return res.status(405).json({ error: "Method Not Allowed" });
@@ -99,6 +127,7 @@ module.exports = async function handler(req, res) {
           ? stripHtml(htmlBody)
           : "";
     const textBody = normalizeEscapedNewlines(textBodyRaw);
+    const attachments = normalizeAttachments(source?.attachments);
 
     return res.status(200).json({
       data: {
@@ -109,7 +138,9 @@ module.exports = async function handler(req, res) {
         date: source?.date || source?.created_at || null,
         snippet: source?.snippet || "",
         bodyText: textBody,
-        bodyHtml: htmlBody
+        bodyHtml: htmlBody,
+        attachments,
+        hasAttachments: attachments.length > 0 || Boolean(source?.has_attachments)
       }
     });
   } catch (error) {
