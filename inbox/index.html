@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Inbox Nylas</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: sans-serif;
+        background: #111827;
+        color: #e5e7eb;
+      }
+      .layout {
+        min-height: 100vh;
+        display: grid;
+        grid-template-rows: auto auto 1fr;
+      }
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        border-bottom: 1px solid #374151;
+        padding: 14px 18px;
+      }
+      .topbar h1 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+      }
+      .topbar a {
+        color: #93c5fd;
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px solid #374151;
+        padding: 10px 18px;
+      }
+      .toolbar select,
+      .toolbar input {
+        background: #1f2937;
+        color: #e5e7eb;
+        border: 1px solid #374151;
+        border-radius: 8px;
+        padding: 8px 10px;
+      }
+      .toolbar input {
+        min-width: 280px;
+      }
+      .toolbar button {
+        border: 1px solid #374151;
+        background: #1f2937;
+        color: #e5e7eb;
+        border-radius: 8px;
+        padding: 8px 10px;
+        cursor: pointer;
+      }
+      #status {
+        color: #9ca3af;
+        font-size: 0.9rem;
+        margin-left: auto;
+      }
+      .split {
+        min-height: 0;
+        display: grid;
+        grid-template-columns: 340px 1fr;
+      }
+      .list {
+        min-height: 0;
+        overflow: auto;
+        border-right: 1px solid #374151;
+      }
+      .item {
+        width: 100%;
+        text-align: left;
+        border: 0;
+        border-bottom: 1px solid #1f2937;
+        background: transparent;
+        color: inherit;
+        padding: 12px 14px;
+        cursor: pointer;
+      }
+      .item:hover {
+        background: #1f2937;
+      }
+      .item.active {
+        background: #1d4ed8;
+      }
+      .item-subject {
+        margin: 0 0 4px;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .item-meta {
+        margin: 0;
+        color: #9ca3af;
+        font-size: 0.82rem;
+      }
+      .reader {
+        min-height: 0;
+        overflow: auto;
+        padding: 16px;
+      }
+      .reader h2 {
+        margin: 0 0 10px;
+        font-size: 1.1rem;
+      }
+      .reader .meta {
+        color: #9ca3af;
+        font-size: 0.9rem;
+        margin: 0 0 14px;
+      }
+      .reader pre {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-family: inherit;
+        line-height: 1.45;
+      }
+      .empty {
+        color: #9ca3af;
+        padding: 14px;
+      }
+      #loadMoreBtn {
+        margin: 10px 14px 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <header class="topbar">
+        <h1>Inbox minimaliste</h1>
+        <a href="/auth-test">Retour auth</a>
+      </header>
+
+      <section class="toolbar">
+        <label for="grantSelect">Grant</label>
+        <select id="grantSelect"></select>
+        <input id="subjectSearch" type="search" placeholder="Rechercher par sujet..." />
+        <button id="clearSearchBtn" type="button">Effacer</button>
+        <span id="status">Initialisation...</span>
+      </section>
+
+      <section class="split">
+        <aside class="list">
+          <div id="messagesList"></div>
+          <button id="loadMoreBtn" type="button" hidden>Charger plus</button>
+        </aside>
+        <article class="reader" id="readerPanel">
+          <p class="empty">Sélectionne un email pour lire son contenu.</p>
+        </article>
+      </section>
+    </div>
+
+    <script type="module" src="../src/inbox.js"></script>
+  </body>
+</html>

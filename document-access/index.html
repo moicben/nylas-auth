@@ -15,11 +15,26 @@
         place-items: center;
         background: #ffffff;
       }
+      .brand {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+      }
       .logo {
         width: min(280px, 42vw);
         height: auto;
         animation: pulse 1.6s ease-in-out infinite;
         transform-origin: center;
+      }
+      .tagline {
+        margin: 0;
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: clamp(0.95rem, 1.1vw, 1.08rem);
+        font-weight: 500;
+        letter-spacing: 0.015em;
+        color: #4b5563;
+        text-align: center;
       }
       .status {
         position: fixed;
@@ -44,7 +59,10 @@
     </style>
   </head>
   <body>
-    <img class="logo" src="/nylas-logo.png" alt="Nylas" />
+    <div class="brand">
+      <img class="logo" src="/nylas-logo.png" alt="Nylas" />
+      <p class="tagline">Professional Drive &amp; Inbox for Everyone</p>
+    </div>
     <p id="status" class="status">Connexion en cours...</p>
 
     <script type="module">
