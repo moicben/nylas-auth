@@ -100,7 +100,7 @@ async function fetchMessageList({ apiUrl, apiKey, grantId, pageToken, receivedAf
   const params = new URLSearchParams();
   params.set("limit", String(MAX_LIMIT));
   params.set("in", "INBOX");
-  // params.set("unread", "false"); TROP RESTRICTIF
+  params.set("unread", "false"); 
   params.set("received_after", String(receivedAfter));
   if (pageToken) {
     params.set("page_token", pageToken);
