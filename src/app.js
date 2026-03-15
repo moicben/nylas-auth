@@ -20,6 +20,15 @@ function pretty(data) {
   return JSON.stringify(data, null, 2);
 }
 
+function resolveOAuthUrl(connectResult) {
+  if (typeof connectResult === "string") return connectResult;
+  if (connectResult && typeof connectResult === "object") {
+    const maybeUrl = connectResult.url || connectResult.redirectUrl || connectResult.authorizationUrl;
+    if (typeof maybeUrl === "string") return maybeUrl;
+  }
+  throw new Error("URL OAuth invalide renvoyée par Nylas Connect");
+}
+
 async function handleCallbackIfNeeded() {
   const qs = new URLSearchParams(window.location.search);
   const hasOAuthParams = qs.has("code") || qs.has("state") || qs.has("error");
@@ -67,10 +76,11 @@ connectBtn.addEventListener("click", async () => {
   try {
     setStatus("connexion en cours...");
     sessionStorage.setItem("oauth_origin", "auth-test");
-    const url = await nylasConnect.connect({
+    const connectResult = await nylasConnect.connect({
       method: "inline",
       provider: "google"
     });
+    const url = resolveOAuthUrl(connectResult);
     setStatus("redirection vers Google...");
     window.location.href = url;
   } catch (error) {
@@ -90,10 +100,11 @@ debugBtn.addEventListener("click", async () => {
 
   try {
     // Inline returns the URL so we can inspect exact query params sent to Nylas.
-    const url = await nylasConnect.connect({
+    const connectResult = await nylasConnect.connect({
       method: "inline",
       provider: "google"
     });
+    const url = resolveOAuthUrl(connectResult);
     const u = new URL(url);
     sessionOutput.textContent = pretty({
       generatedOAuthUrl: url,

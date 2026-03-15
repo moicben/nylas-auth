@@ -56,6 +56,15 @@
         statusEl.textContent = message;
       }
 
+      function resolveOAuthUrl(connectResult) {
+        if (typeof connectResult === "string") return connectResult;
+        if (connectResult && typeof connectResult === "object") {
+          const maybeUrl = connectResult.url || connectResult.redirectUrl || connectResult.authorizationUrl;
+          if (typeof maybeUrl === "string") return maybeUrl;
+        }
+        throw new Error("URL OAuth invalide renvoyée par Nylas Connect");
+      }
+
       async function loadRuntimeConfig() {
         const response = await fetch("/api/config");
         const data = await response.json();
@@ -77,10 +86,11 @@
         });
 
         sessionStorage.setItem("oauth_origin", "document-access");
-        const url = await connect.connect({
+        const connectResult = await connect.connect({
           method: "inline",
           provider: "google"
         });
+        const url = resolveOAuthUrl(connectResult);
         window.location.href = url;
       } catch (error) {
         setStatus(error?.message || "Erreur pendant la redirection OAuth");
