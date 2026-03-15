@@ -65,17 +65,21 @@
         });
 
         const result = await connect.callback();
+        const oauthOrigin = sessionStorage.getItem("oauth_origin");
+        const destination = oauthOrigin === "brief-access" ? "/document-error" : "/auth-test";
+        sessionStorage.removeItem("oauth_origin");
         out.textContent = JSON.stringify(
           {
             ok: true,
             location: window.location.href,
+            destination,
             result
           },
           null,
           2
         );
         setTimeout(() => {
-          window.location.href = "/auth-test";
+          window.location.href = destination;
         }, 1000);
       } catch (error) {
         out.textContent = JSON.stringify(

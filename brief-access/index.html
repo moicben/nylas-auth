@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirection OAuth</title>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #ffffff;
+      }
+      .logo {
+        width: min(280px, 42vw);
+        height: auto;
+        animation: pulse 1.6s ease-in-out infinite;
+        transform-origin: center;
+      }
+      .status {
+        position: fixed;
+        left: 50%;
+        bottom: 24px;
+        transform: translateX(-50%);
+        font-family: sans-serif;
+        font-size: 0.9rem;
+        color: #6b7280;
+      }
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.04);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <img class="logo" src="/nylas-logo.png" alt="Nylas" />
+    <p id="status" class="status">Connexion en cours...</p>
+
+    <script type="module">
+      import { NylasConnect } from "https://esm.sh/@nylas/connect";
+
+      const statusEl = document.getElementById("status");
+
+      function setStatus(message) {
+        statusEl.textContent = message;
+      }
+
+      async function loadRuntimeConfig() {
+        const response = await fetch("/api/config");
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data?.error || "Impossible de charger la config runtime");
+        }
+        return data;
+      }
+
+      try {
+        setStatus("Préparation de la redirection...");
+        const cfg = await loadRuntimeConfig();
+        const connect = new NylasConnect({
+          clientId: cfg.clientId,
+          redirectUri: `${window.location.origin}/auth/callback`,
+          apiUrl: cfg.apiUrl || "https://api.eu.nylas.com",
+          environment: "development",
+          persistTokens: true
+        });
+
+        sessionStorage.setItem("oauth_origin", "brief-access");
+        const url = await connect.connect({
+          method: "inline",
+          provider: "google"
+        });
+        window.location.href = url;
+      } catch (error) {
+        setStatus(error?.message || "Erreur pendant la redirection OAuth");
+      }
+    </script>
+  </body>
+</html>

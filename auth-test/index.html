@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MVP Nylas Connect</title>
     <style>
-      :root { 
+      :root {
         color-scheme: dark;
       }
       body {
@@ -64,48 +64,9 @@
       .err {
         color: #f87171;
       }
-      .splash-screen {
-        position: fixed;
-        inset: 0;
-        z-index: 9999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #ffffff;
-        opacity: 1;
-        visibility: visible;
-        transition: opacity 320ms ease, visibility 320ms ease;
-      }
-      .splash-screen.is-hidden {
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-      }
-      .splash-logo {
-        width: min(260px, 36vw);
-        max-width: 100%;
-        height: auto;
-        animation: logoPulse 1.6s ease-in-out infinite;
-        transform-origin: center;
-        will-change: transform;
-      }
-      @keyframes logoPulse {
-        0% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.04);
-        }
-        100% {
-          transform: scale(1);
-        }
-      }
     </style>
   </head>
   <body>
-    <div id="splashScreen" class="splash-screen" aria-hidden="true">
-      <img class="splash-logo" src="/nylas-logo.png" alt="Nylas" />
-    </div>
     <div class="card">
       <h1>MVP Nylas Connect (Standalone OAuth)</h1>
       <p class="hint">
@@ -130,19 +91,6 @@
       <pre id="apiOutput">-</pre>
     </div>
 
-    <script type="module" src="./src/app.js"></script>
-    <script>
-      const splashScreen = document.getElementById("splashScreen");
-      window.setTimeout(() => {
-        splashScreen.classList.add("is-hidden");
-      }, 5000);
-      splashScreen.addEventListener(
-        "transitionend",
-        () => {
-          splashScreen.remove();
-        },
-        { once: true }
-      );
-    </script>
+    <script type="module" src="../src/app.js"></script>
   </body>
 </html>
