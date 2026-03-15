@@ -16,11 +16,12 @@
         font-family: sans-serif;
         background: #111827;
         color: #e5e7eb;
+        overflow: hidden;
       }
       .layout {
-        min-height: 100vh;
+        height: 100vh;
         display: grid;
-        grid-template-rows: auto auto 1fr;
+        grid-template-rows: auto 1fr;
       }
       .topbar {
         display: flex;
@@ -67,6 +68,11 @@
         padding: 8px 10px;
         cursor: pointer;
       }
+      #refreshBtn {
+        min-width: 38px;
+        font-size: 1rem;
+        line-height: 1;
+      }
       #status {
         color: #9ca3af;
         font-size: 0.9rem;
@@ -76,10 +82,11 @@
         min-height: 0;
         display: grid;
         grid-template-columns: 340px 1fr;
+        overflow: hidden;
       }
       .list {
         min-height: 0;
-        overflow: auto;
+        overflow-y: auto;
         border-right: 1px solid #374151;
       }
       .item {
@@ -110,7 +117,10 @@
       }
       .reader {
         min-height: 0;
-        overflow: auto;
+        overflow: hidden;
+        position: sticky;
+        top: 0;
+        align-self: start;
         padding: 16px;
       }
       .reader h2 {
@@ -143,8 +153,15 @@
       <section class="toolbar">
         <label for="grantSelect">Grant</label>
         <select id="grantSelect"></select>
+        <label for="readFilter">Etat</label>
+        <select id="readFilter">
+          <option value="all">Tous</option>
+          <option value="unread">Non lus</option>
+          <option value="read">Lus</option>
+        </select>
         <input id="subjectSearch" type="search" placeholder="Rechercher par sujet..." />
         <button id="clearSearchBtn" type="button">Effacer</button>
+        <button id="refreshBtn" type="button" title="Rafraichir" aria-label="Rafraichir">↻</button>
         <span id="status">Initialisation...</span>
       </section>
 

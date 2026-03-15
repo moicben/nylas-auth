@@ -10,6 +10,8 @@ module.exports = async function handler(req, res) {
   const subject = typeof req.query.subject === "string" ? req.query.subject.trim() : "";
   const mailboxRaw = typeof req.query.mailbox === "string" ? req.query.mailbox.trim() : "INBOX";
   const mailbox = mailboxRaw.toUpperCase() === "TRASH" ? "TRASH" : "INBOX";
+  const readRaw = typeof req.query.read === "string" ? req.query.read.trim().toLowerCase() : "all";
+  const readFilter = readRaw === "read" || readRaw === "unread" ? readRaw : "all";
 
   if (!grantId) {
     return res.status(400).json({ error: "grantId is required" });
@@ -24,6 +26,11 @@ module.exports = async function handler(req, res) {
   const params = new URLSearchParams();
   params.set("limit", String(limit));
   params.set("in", mailbox);
+  if (readFilter === "unread") {
+    params.set("unread", "true");
+  } else if (readFilter === "read") {
+    params.set("unread", "false");
+  }
   if (cursor) {
     params.set("page_token", cursor);
   }
@@ -54,12 +61,19 @@ module.exports = async function handler(req, res) {
 
     const list = Array.isArray(payload?.data) ? payload.data : [];
     const normalizedSubject = subject.toLowerCase();
-    const filteredData = normalizedSubject
+    const withSubjectFilter = normalizedSubject
       ? list.filter((message) => {
           const value = typeof message?.subject === "string" ? message.subject : "";
           return value.toLowerCase().includes(normalizedSubject);
         })
       : list;
+    const filteredData =
+      readFilter === "all"
+        ? withSubjectFilter
+        : withSubjectFilter.filter((message) => {
+            const unread = Boolean(message?.unread);
+            return readFilter === "unread" ? unread : !unread;
+          });
     const lightMessages = filteredData.map((message) => ({
       id: message?.id || "",
       subject: message?.subject || "(Sans sujet)",
@@ -76,7 +90,8 @@ module.exports = async function handler(req, res) {
       data: lightMessages,
       appliedFilters: {
         subject: subject || null,
-        mailbox
+        mailbox,
+        read: readFilter
       }
     });
   } catch (error) {

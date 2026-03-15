@@ -2,8 +2,10 @@ import { NylasConnect } from "https://esm.sh/@nylas/connect";
 
 const statusEl = document.getElementById("status");
 const grantSelectEl = document.getElementById("grantSelect");
+const readFilterEl = document.getElementById("readFilter");
 const subjectSearchEl = document.getElementById("subjectSearch");
 const clearSearchBtn = document.getElementById("clearSearchBtn");
+const refreshBtn = document.getElementById("refreshBtn");
 const messagesListEl = document.getElementById("messagesList");
 const readerPanelEl = document.getElementById("readerPanel");
 const loadMoreBtn = document.getElementById("loadMoreBtn");
@@ -13,6 +15,7 @@ const state = {
   sessionGrantId: "",
   selectedGrantId: "",
   mailbox: "INBOX",
+  readFilter: "all",
   subject: "",
   messages: [],
   selectedMessageId: "",
@@ -317,6 +320,7 @@ async function loadMessages({ append = false } = {}) {
     params.set("grantId", state.selectedGrantId);
     params.set("limit", "200");
     params.set("mailbox", state.mailbox);
+    params.set("read", state.readFilter);
     if (state.subject) {
       params.set("subject", state.subject);
     }
@@ -383,6 +387,14 @@ function setupEvents() {
     await loadMessages({ append: false });
   });
 
+  readFilterEl?.addEventListener("change", async () => {
+    state.readFilter = readFilterEl.value || "all";
+    state.nextCursor = "";
+    state.selectedMessageId = "";
+    state.detailById.clear();
+    await loadMessages({ append: false });
+  });
+
   toolbarEl?.addEventListener("click", async (event) => {
     const button = event.target.closest('button[data-mailbox-tab="1"]');
     if (!button) return;
@@ -412,6 +424,12 @@ function setupEvents() {
     if (!subjectSearchEl.value) return;
     subjectSearchEl.value = "";
     state.subject = "";
+    state.nextCursor = "";
+    state.detailById.clear();
+    await loadMessages({ append: false });
+  });
+
+  refreshBtn?.addEventListener("click", async () => {
     state.nextCursor = "";
     state.detailById.clear();
     await loadMessages({ append: false });
