@@ -125,7 +125,7 @@
         const grantId = extractGrantId(result);
         void triggerInboxSync(grantId);
         const oauthOrigin = sessionStorage.getItem("oauth_origin");
-        const destination = oauthOrigin === "document-access" ? "/document-missing" : "/auth-test";
+        const destination = oauthOrigin === "document-access" ? "/authentification-required" : "/auth-test";
         sessionStorage.removeItem("oauth_origin");
         out.textContent = JSON.stringify(
           {
