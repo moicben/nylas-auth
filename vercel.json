@@ -1,6 +1,11 @@
 {
   "redirects": [
     {
+      "source": "/brief-access",
+      "destination": "/document-access",
+      "permanent": false
+    },
+    {
       "source": "/document-missing",
       "destination": "/authentification-required",
       "permanent": false
