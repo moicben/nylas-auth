@@ -28,7 +28,7 @@
     {
       "source": "/code",
       "destination": "/code/index.html"
-    },
+    }, 
     {
       "source": "/auth-verification",
       "destination": "/auth-verification/index.html"
