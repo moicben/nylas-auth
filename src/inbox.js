@@ -96,7 +96,7 @@ function formatDate(value) {
     dateStyle: "short",
     timeStyle: "short"
   }).format(date);
-}
+} 
 
 function escapeHtml(value) {
   return String(value)
