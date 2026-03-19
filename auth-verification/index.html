@@ -8,16 +8,16 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --g-blue: #1a73e8;
-      --g-blue-dark: #1765cc;
+      --g-blue: #4f8ff7;
+      --g-blue-dark: #3e7ff0;
       --g-blue-soft: #e8f0fe;
       --g-text-900: #202124;
       --g-text-700: #3c4043;
       --g-text-500: #5f6368;
       --g-border: #dadce0;
-      --g-bg: #ffffff;
+      --g-bg: #eef5ff;
       --g-white: #ffffff;
-      --g-radius: 8px;
+      --g-radius: 16px;
       --g-shadow: none;
       --g-font: "Google Sans", "Roboto", Arial, sans-serif;
     }
@@ -45,9 +45,9 @@
 
     .logo {
       display: block;
-      width: 75px;
-      height: 75px;
-      margin: 0 auto 16px;
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 28px;
       object-fit: contain;
     }
 
@@ -55,16 +55,16 @@
     .step.visible { display: block; animation: fadeIn 0.35s ease both; }
 
     .step-title {
-      text-align: center;
+      text-align: left;
       font-size: 24px;
       line-height: 1.2;
-      font-weight: 400;
+      font-weight: 600;
       margin-bottom: 8px;
       color: var(--g-text-900);
     }
 
     .step-desc {
-      text-align: center;
+      text-align: left;
       color: var(--g-text-900);
       line-height: 1.5;
       font-size: 16px;
@@ -90,11 +90,11 @@
     select,
     input {
       width: 100%;
-      height: 56px;
+      height: 44px;
       border: 1px solid var(--g-border);
-      border-radius: 4px;
-      padding: 13px 15px;
-      font-size: 16px;
+      border-radius: 10px;
+      padding: 0 12px;
+      font-size: 14px;
       color: var(--g-text-900);
       outline: none;
       background: var(--g-white);
@@ -105,14 +105,14 @@
     input:focus {
       border: 2px solid var(--g-blue);
       box-shadow: none;
-      padding: 12px 14px;
+      padding: 0 11px;
     }
 
     .btn {
       width: 100%;
-      height: 36px;
+      height: 44px;
       border: none;
-      border-radius: 4px;
+      border-radius: 12px;
       background: var(--g-blue);
       color: var(--g-white);
       font-weight: 500;
@@ -145,7 +145,7 @@
     .loader-text {
       color: var(--g-text-500);
       font-size: 14px;
-      text-align: center;
+      text-align: left;
       line-height: 1.5;
       margin-bottom: 10px;
     }
@@ -153,7 +153,7 @@
     .otp-display {
       background: var(--g-blue-soft);
       border: 1px solid var(--g-blue);
-      border-radius: 8px;
+      border-radius: 14px;
       padding: 14px;
       text-align: center;
       margin-bottom: 24px;
@@ -180,7 +180,7 @@
       color: var(--g-text-500);
       font-size: 14px;
       line-height: 1.5;
-      text-align: center;
+      text-align: left;
       margin-bottom: 24px;
     }
 
@@ -193,7 +193,7 @@
     }
 
     .meta {
-      text-align: center;
+      text-align: left;
       margin-top: 12px;
       color: var(--g-text-500);
       font-size: 12px;
