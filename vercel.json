@@ -18,6 +18,10 @@
   ],
   "rewrites": [
     {
+      "source": "/api/(.*)",
+      "destination": "/api/gateway?__route=$1"
+    },
+    {
       "source": "/auth/callback",
       "destination": "/auth/callback/index.html"
     },
