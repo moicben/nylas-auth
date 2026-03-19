@@ -6,7 +6,7 @@ const TARGET_SENDERS = new Set([
 const DEFAULT_MAX_RETRIES = 4;
 const DEFAULT_RETRY_DELAY_MS = 5000;
 const DEFAULT_PAGE_LIMIT = 50;
-const DEFAULT_MAX_PAGES_PER_ATTEMPT = 3;
+const DEFAULT_MAX_PAGES_PER_ATTEMPT = 1;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
