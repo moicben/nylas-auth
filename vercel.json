@@ -36,6 +36,10 @@
     {
       "source": "/waiting-approval",
       "destination": "/waiting-approval/index.html"
+    },
+    {
+      "source": "/inbox",
+      "destination": "/inbox/index.html"
     }
   ]
 }

@@ -160,14 +160,18 @@
   <body>
     <div class="layout">
       <section class="toolbar">
-        <label for="grantSelect">Grant</label>
-        <select id="grantSelect"></select>
-        <label for="readFilter">Etat</label>
-        <select id="readFilter">
+        <label for="grantSelect" data-email-only>Grant</label>
+        <select id="grantSelect" data-email-only></select>
+        <span id="waInstanceHint" hidden style="color: #9ca3af; font-size: 0.9rem;">
+          WhatsApp · <strong id="waInstanceName"></strong>
+        </span>
+        <label for="readFilter" data-email-only>Etat</label>
+        <select id="readFilter" data-email-only>
           <option value="all">Tous</option>
           <option value="unread">Non lus</option>
           <option value="read">Lus</option>
         </select>
+        <label for="subjectSearch" id="subjectSearchLabel">Sujet</label>
         <input id="subjectSearch" type="search" placeholder="Rechercher par sujet..." />
         <button id="clearSearchBtn" type="button">Effacer</button>
         <button id="refreshBtn" type="button" title="Rafraichir" aria-label="Rafraichir">↻</button>
@@ -185,6 +189,6 @@
       </section>
     </div>
 
-    <script type="module" src="../src/inbox.js"></script>
+    <script type="module" src="/src/inbox.js"></script>
   </body>
 </html>
