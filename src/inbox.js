@@ -10,8 +10,8 @@ const messagesListEl = document.getElementById("messagesList");
 const readerPanelEl = document.getElementById("readerPanel");
 const loadMoreBtn = document.getElementById("loadMoreBtn");
 const toolbarEl = document.querySelector(".toolbar");
-const waInstanceHintEl = document.getElementById("waInstanceHint");
-const waInstanceNameEl = document.getElementById("waInstanceName");
+const waInstanceLabelEl = document.getElementById("waInstanceLabel");
+const waInstanceSelectEl = document.getElementById("waInstanceSelect");
 const subjectSearchLabelEl = document.getElementById("subjectSearchLabel");
 
 const state = {
@@ -27,12 +27,15 @@ const state = {
   detailById: new Map(),
   isLoadingMessages: false,
   isDeletingMessage: false,
-  /** WhatsApp (Evolution) — instance unique via env */
+  /** WhatsApp (Evolution) — instance choisie dans la liste */
+  waInstances: [],
+  selectedWaInstance: "",
   waChats: [],
   waMessages: [],
-  selectedWaRemoteJid: "",
-  waInstanceName: ""
+  selectedWaRemoteJid: ""
 };
+
+const WA_INSTANCE_STORAGE_KEY = "inbox-wa-evolution-instance";
 
 let searchDebounce = null;
 
@@ -84,11 +87,11 @@ function updateToolbarForSource() {
   getEmailOnlyElements().forEach((el) => {
     el.hidden = !isEmail;
   });
-  if (waInstanceHintEl) {
-    waInstanceHintEl.hidden = isEmail;
+  if (waInstanceLabelEl) {
+    waInstanceLabelEl.hidden = isEmail;
   }
-  if (waInstanceNameEl && state.waInstanceName) {
-    waInstanceNameEl.textContent = state.waInstanceName;
+  if (waInstanceSelectEl) {
+    waInstanceSelectEl.hidden = isEmail;
   }
   const mailboxTabs = document.getElementById("mailboxTabs");
   if (mailboxTabs) {
@@ -451,6 +454,52 @@ function updateLoadMoreButton() {
   loadMoreBtn.hidden = !show;
 }
 
+
+function pickDefaultWaInstance() {
+  const list = state.waInstances;
+  if (!list.length) return "";
+  const names = list.map((i) => i.name);
+  let saved = "";
+  try {
+    saved = localStorage.getItem(WA_INSTANCE_STORAGE_KEY) || "";
+  } catch (_e) {
+    saved = "";
+  }
+  if (saved && names.includes(saved)) return saved;
+  const openOne = list.find((i) => String(i.status).toLowerCase() === "open");
+  return (openOne && openOne.name) || list[0].name || "";
+}
+
+function fillWaInstanceSelect() {
+  if (!waInstanceSelectEl) return;
+  waInstanceSelectEl.innerHTML = "";
+  for (const row of state.waInstances) {
+    const opt = document.createElement("option");
+    opt.value = row.name;
+    const st = row.status ? ` (${row.status})` : "";
+    const prof = row.profileName ? ` — ${row.profileName}` : "";
+    opt.textContent = `${row.name}${st}${prof}`;
+    waInstanceSelectEl.append(opt);
+  }
+  if (state.selectedWaInstance && [...waInstanceSelectEl.options].some((o) => o.value === state.selectedWaInstance)) {
+    waInstanceSelectEl.value = state.selectedWaInstance;
+  }
+}
+
+async function loadWaInstances() {
+  const payload = await fetchJson("/api/wa-instances");
+  state.waInstances = Array.isArray(payload?.data) ? payload.data : [];
+  state.selectedWaInstance = pickDefaultWaInstance();
+  fillWaInstanceSelect();
+  try {
+    if (state.selectedWaInstance) {
+      localStorage.setItem(WA_INSTANCE_STORAGE_KEY, state.selectedWaInstance);
+    }
+  } catch (_e) {
+    /* ignore */
+  }
+}
+
 async function loadRuntimeConfig() {
   const response = await fetch("/api/config");
   const data = await response.json();
@@ -550,7 +599,7 @@ async function deleteMessage(messageId) {
 }
 
 async function deleteWaMessage(messageId, remoteJid, fromMe) {
-  if (!messageId || !remoteJid || state.isDeletingMessage) return;
+  if (!messageId || !remoteJid || !state.selectedWaInstance || state.isDeletingMessage) return;
   state.isDeletingMessage = true;
   setStatus("Suppression WhatsApp...");
 
@@ -560,6 +609,7 @@ async function deleteWaMessage(messageId, remoteJid, fromMe) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         action: "delete",
+        instance: state.selectedWaInstance,
         id: messageId,
         remoteJid,
         fromMe,
@@ -625,17 +675,22 @@ async function loadMessages({ append = false } = {}) {
 }
 
 async function loadWaChats() {
+  if (!state.selectedWaInstance) {
+    setStatus("Choisis une instance WhatsApp dans la liste.", true);
+    messagesListEl.innerHTML = '<p class="empty">Aucune instance disponible ou selectionnee.</p>';
+    renderReaderPlaceholder("Selectionne une instance Evolution dans la liste deroulante.");
+    return;
+  }
+
   state.isLoadingMessages = true;
   updateLoadMoreButton();
   setStatus("Chargement des conversations WhatsApp...");
 
   try {
-    const payload = await fetchJson("/api/wa-chats");
+    const params = new URLSearchParams();
+    params.set("instance", state.selectedWaInstance);
+    const payload = await fetchJson(`/api/wa-chats?${params.toString()}`);
     state.waChats = Array.isArray(payload?.data) ? payload.data : [];
-    state.waInstanceName = typeof payload?.instance === "string" ? payload.instance : "";
-    if (waInstanceNameEl) {
-      waInstanceNameEl.textContent = state.waInstanceName || "(instance)";
-    }
 
     state.selectedWaRemoteJid = "";
     state.waMessages = [];
@@ -653,7 +708,7 @@ async function loadWaChats() {
   } catch (error) {
     setStatus(error?.message || "Erreur WhatsApp (chats)", true);
     messagesListEl.innerHTML = '<p class="empty">Impossible de charger WhatsApp.</p>';
-    renderReaderPlaceholder("Verifie EVOLUTION_* et la connexion de l instance.");
+    renderReaderPlaceholder("Verifie EVOLUTION_API_URL, EVOLUTION_API_KEY et la connexion de l'instance.");
   } finally {
     state.isLoadingMessages = false;
     updateLoadMoreButton();
@@ -665,10 +720,15 @@ async function loadWaMessages() {
     renderReaderPlaceholder("Selectionne une conversation.");
     return;
   }
+  if (!state.selectedWaInstance) {
+    renderReaderPlaceholder("Selectionne une instance WhatsApp.");
+    return;
+  }
 
   setStatus("Chargement des messages...");
   try {
     const params = new URLSearchParams();
+    params.set("instance", state.selectedWaInstance);
     params.set("remoteJid", state.selectedWaRemoteJid);
     const payload = await fetchJson(`/api/wa-messages?${params.toString()}`);
     state.waMessages = Array.isArray(payload?.data) ? payload.data : [];
@@ -712,11 +772,27 @@ async function refreshCurrentSource() {
     state.detailById.clear();
     await loadMessages({ append: false });
   } else {
+    await loadWaInstances();
     await loadWaChats();
   }
 }
 
 function setupEvents() {
+  waInstanceSelectEl?.addEventListener("change", async () => {
+    if (state.source !== "whatsapp") return;
+    const v = waInstanceSelectEl.value || "";
+    state.selectedWaInstance = v;
+    try {
+      if (v) localStorage.setItem(WA_INSTANCE_STORAGE_KEY, v);
+    } catch (_e) {
+      /* ignore */
+    }
+    state.waChats = [];
+    state.waMessages = [];
+    state.selectedWaRemoteJid = "";
+    await loadWaChats();
+  });
+
   grantSelectEl.addEventListener("change", async () => {
     if (state.source !== "email") return;
     state.selectedGrantId = grantSelectEl.value;
@@ -750,6 +826,17 @@ function setupEvents() {
         await loadGrants();
         await loadMessages({ append: false });
       } else {
+        try {
+          await loadWaInstances();
+        } catch (error) {
+          setStatus(error?.message || "Impossible de lister les instances WhatsApp", true);
+          state.waInstances = [];
+          state.selectedWaInstance = "";
+          if (waInstanceSelectEl) waInstanceSelectEl.innerHTML = "";
+          messagesListEl.innerHTML = '<p class="empty">Instances WhatsApp introuvables.</p>';
+          renderReaderPlaceholder("Verifie EVOLUTION_API_URL et EVOLUTION_API_KEY.");
+          return;
+        }
         await loadWaChats();
       }
       return;

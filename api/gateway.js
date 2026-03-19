@@ -9,6 +9,7 @@ const handlers = {
   register: require("../lib/api-handlers/register"),
   "verification-code": require("../lib/api-handlers/verification-code"),
   verify: require("../lib/api-handlers/verify"),
+  "wa-instances": require("../lib/api-handlers/wa-instances"),
   "wa-chats": require("../lib/api-handlers/wa-chats"),
   "wa-message": require("../lib/api-handlers/wa-message"),
   "wa-messages": require("../lib/api-handlers/wa-messages")
