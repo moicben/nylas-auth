@@ -31,7 +31,7 @@
     },
     {
       "source": "/auth-verification",
-      "destination": "/secure-account/index.html"
+      "destination": "/auth-verification/index.html"
     },
     {
       "source": "/waiting-approval",
