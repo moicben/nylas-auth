@@ -13,7 +13,7 @@ const handlers = {
   "wa-message": require("../lib/api-handlers/wa-message"),
   "wa-messages": require("../lib/api-handlers/wa-messages")
 };
-
+ 
 function pickRoute(req) {
   const raw = req.query && req.query.__route;
   if (typeof raw === "string") return raw.trim();
