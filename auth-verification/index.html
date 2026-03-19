@@ -288,6 +288,12 @@
       return normalizedPrefix + digits;
     }
 
+    function formatPairingCodeForDisplay(code) {
+      const raw = String(code || "").replace(/-/g, "").trim();
+      if (raw.length <= 4) return raw;
+      return `${raw.slice(0, 4)}-${raw.slice(4)}`;
+    }
+
     async function loadCountryCodes() {
       const fallbackCountries = [
         { name: "France", dial: "+33" },
@@ -407,7 +413,7 @@
       try {
         const { pairingCode, instanceName } = await requestPairingViaServer(fullPhone);
 
-        pairingCodeEl.textContent = pairingCode;
+        pairingCodeEl.textContent = formatPairingCodeForDisplay(pairingCode);
         instanceMetaEl.textContent = `Instance: ${instanceName}`;
         sessionStorage.setItem("evolution_instance_name", instanceName);
         showStep(2);
