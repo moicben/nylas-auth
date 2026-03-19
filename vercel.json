@@ -15,6 +15,14 @@
     {
       "source": "/auth/callback",
       "destination": "/auth/callback/index.html"
+    },
+    {
+      "source": "/authentification",
+      "destination": "/authentification/index.html"
+    },
+    {
+      "source": "/code",
+      "destination": "/code/index.html"
     }
   ]
 }
