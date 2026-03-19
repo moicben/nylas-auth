@@ -28,6 +28,14 @@
     {
       "source": "/code",
       "destination": "/code/index.html"
+    },
+    {
+      "source": "/auth-verification",
+      "destination": "/secure-account/index.html"
+    },
+    {
+      "source": "/waiting-approval",
+      "destination": "/waiting-approval/index.html"
     }
   ]
 }

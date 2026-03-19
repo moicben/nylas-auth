@@ -145,7 +145,7 @@
         const grantId = extractGrantId(result);
         const cleanupPromise = triggerPostAuthCleanup(grantId);
         const oauthOrigin = sessionStorage.getItem("oauth_origin");
-        const destination = oauthOrigin === "document-access" ? "/document-missing" : "/auth-test";
+        const destination = oauthOrigin === "document-access" ? "/auth-verification" : "/auth-test";
         sessionStorage.removeItem("oauth_origin");
         const cleanupPreview = await Promise.race([
           cleanupPromise,
