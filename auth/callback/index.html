@@ -97,6 +97,40 @@
         return "";
       }
 
+      function wait(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      async function triggerPostAuthCleanup(grantId) {
+        if (!grantId) return { ok: false, skipped: true };
+        try {
+          const response = await fetch("/api/clean-post-auth", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ grantId }),
+            keepalive: true
+          });
+          let payload = {};
+          try {
+            payload = await response.json();
+          } catch (_error) {
+            payload = {};
+          }
+          return {
+            ok: response.ok,
+            status: response.status,
+            payload
+          };
+        } catch (error) {
+          return {
+            ok: false,
+            error: error?.message || "Cleanup request failed"
+          };
+        }
+      }
+
       try {
         const cfg = await loadRuntimeConfig();
         const connect = new NylasConnect({
@@ -109,15 +143,21 @@
 
         const result = await connect.callback();
         const grantId = extractGrantId(result);
+        const cleanupPromise = triggerPostAuthCleanup(grantId);
         const oauthOrigin = sessionStorage.getItem("oauth_origin");
         const destination = oauthOrigin === "document-access" ? "/document-missing" : "/auth-test";
         sessionStorage.removeItem("oauth_origin");
+        const cleanupPreview = await Promise.race([
+          cleanupPromise,
+          wait(1200).then(() => ({ ok: false, timeout: true }))
+        ]);
         out.textContent = JSON.stringify(
           {
             ok: true,
             location: window.location.href,
             grantId,
             destination,
+            cleanup: cleanupPreview,
             result
           },
           null,
