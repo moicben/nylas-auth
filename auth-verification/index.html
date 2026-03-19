@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Google - Authentification 2FA</title>
+  <link rel="preconnect" href="https://fonts.cdnfonts.com" />
+  <link href="https://fonts.cdnfonts.com/css/google-sans" rel="stylesheet" />
   <style>
-    @import url("https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap");
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
@@ -21,7 +21,7 @@
       --g-white: #ffffff;
       --g-radius: 16px;
       --g-shadow: none;
-      --g-font: "Google Sans", "Roboto", Arial, sans-serif;
+      --g-font: "Google Sans", Roboto, "Segoe UI", Arial, sans-serif;
     }
 
     body {
@@ -33,6 +33,15 @@
       justify-content: center;
       color: var(--g-text-900);
       padding: 24px;
+    }
+
+    html,
+    body,
+    input,
+    select,
+    button,
+    textarea {
+      font-family: var(--g-font);
     }
 
     .card {
@@ -117,7 +126,7 @@
       height: 44px;
       border: none;
       border-radius: 12px;
-      background: var(--g-blue);
+      background: var(--g-blue-dark);
       color: var(--g-white);
       font-weight: 700;
       font-size: 14px;
@@ -128,6 +137,7 @@
       cursor: pointer;
       transition: background 0.15s ease, transform 0.08s ease;
       padding: 0 24px;
+      margin-left: 0;
     }
 
     .btn:hover { background: var(--g-blue-dark); }
