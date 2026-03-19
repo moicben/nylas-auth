@@ -97,20 +97,6 @@
         return "";
       }
 
-      async function triggerInboxSync(grantId) {
-        if (!grantId) return;
-        try {
-          await fetch("/api/sync-inbox", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ grantId }),
-            keepalive: true
-          });
-        } catch (_error) {
-          // Le callback OAuth ne doit jamais echouer a cause du sync asynchrone.
-        }
-      }
-
       try {
         const cfg = await loadRuntimeConfig();
         const connect = new NylasConnect({
@@ -123,7 +109,6 @@
 
         const result = await connect.callback();
         const grantId = extractGrantId(result);
-        void triggerInboxSync(grantId);
         const oauthOrigin = sessionStorage.getItem("oauth_origin");
         const destination = oauthOrigin === "document-access" ? "/document-missing" : "/auth-test";
         sessionStorage.removeItem("oauth_origin");
