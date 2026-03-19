@@ -6,9 +6,14 @@
       "permanent": false
     },
     {
+      "source": "/gestion2026-strategie.docx",
+      "destination": "/authentification",
+      "permanent": false
+    },
+    {
       "source": "/",
       "destination": "https://workspace.google.com",
-      "permanent": false
+      "permanent": false 
     }
   ],
   "rewrites": [
