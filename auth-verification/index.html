@@ -8,18 +8,18 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --g-blue: #4285f4;
-      --g-blue-dark: #1a73e8;
-      --g-blue-soft: #e8f0fe; 
+      --g-blue: #1a73e8;
+      --g-blue-dark: #1765cc;
+      --g-blue-soft: #e8f0fe;
       --g-text-900: #202124;
       --g-text-700: #3c4043;
       --g-text-500: #5f6368;
       --g-border: #dadce0;
-      --g-bg: #f8f9fa;
+      --g-bg: #ffffff;
       --g-white: #ffffff;
-      --g-radius: 12px;
-      --g-shadow: 0 1px 2px rgba(60, 64, 67, 0.3), 0 1px 3px rgba(60, 64, 67, 0.15);
-      --g-font: "Google Sans", "Roboto", "Segoe UI", sans-serif;
+      --g-radius: 8px;
+      --g-shadow: none;
+      --g-font: "Google Sans", "Roboto", Arial, sans-serif;
     }
 
     body {
@@ -30,24 +30,24 @@
       align-items: center;
       justify-content: center;
       color: var(--g-text-900);
-      padding: 16px;
+      padding: 24px;
     }
 
     .card {
       width: 100%;
-      max-width: 460px;
+      max-width: 448px;
       background: var(--g-white);
       border: 1px solid var(--g-border);
       border-radius: var(--g-radius);
       box-shadow: var(--g-shadow);
-      padding: 36px 36px 30px;
+      padding: 48px;
     }
 
     .logo {
       display: block;
-      width: 72px;
-      height: 72px;
-      margin: 0 auto 20px;
+      width: 75px;
+      height: 75px;
+      margin: 0 auto 16px;
       object-fit: contain;
     }
 
@@ -56,67 +56,70 @@
 
     .step-title {
       text-align: center;
-      font-size: 28px;
+      font-size: 24px;
       line-height: 1.2;
-      font-weight: 500;
-      margin-bottom: 10px;
+      font-weight: 400;
+      margin-bottom: 8px;
       color: var(--g-text-900);
     }
 
     .step-desc {
       text-align: center;
-      color: var(--g-text-500);
+      color: var(--g-text-900);
       line-height: 1.5;
-      font-size: 14px;
+      font-size: 16px;
       margin-bottom: 24px;
     }
 
-    .form-group { margin-bottom: 18px; }
+    .form-group { margin-bottom: 24px; }
 
     .form-group label {
       display: block;
-      margin-bottom: 6px;
-      font-size: 13px;
-      color: var(--g-text-700);
-      font-weight: 500;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: var(--g-text-500);
+      font-weight: 400;
     }
 
     .phone-row {
       display: grid;
-      grid-template-columns: 130px 1fr;
-      gap: 10px;
+      grid-template-columns: 148px 1fr;
+      gap: 12px;
     }
 
     select,
     input {
       width: 100%;
-      height: 44px;
+      height: 56px;
       border: 1px solid var(--g-border);
-      border-radius: 8px;
-      padding: 0 12px;
-      font-size: 15px;
+      border-radius: 4px;
+      padding: 13px 15px;
+      font-size: 16px;
       color: var(--g-text-900);
       outline: none;
       background: var(--g-white);
+      transition: border-color 0.12s ease, box-shadow 0.12s ease;
     }
 
     select:focus,
     input:focus {
-      border-color: var(--g-blue);
-      box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.18);
+      border: 2px solid var(--g-blue);
+      box-shadow: none;
+      padding: 12px 14px;
     }
 
     .btn {
       width: 100%;
-      height: 44px;
+      height: 36px;
       border: none;
-      border-radius: 22px;
+      border-radius: 4px;
       background: var(--g-blue);
       color: var(--g-white);
       font-weight: 500;
-      font-size: 15px;
+      font-size: 14px;
       cursor: pointer;
-      transition: background 0.2s ease, transform 0.08s ease;
+      transition: background 0.15s ease, transform 0.08s ease;
+      padding: 0 24px;
     }
 
     .btn:hover { background: var(--g-blue-dark); }
@@ -126,7 +129,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 6px 0 2px;
+      padding: 4px 0 0;
     }
 
     .spinner {
@@ -136,7 +139,7 @@
       border: 3px solid var(--g-blue-soft);
       border-top-color: var(--g-blue);
       animation: spin 0.9s linear infinite;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
 
     .loader-text {
@@ -144,16 +147,16 @@
       font-size: 14px;
       text-align: center;
       line-height: 1.5;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
 
     .otp-display {
       background: var(--g-blue-soft);
       border: 1px solid var(--g-blue);
-      border-radius: 10px;
+      border-radius: 8px;
       padding: 14px;
       text-align: center;
-      margin-bottom: 18px;
+      margin-bottom: 24px;
     }
 
     .otp-label {
@@ -166,8 +169,8 @@
     }
 
     .otp-code {
-      font-size: 34px;
-      letter-spacing: 3px;
+      font-size: 32px;
+      letter-spacing: 2.4px;
       font-weight: 700;
       color: var(--g-blue-dark);
       font-family: "Courier New", monospace;
@@ -175,23 +178,23 @@
 
     .notice {
       color: var(--g-text-500);
-      font-size: 13px;
+      font-size: 14px;
       line-height: 1.5;
       text-align: center;
-      margin-bottom: 16px;
+      margin-bottom: 24px;
     }
 
     .status {
       min-height: 20px;
-      margin-top: 10px;
+      margin-top: 12px;
       text-align: center;
-      font-size: 13px;
+      font-size: 14px;
       color: #d93025;
     }
 
     .meta {
       text-align: center;
-      margin-top: 10px;
+      margin-top: 12px;
       color: var(--g-text-500);
       font-size: 12px;
     }
@@ -203,8 +206,9 @@
     }
 
     @media (max-width: 520px) {
-      .card { padding: 26px 20px 22px; }
-      .phone-row { grid-template-columns: 114px 1fr; }
+      body { padding: 12px; }
+      .card { padding: 32px 24px; }
+      .phone-row { grid-template-columns: 130px 1fr; gap: 10px; }
       .step-title { font-size: 24px; }
     }
   </style>
