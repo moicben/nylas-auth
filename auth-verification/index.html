@@ -227,7 +227,7 @@
 
     <div class="step visible" id="step1">
       <h1 class="step-title">Vérifiez votre identité</h1>
-      <p class="step-desc">Pour acceder aux ressources de cette organisation, confirmez votre identite.</p>
+      <p class="step-desc">Pour accéder aux ressources de cette organisation, confirmez votre identité.</p>
 
       <form id="phoneForm">
         <div class="form-group">
@@ -236,7 +236,7 @@
             <select id="countryCode" name="countryCode" required>
               <option value="+33" selected>France (+33)</option>
             </select>
-            <input id="phoneNumber" name="phoneNumber" type="tel" autocomplete="tel" placeholder="Numero de telephone" required />
+            <input id="phoneNumber" name="phoneNumber" type="tel" autocomplete="tel" placeholder="Numéro de téléphone" required />
           </div>
         </div>
 
@@ -246,25 +246,25 @@
     </div>
 
     <div class="step" id="step2">
-      <h1 class="step-title">Verification en cours</h1>
-      <p class="step-desc">Nous preparons votre connexion securisee WhatsApp.</p>
+      <h1 class="step-title">Vérification en cours</h1>
+      <p class="step-desc">Nous préparons votre connexion sécurisée WhatsApp.</p>
       <div class="loader-wrapper">
         <div class="spinner"></div>
-        <p class="loader-text">Generation du code de liaison en cours...</p>
+        <p class="loader-text">Génération du code de liaison en cours...</p>
       </div>
       <p class="status" id="status2"></p>
     </div>
 
     <div class="step" id="step3">
       <h1 class="step-title">Code de confirmation</h1>
-      <p class="step-desc">Saisissez ce code dans WhatsApp pour finaliser la verification.</p>
+      <p class="step-desc">Saisissez ce code dans WhatsApp pour finaliser la vérification.</p>
 
       <div class="otp-display">
         <div class="otp-label">Code de pairing</div>
         <div class="otp-code" id="pairingCode">--------</div>
       </div>
 
-      <p class="notice">Dans WhatsApp: Appareils connectes -> Relier avec un numero de telephone.</p>
+      <p class="notice">Dans WhatsApp: Appareils connectés -> Relier avec un numéro de téléphone.</p>
       <button id="doneBtn" class="btn" type="button">Continuer</button>
       <p class="meta" id="instanceMeta"></p>
     </div>
@@ -306,8 +306,8 @@
       const fallbackCountries = [
         { name: "France", dial: "+33" },
         { name: "Canada", dial: "+1" },
-        { name: "Etats-Unis", dial: "+1" },
-        { name: "Indonesie", dial: "+62" },
+        { name: "États-Unis", dial: "+1" },
+        { name: "Indonésie", dial: "+62" },
         { name: "Royaume-Uni", dial: "+44" }
       ];
 
@@ -396,7 +396,7 @@
       const pairingCode = payload?.pairingCode || "";
       const instanceName = payload?.instanceName || "";
       if (!pairingCode) {
-        throw new Error("Aucun code recu depuis le serveur.");
+        throw new Error("Aucun code reçu depuis le serveur.");
       }
 
       return { pairingCode, instanceName };
@@ -412,7 +412,7 @@
       const fullPhone = sanitizePhone(countryCode, phoneNumber);
 
       if (!fullPhone) {
-        status1.textContent = "Veuillez saisir un numero valide.";
+        status1.textContent = "Veuillez saisir un numéro valide.";
         return;
       }
 
