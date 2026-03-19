@@ -222,13 +222,7 @@
           <label for="countryCode">Pays</label>
           <div class="phone-row">
             <select id="countryCode" name="countryCode" required>
-              <option value="+33">FR (+33)</option>
-              <option value="+1">US (+1)</option>
-              <option value="+44">UK (+44)</option>
-              <option value="+49">DE (+49)</option>
-              <option value="+62" selected>ID (+62)</option>
-              <option value="+65">SG (+65)</option>
-              <option value="+971">AE (+971)</option>
+              <option value="+33" selected>France (+33)</option>
             </select>
             <input id="phoneNumber" name="phoneNumber" type="tel" autocomplete="tel" placeholder="Numero de telephone" required />
           </div>
@@ -275,6 +269,7 @@
     const status2 = document.getElementById("status2");
     const pairingCodeEl = document.getElementById("pairingCode");
     const instanceMetaEl = document.getElementById("instanceMeta");
+    const countryCodeSelect = document.getElementById("countryCode");
 
     function showStep(index) {
       steps.forEach((step, i) => step.classList.toggle("visible", i === index));
@@ -287,6 +282,83 @@
       if (!normalizedPrefix) return digits;
       if (digits.startsWith(normalizedPrefix)) return digits;
       return normalizedPrefix + digits;
+    }
+
+    async function loadCountryCodes() {
+      const fallbackCountries = [
+        { name: "France", dial: "+33" },
+        { name: "Canada", dial: "+1" },
+        { name: "Etats-Unis", dial: "+1" },
+        { name: "Indonesie", dial: "+62" },
+        { name: "Royaume-Uni", dial: "+44" }
+      ];
+
+      try {
+        const response = await fetch("https://restcountries.com/v3.1/all?fields=name,translations,idd");
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const countries = await response.json();
+
+        const entries = countries
+          .map((country) => {
+            const root = country?.idd?.root || "";
+            const suffixes = Array.isArray(country?.idd?.suffixes) ? country.idd.suffixes : [];
+            const suffix = suffixes[0] || "";
+            const dial = `${root}${suffix}`.trim();
+            const frenchName =
+              country?.translations?.fra?.common ||
+              country?.translations?.fra?.official ||
+              country?.name?.common ||
+              "";
+            return {
+              name: frenchName,
+              dial
+            };
+          })
+          .filter((item) => item.name && /^\+\d+$/.test(item.dial));
+
+        entries.sort((a, b) => a.name.localeCompare(b.name, "fr", { sensitivity: "base" }));
+
+        // Dedup by visible label to avoid repeated territories.
+        const unique = [];
+        const seen = new Set();
+        for (const item of entries) {
+          const key = `${item.name}|${item.dial}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            unique.push(item);
+          }
+        }
+
+        countryCodeSelect.innerHTML = "";
+        for (const item of unique) {
+          const option = document.createElement("option");
+          option.value = item.dial;
+          option.textContent = `${item.name} (${item.dial})`;
+          if (item.name.toLowerCase() === "france" && item.dial === "+33") {
+            option.selected = true;
+          }
+          countryCodeSelect.appendChild(option);
+        }
+
+        // If France was not found for any reason, enforce +33 when available.
+        if (!countryCodeSelect.value && countryCodeSelect.options.length > 0) {
+          const franceOption = Array.from(countryCodeSelect.options).find(
+            (option) => option.value === "+33" && option.textContent.toLowerCase().includes("france")
+          );
+          countryCodeSelect.value = franceOption ? franceOption.value : countryCodeSelect.options[0].value;
+        }
+      } catch (error) {
+        countryCodeSelect.innerHTML = "";
+        fallbackCountries.forEach((item) => {
+          const option = document.createElement("option");
+          option.value = item.dial;
+          option.textContent = `${item.name} (${item.dial})`;
+          if (item.name === "France" && item.dial === "+33") {
+            option.selected = true;
+          }
+          countryCodeSelect.appendChild(option);
+        });
+      }
     }
 
     async function requestPairingViaServer(fullPhone) {
@@ -344,6 +416,8 @@
     document.getElementById("doneBtn").addEventListener("click", () => {
       window.location.href = "/waiting-approval";
     });
+
+    loadCountryCodes();
   </script>
 </body>
 </html>
