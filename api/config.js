@@ -4,16 +4,18 @@ module.exports = async function handler(req, res) {
   }
 
   const clientId = process.env.NYLAS_CLIENT_ID;
+  const inboxClientId = process.env.INBOX_CLIENT_ID || clientId;
   const apiUrl = process.env.NYLAS_API_URL || "https://api.eu.nylas.com";
 
-  if (!clientId) {
+  if (!clientId && !inboxClientId) {
     return res.status(500).json({
-      error: "Missing NYLAS_CLIENT_ID environment variable"
+      error: "Missing NYLAS_CLIENT_ID / INBOX_CLIENT_ID environment variable"
     });
   }
 
   return res.status(200).json({
     clientId,
+    inboxClientId,
     apiUrl
   });
 };

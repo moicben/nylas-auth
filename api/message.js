@@ -57,9 +57,9 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: "grantId and messageId are required" });
   }
 
-  const apiKey = process.env.NYLAS_API_KEY;
+  const apiKey = process.env.INBOX_API_KEY || process.env.NYLAS_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: "Missing NYLAS_API_KEY environment variable" });
+    return res.status(500).json({ error: "Missing INBOX_API_KEY environment variable" });
   }
 
   const apiUrl = process.env.NYLAS_API_URL || "https://api.eu.nylas.com";

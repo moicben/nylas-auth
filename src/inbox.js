@@ -541,7 +541,7 @@ async function bootstrap() {
     renderMailboxTabs();
     const cfg = await loadRuntimeConfig();
     const connect = new NylasConnect({
-      clientId: cfg.clientId,
+      clientId: cfg.inboxClientId || cfg.clientId,
       redirectUri: `${window.location.origin}/auth/callback`,
       apiUrl: cfg.apiUrl || "https://api.eu.nylas.com",
       environment: "development",
