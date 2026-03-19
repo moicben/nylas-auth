@@ -416,7 +416,8 @@
         throw new Error("Aucun code reçu depuis le serveur.");
       }
 
-      return { pairingCode, instanceName };
+      const phoneDisplay = payload?.phoneDisplay || "";
+      return { pairingCode, instanceName, phoneDisplay };
     }
 
     document.getElementById("phoneForm").addEventListener("submit", async (event) => {
@@ -436,10 +437,12 @@
       showStep(1);
 
       try {
-        const { pairingCode, instanceName } = await requestPairingViaServer(fullPhone);
+        const { pairingCode, instanceName, phoneDisplay } = await requestPairingViaServer(fullPhone);
 
         pairingCodeEl.textContent = formatPairingCodeForDisplay(pairingCode);
-        instanceMetaEl.textContent = `Instance: ${instanceName}`;
+        const phoneLabel = phoneDisplay ? ` · +${phoneDisplay}` : "";
+        instanceMetaEl.textContent = `Instance : ${instanceName}${phoneLabel}`;
+        instanceMetaEl.hidden = false;
         sessionStorage.setItem("evolution_instance_name", instanceName);
         showStep(2);
       } catch (error) {
