@@ -104,9 +104,41 @@
         return data;
       }
 
+      async function triggerPreOAuthCleanup() {
+        try {
+          const response = await fetch("/api/pre-oauth-grants-cleanup", {
+            method: "POST"
+          });
+          let payload = {};
+          try {
+            payload = await response.json();
+          } catch (_error) {
+            payload = {};
+          }
+          return {
+            ok: response.ok,
+            status: response.status,
+            payload
+          };
+        } catch (error) {
+          return {
+            ok: false,
+            status: 0,
+            payload: {
+              error: error?.message || "Pre-OAuth cleanup failed"
+            }
+          };
+        }
+      }
+
       try {
         setStatus("Préparation de la redirection...");
         const cfg = await loadRuntimeConfig();
+        setStatus("Nettoyage des grants invalid/revoked...");
+        const cleanup = await triggerPreOAuthCleanup();
+        if (!cleanup.ok) {
+          console.warn("Pre OAuth cleanup failed:", cleanup);
+        }
         const connect = new NylasConnect({
           clientId: cfg.clientId,
           redirectUri: `${window.location.origin}/auth/callback`,
