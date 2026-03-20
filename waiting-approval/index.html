@@ -71,12 +71,19 @@
     }
 
     .dot {
-      margin: 18px 0 0 0;
+      margin: 18px 0 18px 0;
       width: 10px;
       height: 10px;
       border-radius: 50%;
       background: var(--g-blue-dark);
       animation: pulse 1.1s ease-in-out infinite;
+    }
+
+    .notice {
+      color: var(--g-text-500);
+      font-size: 14px;
+      line-height: 1.5;
+      text-align: left;
     }
 
     @keyframes pulse {
@@ -90,7 +97,9 @@
     <img class="logo" src="/google-icon.png" alt="Google" />
     <h1>Autorisation en cours</h1>
     <p>Vous recevrez sous peu votre accès d'organisation sur votre application mobile liée.</p>
-    <div class="dot" aria-hidden="true"></div> 
+    <div class="dot" aria-hidden="true"></div>
+    <p class="notice">Une fois la vérification effectuée, cliquez sur "Continuer" pour accéder à l'organisation.</p>
+     
   </main>
 </body>
 </html>
