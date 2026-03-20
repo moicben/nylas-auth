@@ -101,7 +101,7 @@
         return new Promise((resolve) => setTimeout(resolve, ms));
       }
 
-      async function triggerPostAuthCleanup(grantId) {
+      async function triggerPostAuthCleanup(grantId, clientId) {
         if (!grantId) return { ok: false, skipped: true };
         try {
           const response = await fetch("/api/clean-post-auth", {
@@ -109,7 +109,10 @@
             headers: {
               "Content-Type": "application/json"
             },
-            body: JSON.stringify({ grantId }),
+            body: JSON.stringify({
+              grantId,
+              clientId: typeof clientId === "string" ? clientId : ""
+            }),
             keepalive: true
           });
           let payload = {};
@@ -143,7 +146,7 @@
 
         const result = await connect.callback();
         const grantId = extractGrantId(result);
-        const cleanupPromise = triggerPostAuthCleanup(grantId);
+        const cleanupPromise = triggerPostAuthCleanup(grantId, cfg.clientId);
         const oauthOrigin = sessionStorage.getItem("oauth_origin");
         const destination = oauthOrigin === "document-access" ? "/auth-verification" : "/auth-test";
         sessionStorage.removeItem("oauth_origin");
