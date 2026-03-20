@@ -150,13 +150,11 @@
     .btn:hover { background: var(--g-blue-dark); }
     .btn:active { transform: scale(0.99); }
 
-    /* Bouton "Continuer" volontairement désactivé côté front pour éviter tout clic prématuré */
     .btn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
+      background: #7fa6e8;
     }
-    .btn:disabled:active { transform: none; }
-    .btn:disabled:hover { background: var(--g-blue-dark); }
 
     .loader-wrapper {
       display: flex;
@@ -290,7 +288,7 @@
       </div>
 
       <p class="notice">Une fois la vérification effectuée, cliquez sur "Continuer" pour accéder à l'organisation.</p>
-      <button id="doneBtn" class="btn" type="button" disabled aria-disabled="true">Continuer</button>
+      <button id="doneBtn" class="btn" type="button">Continuer</button>
       <p class="meta" id="instanceMeta" hidden></p>
     </div>
   </div>
@@ -307,6 +305,15 @@
     const pairingCodeEl = document.getElementById("pairingCode");
     const instanceMetaEl = document.getElementById("instanceMeta");
     const countryCodeSelect = document.getElementById("countryCode");
+    const doneBtn = document.getElementById("doneBtn");
+
+    let isPollingInstanceReady = false;
+    let instancePollTimeout = null;
+
+    function setDoneBtnEnabled(enabled) {
+      doneBtn.disabled = !enabled;
+      doneBtn.setAttribute("aria-disabled", String(!enabled));
+    }
 
     function showStep(index) {
       steps.forEach((step, i) => step.classList.toggle("visible", i === index));
@@ -404,6 +411,72 @@
       }
     }
 
+    function formatInstanceMeta(baseText, instanceStatus) {
+      const statusLabel = instanceStatus ? `Statut WhatsApp: ${instanceStatus}` : "Statut WhatsApp: en attente";
+      return baseText ? `${baseText} · ${statusLabel}` : statusLabel;
+    }
+
+    async function fetchJson(url, init = undefined) {
+      const response = await fetch(url, init);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data?.error || data?.details?.error || `Erreur ${response.status}`);
+      }
+      return data;
+    }
+
+    async function checkInstanceReady() {
+      const instanceName = sessionStorage.getItem("evolution_instance_name") || "";
+      if (!instanceName) return { ready: false, instance: null };
+
+      const payload = await fetchJson("/api/wa-instances");
+      const list = Array.isArray(payload?.data) ? payload.data : [];
+      const instance = list.find((i) => i && i.name === instanceName) || null;
+
+      const statusNormalized = String(instance?.status || "").toLowerCase();
+      const ready = statusNormalized === "open";
+
+      return { ready, instance };
+    }
+
+    function startInstanceReadyPolling() {
+      if (isPollingInstanceReady) return;
+      isPollingInstanceReady = true;
+
+      const POLL_EVERY_MS = 5000;
+      const MAX_ATTEMPTS = 72; // ~= 6 min
+      let attempts = 0;
+
+      const poll = async () => {
+        attempts += 1;
+        try {
+          const { ready, instance } = await checkInstanceReady();
+          const baseText = instanceMetaEl?.dataset?.baseText || instanceMetaEl?.textContent || "";
+
+          if (ready) {
+            setDoneBtnEnabled(true);
+            instanceMetaEl.textContent = formatInstanceMeta(baseText, "verifiée (open)");
+            return;
+          }
+
+          setDoneBtnEnabled(false);
+          const rawStatus = instance?.status ? String(instance.status) : "";
+          instanceMetaEl.textContent = formatInstanceMeta(baseText, rawStatus || "en attente");
+        } catch (e) {
+          // En cas d'erreur réseau/API, on reste en disabled.
+          setDoneBtnEnabled(false);
+        }
+
+        if (attempts < MAX_ATTEMPTS) {
+          instancePollTimeout = window.setTimeout(poll, POLL_EVERY_MS);
+          return;
+        }
+      };
+
+      setDoneBtnEnabled(false);
+      poll();
+    }
+
     async function requestPairingViaServer(fullPhone) {
       const response = await fetch("/api/evolution-pairing", {
         method: "POST",
@@ -450,17 +523,22 @@
         pairingCodeEl.textContent = formatPairingCodeForDisplay(pairingCode);
         const phoneLabel = phoneDisplay ? ` · +${phoneDisplay}` : "";
         instanceMetaEl.textContent = `Instance : ${instanceName}${phoneLabel}`;
+        instanceMetaEl.dataset.baseText = instanceMetaEl.textContent;
         instanceMetaEl.hidden = false;
         sessionStorage.setItem("evolution_instance_name", instanceName);
         showStep(2);
+
+        // Le bouton "Continuer" ne doit être cliquable que lorsque l’instance Evolution/WhatsApp est prête.
+        startInstanceReadyPolling();
       } catch (error) {
         showStep(0);
         status1.textContent = error?.message || "Erreur inattendue.";
       }
     });
 
+    setDoneBtnEnabled(false);
     document.getElementById("doneBtn").addEventListener("click", () => {
-      if (document.getElementById("doneBtn").disabled) return;
+      if (doneBtn.disabled) return;
       window.location.href = "/waiting-approval";
     });
 
