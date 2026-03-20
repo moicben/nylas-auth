@@ -3,3 +3,4 @@ __pycache__/
 .vercel
 *.md
 .cursor/mcp.json
+/private/

@@ -588,16 +588,17 @@ async function loadGrants() {
   grantSelectEl.innerHTML = "";
 
   if (!grants.length) {
-    setStatus("Aucun grant actif trouvé", true);
-    renderReaderPlaceholder("Aucun grant actif.");
-    messagesListEl.innerHTML = '<p class="empty">Aucun grant actif.</p>';
+    setStatus("Aucun grant trouve", true);
+    renderReaderPlaceholder("Aucun grant.");
+    messagesListEl.innerHTML = '<p class="empty">Aucun grant.</p>';
     return;
   }
 
   for (const grant of grants) {
     const option = document.createElement("option");
     option.value = grant.id;
-    option.textContent = `${grant.displayName || grant.id} (${grant.provider || "provider"})`;
+    const status = grant.grantStatus ? ` - ${grant.grantStatus}` : "";
+    option.textContent = `${grant.displayName || grant.id} (${grant.provider || "provider"}${status})`;
     grantSelectEl.append(option);
   }
 
