@@ -163,10 +163,9 @@
   <body>
     <div class="layout">
       <section class="toolbar">
-        <label for="accountSelect" data-email-only>Compte</label>
         <select id="accountSelect" data-email-only aria-label="Compte Nylas"></select>
-        <label for="grantSelect" data-email-only>Grant</label>
         <select id="grantSelect" data-email-only></select>
+        <button id="deleteGrantBtn" type="button" data-email-only title="Supprimer le grant sélectionné">Suppr grant</button>
         <label for="waInstanceSelect" id="waInstanceLabel" hidden style="color: #9ca3af; font-size: 0.9rem;">Instance</label>
         <select id="waInstanceSelect" hidden aria-label="Instance WhatsApp Evolution"></select>
         <label for="readFilter" data-email-only>Etat</label>
@@ -175,9 +174,6 @@
           <option value="unread">Non lus</option>
           <option value="read">Lus</option>
         </select>
-        <label for="subjectSearch" id="subjectSearchLabel">Sujet</label>
-        <input id="subjectSearch" type="search" placeholder="Rechercher par sujet..." />
-        <button id="clearSearchBtn" type="button">Effacer</button>
         <button id="refreshBtn" type="button" title="Rafraichir" aria-label="Rafraichir">↻</button>
         <span id="status">Initialisation...</span>
       </section>

@@ -3,9 +3,8 @@ import { NylasConnect } from "https://esm.sh/@nylas/connect";
 const statusEl = document.getElementById("status");
 const accountSelectEl = document.getElementById("accountSelect");
 const grantSelectEl = document.getElementById("grantSelect");
+const deleteGrantBtn = document.getElementById("deleteGrantBtn");
 const readFilterEl = document.getElementById("readFilter");
-const subjectSearchEl = document.getElementById("subjectSearch");
-const clearSearchBtn = document.getElementById("clearSearchBtn");
 const refreshBtn = document.getElementById("refreshBtn");
 const messagesListEl = document.getElementById("messagesList");
 const readerPanelEl = document.getElementById("readerPanel");
@@ -13,7 +12,6 @@ const loadMoreBtn = document.getElementById("loadMoreBtn");
 const toolbarEl = document.querySelector(".toolbar");
 const waInstanceLabelEl = document.getElementById("waInstanceLabel");
 const waInstanceSelectEl = document.getElementById("waInstanceSelect");
-const subjectSearchLabelEl = document.getElementById("subjectSearchLabel");
 
 const state = {
   source: "email",
@@ -21,13 +19,13 @@ const state = {
   selectedGrantId: "",
   mailbox: "INBOX",
   readFilter: "all",
-  subject: "",
   messages: [],
   selectedMessageId: "",
   nextCursor: "",
   detailById: new Map(),
   isLoadingMessages: false,
   isDeletingMessage: false,
+  isDeletingGrant: false,
   /** WhatsApp (Evolution) — instance choisie dans la liste */
   waInstances: [],
   selectedWaInstance: "",
@@ -42,8 +40,6 @@ const state = {
 
 const WA_INSTANCE_STORAGE_KEY = "inbox-wa-evolution-instance";
 const NYLAS_ACCOUNT_STORAGE_KEY = "inbox-nylas-account-index";
-
-let searchDebounce = null;
 /** Instance Nylas Connect recréée lors d’un changement de compte */
 let nylasConnect = null;
 
@@ -179,14 +175,6 @@ function updateToolbarForSource() {
   const mailboxTabs = document.getElementById("mailboxTabs");
   if (mailboxTabs) {
     mailboxTabs.style.display = isEmail ? "inline-flex" : "none";
-  }
-  if (subjectSearchEl) {
-    subjectSearchEl.placeholder = isEmail
-      ? "Rechercher par sujet..."
-      : "Filtrer les conversations...";
-  }
-  if (subjectSearchLabelEl) {
-    subjectSearchLabelEl.textContent = isEmail ? "Sujet" : "Filtrer";
   }
   if (readFilterEl) {
     readFilterEl.disabled = !isEmail;
@@ -356,20 +344,9 @@ function renderReaderPlaceholder(text) {
   readerPanelEl.innerHTML = `<p class="empty">${escapeHtml(text)}</p>`;
 }
 
-function getFilteredWaChats() {
-  const q = state.subject.trim().toLowerCase();
-  if (!q) return state.waChats;
-  return state.waChats.filter((chat) => {
-    const sub = String(chat.subject || "").toLowerCase();
-    const snip = String(chat.snippet || "").toLowerCase();
-    const jid = String(chat.remoteJid || "").toLowerCase();
-    return sub.includes(q) || snip.includes(q) || jid.includes(q);
-  });
-}
-
 function renderSidebarList() {
   if (state.source === "whatsapp") {
-    const rows = getFilteredWaChats();
+    const rows = state.waChats;
     if (!rows.length) {
       messagesListEl.innerHTML =
         '<p class="empty">Aucune conversation (ou filtre trop restrictif).</p>';
@@ -628,6 +605,42 @@ async function loadGrants() {
   grantSelectEl.value = state.selectedGrantId;
 }
 
+async function deleteGrant(grantId) {
+  if (!grantId || state.isDeletingGrant) return;
+  const confirmed = window.confirm("Supprimer ce grant ? Cette action est irreversible.");
+  if (!confirmed) return;
+
+  state.isDeletingGrant = true;
+  setStatus("Suppression du grant...");
+
+  try {
+    const params = new URLSearchParams();
+    appendAccountParam(params);
+    params.set("grantId", grantId);
+    await fetchJson(`/api/grants?${params.toString()}`, { method: "DELETE" });
+
+    state.selectedGrantId = "";
+    state.selectedMessageId = "";
+    state.nextCursor = "";
+    state.messages = [];
+    state.detailById.clear();
+    renderSidebarList();
+    renderReaderPlaceholder("Grant supprime. Selectionne un autre grant.");
+
+    await loadGrants();
+    if (state.selectedGrantId) {
+      await loadMessages({ append: false });
+      setStatus("Grant supprime");
+    } else {
+      setStatus("Grant supprime. Aucun grant actif.", true);
+    }
+  } catch (error) {
+    setStatus(error?.message || "Erreur lors de la suppression du grant", true);
+  } finally {
+    state.isDeletingGrant = false;
+  }
+}
+
 function getNextCursor(payload) {
   return (
     payload?.next_cursor ||
@@ -729,9 +742,6 @@ async function loadMessages({ append = false } = {}) {
     params.set("limit", "200");
     params.set("mailbox", state.mailbox);
     params.set("read", state.readFilter);
-    if (state.subject) {
-      params.set("subject", state.subject);
-    }
     if (append && state.nextCursor) {
       params.set("cursor", state.nextCursor);
     }
@@ -784,7 +794,7 @@ async function loadWaChats() {
     state.waMessages = [];
     renderSidebarList();
 
-    const rows = getFilteredWaChats();
+    const rows = state.waChats;
     if (rows.length) {
       state.selectedWaRemoteJid = rows[0].remoteJid;
       renderSidebarList();
@@ -917,6 +927,11 @@ function setupEvents() {
     await loadMessages({ append: false });
   });
 
+  deleteGrantBtn?.addEventListener("click", async () => {
+    if (state.source !== "email") return;
+    await deleteGrant(state.selectedGrantId);
+  });
+
   readFilterEl?.addEventListener("change", async () => {
     if (state.source !== "email") return;
     state.readFilter = readFilterEl.value || "all";
@@ -970,51 +985,6 @@ function setupEvents() {
     state.detailById.clear();
     renderMailboxTabs();
     await loadMessages({ append: false });
-  });
-
-  subjectSearchEl.addEventListener("input", () => {
-    if (searchDebounce) {
-      clearTimeout(searchDebounce);
-    }
-    searchDebounce = setTimeout(async () => {
-      state.subject = subjectSearchEl.value.trim();
-      if (state.source === "email") {
-        state.nextCursor = "";
-        state.detailById.clear();
-        await loadMessages({ append: false });
-      } else {
-        renderSidebarList();
-        /** Resynchroniser la selection si le filtre masque la conversation courante */
-        const rows = getFilteredWaChats();
-        if (!rows.some((r) => r.remoteJid === state.selectedWaRemoteJid)) {
-          state.selectedWaRemoteJid = rows[0]?.remoteJid || "";
-          if (state.selectedWaRemoteJid) {
-            await loadWaMessages();
-          } else {
-            state.waMessages = [];
-            renderReaderPlaceholder("Aucune conversation pour ce filtre.");
-          }
-        }
-      }
-    }, 300);
-  });
-
-  clearSearchBtn.addEventListener("click", async () => {
-    if (!subjectSearchEl.value) return;
-    subjectSearchEl.value = "";
-    state.subject = "";
-    if (state.source === "email") {
-      state.nextCursor = "";
-      state.detailById.clear();
-      await loadMessages({ append: false });
-    } else {
-      renderSidebarList();
-      if (state.waChats.length && !state.selectedWaRemoteJid) {
-        state.selectedWaRemoteJid = state.waChats[0].remoteJid;
-        renderSidebarList();
-        await loadWaMessages();
-      }
-    }
   });
 
   refreshBtn?.addEventListener("click", async () => {
