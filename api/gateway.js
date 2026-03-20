@@ -1,3 +1,5 @@
+const { getQueryValue } = require("../lib/request-query");
+
 const handlers = {
   attachment: require("../lib/api-handlers/attachment"),
   "clean-post-auth": require("../lib/api-handlers/clean-post-auth"),
@@ -16,10 +18,7 @@ const handlers = {
 };  
   
 function pickRoute(req) {
-  const raw = req.query && req.query.__route;
-  if (typeof raw === "string") return raw.trim();
-  if (Array.isArray(raw) && raw.length) return String(raw[0]).trim();
-  return "";
+  return getQueryValue(req, "__route").trim();
 }
 
 module.exports = async function gateway(req, res) {
@@ -30,9 +29,6 @@ module.exports = async function gateway(req, res) {
   const handler = handlers[route];
   if (!handler) {
     return res.status(404).json({ error: "Not found", route });
-  }
-  if (req.query && Object.prototype.hasOwnProperty.call(req.query, "__route")) {
-    delete req.query.__route;
   }
   return handler(req, res);
 };
