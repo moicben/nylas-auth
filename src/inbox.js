@@ -1,6 +1,7 @@
 import { NylasConnect } from "https://esm.sh/@nylas/connect";
 
 const statusEl = document.getElementById("status");
+const accountSelectEl = document.getElementById("accountSelect");
 const grantSelectEl = document.getElementById("grantSelect");
 const readFilterEl = document.getElementById("readFilter");
 const subjectSearchEl = document.getElementById("subjectSearch");
@@ -32,12 +33,94 @@ const state = {
   selectedWaInstance: "",
   waChats: [],
   waMessages: [],
-  selectedWaRemoteJid: ""
+  selectedWaRemoteJid: "",
+  /** Comptes Nylas (index + clientId public), depuis /api/config */
+  runtimeAccounts: [],
+  apiUrl: "https://api.eu.nylas.com",
+  selectedAccountIndex: 1
 };
 
 const WA_INSTANCE_STORAGE_KEY = "inbox-wa-evolution-instance";
+const NYLAS_ACCOUNT_STORAGE_KEY = "inbox-nylas-account-index";
 
 let searchDebounce = null;
+/** Instance Nylas Connect recréée lors d’un changement de compte */
+let nylasConnect = null;
+
+function normalizeRuntimeAccounts(cfg) {
+  if (Array.isArray(cfg.accounts) && cfg.accounts.length) {
+    return cfg.accounts;
+  }
+  const cid = cfg.inboxClientId || cfg.clientId;
+  if (cid) {
+    return [{ index: 1, clientId: cid }];
+  }
+  return [];
+}
+
+function pickSavedAccountIndex() {
+  const ids = state.runtimeAccounts.map((a) => a.index);
+  if (!ids.length) {
+    return 1;
+  }
+  let saved = "";
+  try {
+    saved = localStorage.getItem(NYLAS_ACCOUNT_STORAGE_KEY) || "";
+  } catch (_e) {
+    saved = "";
+  }
+  const n = Number.parseInt(saved, 10);
+  if (Number.isFinite(n) && ids.includes(n)) {
+    return n;
+  }
+  return ids[0];
+}
+
+function getSelectedClientId() {
+  const row = state.runtimeAccounts.find((a) => a.index === state.selectedAccountIndex);
+  return row?.clientId || "";
+}
+
+function fillAccountSelect() {
+  if (!accountSelectEl) {
+    return;
+  }
+  accountSelectEl.innerHTML = "";
+  for (const acc of state.runtimeAccounts) {
+    const opt = document.createElement("option");
+    opt.value = String(acc.index);
+    const cid = acc.clientId || "";
+    const shortId = cid.length > 12 ? `${cid.slice(0, 8)}…` : cid;
+    opt.textContent = `Compte ${acc.index} — ${shortId}`;
+    accountSelectEl.append(opt);
+  }
+  if (
+    state.selectedAccountIndex &&
+    [...accountSelectEl.options].some((o) => Number.parseInt(o.value, 10) === state.selectedAccountIndex)
+  ) {
+    accountSelectEl.value = String(state.selectedAccountIndex);
+  }
+}
+
+function appendAccountParam(params) {
+  params.set("account", String(state.selectedAccountIndex));
+}
+
+async function reinitNylasSession() {
+  const clientId = getSelectedClientId();
+  if (!clientId) {
+    return;
+  }
+  nylasConnect = new NylasConnect({
+    clientId,
+    redirectUri: `${window.location.origin}/auth/callback`,
+    apiUrl: state.apiUrl,
+    environment: "development",
+    persistTokens: true
+  });
+  const session = await nylasConnect.getSession();
+  state.sessionGrantId = session?.grantId || "";
+}
 
 function getEmailOnlyElements() {
   return document.querySelectorAll("[data-email-only]");
@@ -358,6 +441,7 @@ function renderReader(message) {
               const hasDownloadLink = Boolean(attachment.id && state.selectedGrantId);
               const params = new URLSearchParams();
               if (hasDownloadLink) {
+                appendAccountParam(params);
                 params.set("grantId", state.selectedGrantId);
                 params.set("attachmentId", attachment.id);
                 params.set("messageId", message?.id || "");
@@ -519,7 +603,9 @@ async function fetchJson(url, init = undefined) {
 }
 
 async function loadGrants() {
-  const payload = await fetchJson("/api/grants");
+  const q = new URLSearchParams();
+  appendAccountParam(q);
+  const payload = await fetchJson(`/api/grants?${q.toString()}`);
   const grants = Array.isArray(payload?.data) ? payload.data : [];
   grantSelectEl.innerHTML = "";
 
@@ -561,6 +647,7 @@ async function deleteMessage(messageId) {
 
   try {
     const params = new URLSearchParams();
+    appendAccountParam(params);
     params.set("grantId", state.selectedGrantId);
     params.set("messageId", messageId);
     await fetchJson(`/api/message?${params.toString()}`, {
@@ -637,6 +724,7 @@ async function loadMessages({ append = false } = {}) {
 
   try {
     const params = new URLSearchParams();
+    appendAccountParam(params);
     params.set("grantId", state.selectedGrantId);
     params.set("limit", "200");
     params.set("mailbox", state.mailbox);
@@ -752,6 +840,7 @@ async function loadMessageDetail(messageId) {
   renderReaderPlaceholder("Chargement du contenu...");
   try {
     const params = new URLSearchParams();
+    appendAccountParam(params);
     params.set("grantId", state.selectedGrantId);
     params.set("messageId", messageId);
     const payload = await fetchJson(`/api/message?${params.toString()}`);
@@ -791,6 +880,33 @@ function setupEvents() {
     state.waMessages = [];
     state.selectedWaRemoteJid = "";
     await loadWaChats();
+  });
+
+  accountSelectEl?.addEventListener("focus", async () => {
+    if (state.source !== "email") {
+      return;
+    }
+    await loadGrants();
+  });
+
+  accountSelectEl?.addEventListener("change", async () => {
+    if (state.source !== "email") {
+      return;
+    }
+    const v = Number.parseInt(accountSelectEl.value, 10);
+    state.selectedAccountIndex = Number.isFinite(v) && v >= 1 ? v : 1;
+    try {
+      localStorage.setItem(NYLAS_ACCOUNT_STORAGE_KEY, String(state.selectedAccountIndex));
+    } catch (_e) {
+      /* ignore */
+    }
+    state.detailById.clear();
+    state.nextCursor = "";
+    state.selectedMessageId = "";
+    state.messages = [];
+    await reinitNylasSession();
+    await loadGrants();
+    await loadMessages({ append: false });
   });
 
   grantSelectEl.addEventListener("change", async () => {
@@ -958,16 +1074,17 @@ async function bootstrap() {
     renderMailboxTabs();
     updateToolbarForSource();
     const cfg = await loadRuntimeConfig();
-    const connect = new NylasConnect({
-      clientId: cfg.inboxClientId || cfg.clientId,
-      redirectUri: `${window.location.origin}/auth/callback`,
-      apiUrl: cfg.apiUrl || "https://api.eu.nylas.com",
-      environment: "development",
-      persistTokens: true
-    });
-
-    const session = await connect.getSession();
-    state.sessionGrantId = session?.grantId || "";
+    state.runtimeAccounts = normalizeRuntimeAccounts(cfg);
+    state.apiUrl = cfg.apiUrl || "https://api.eu.nylas.com";
+    if (!state.runtimeAccounts.length) {
+      throw new Error("Aucun compte Nylas dans la configuration");
+    }
+    state.selectedAccountIndex = pickSavedAccountIndex();
+    fillAccountSelect();
+    if (accountSelectEl) {
+      accountSelectEl.value = String(state.selectedAccountIndex);
+    }
+    await reinitNylasSession();
 
     setupEvents();
     await loadGrants();
