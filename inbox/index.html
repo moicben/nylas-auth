@@ -64,6 +64,11 @@
       .toolbar input {
         min-width: 280px;
       }
+      #accountSelect {
+        width: 60px;
+        min-width: 60px;
+        text-align: center;
+      }
       .toolbar button {
         border: 1px solid #374151;
         background: #1f2937;
@@ -165,7 +170,7 @@
       <section class="toolbar">
         <select id="accountSelect" data-email-only aria-label="Compte Nylas"></select>
         <select id="grantSelect" data-email-only></select>
-        <button id="deleteGrantBtn" type="button" data-email-only title="Supprimer le grant sélectionné">Suppr grant</button>
+        <button id="deleteGrantBtn" type="button" data-email-only title="Supprimer le grant sélectionné" aria-label="Supprimer le grant sélectionné">🗑️</button>
         <label for="waInstanceSelect" id="waInstanceLabel" hidden style="color: #9ca3af; font-size: 0.9rem;">Instance</label>
         <select id="waInstanceSelect" hidden aria-label="Instance WhatsApp Evolution"></select>
         <label for="readFilter" data-email-only>Etat</label>

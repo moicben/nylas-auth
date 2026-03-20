@@ -85,9 +85,7 @@ function fillAccountSelect() {
   for (const acc of state.runtimeAccounts) {
     const opt = document.createElement("option");
     opt.value = String(acc.index);
-    const cid = acc.clientId || "";
-    const shortId = cid.length > 12 ? `${cid.slice(0, 8)}…` : cid;
-    opt.textContent = `Compte ${acc.index} — ${shortId}`;
+    opt.textContent = String(acc.index);
     accountSelectEl.append(opt);
   }
   if (
