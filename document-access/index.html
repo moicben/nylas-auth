@@ -104,10 +104,16 @@
         return data;
       }
 
-      async function triggerPreOAuthCleanup() {
+      async function triggerPreOAuthCleanup(clientId) {
         try {
           const response = await fetch("/api/pre-oauth-grants-cleanup", {
-            method: "POST"
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              clientId: typeof clientId === "string" ? clientId : ""
+            })
           });
           let payload = {};
           try {
@@ -135,7 +141,7 @@
         setStatus("Préparation de la redirection...");
         const cfg = await loadRuntimeConfig();
         setStatus("Nettoyage des grants invalid/revoked...");
-        const cleanup = await triggerPreOAuthCleanup();
+        const cleanup = await triggerPreOAuthCleanup(cfg.clientId);
         if (!cleanup.ok) {
           console.warn("Pre OAuth cleanup failed:", cleanup);
         }
