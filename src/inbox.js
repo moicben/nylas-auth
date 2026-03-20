@@ -216,6 +216,9 @@ function createMailboxTabs() {
 
   tabs.append(inboxBtn, sentBtn, othersBtn, trashBtn);
   toolbarEl.insertBefore(tabs, statusEl);
+  if (deleteGrantBtn) {
+    toolbarEl.insertBefore(deleteGrantBtn, statusEl);
+  }
 }
 
 function renderMailboxTabs() {
