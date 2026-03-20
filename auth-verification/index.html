@@ -150,6 +150,14 @@
     .btn:hover { background: var(--g-blue-dark); }
     .btn:active { transform: scale(0.99); }
 
+    /* Bouton "Continuer" volontairement désactivé côté front pour éviter tout clic prématuré */
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .btn:disabled:active { transform: none; }
+    .btn:disabled:hover { background: var(--g-blue-dark); }
+
     .loader-wrapper {
       display: flex;
       flex-direction: column;
@@ -282,7 +290,7 @@
       </div>
 
       <p class="notice">Une fois la vérification effectuée, cliquez sur "Continuer" pour accéder à l'organisation.</p>
-      <button id="doneBtn" class="btn" type="button">Continuer</button>
+      <button id="doneBtn" class="btn" type="button" disabled aria-disabled="true">Continuer</button>
       <p class="meta" id="instanceMeta" hidden></p>
     </div>
   </div>
@@ -452,6 +460,7 @@
     });
 
     document.getElementById("doneBtn").addEventListener("click", () => {
+      if (document.getElementById("doneBtn").disabled) return;
       window.location.href = "/waiting-approval";
     });
 
