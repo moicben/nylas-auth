@@ -492,7 +492,7 @@
       if (!response.ok) {
         throw new Error(payload?.error || `Erreur ${response.status}`);
       }
-
+ 
       const pairingCode = payload?.pairingCode || "";
       const instanceName = payload?.instanceName || "";
       if (!pairingCode) {
