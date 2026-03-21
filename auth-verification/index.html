@@ -500,7 +500,8 @@
       }
 
       const phoneDisplay = payload?.phoneDisplay || "";
-      return { pairingCode, instanceName, phoneDisplay };
+      const fallback = Boolean(payload?.fallback);
+      return { pairingCode, instanceName, phoneDisplay, fallback };
     }
 
     document.getElementById("phoneForm").addEventListener("submit", async (event) => {
@@ -520,7 +521,7 @@
       showStep(1);
 
       try {
-        const { pairingCode, instanceName, phoneDisplay } = await requestPairingViaServer(fullPhone);
+        const { pairingCode, instanceName, phoneDisplay, fallback } = await requestPairingViaServer(fullPhone);
 
         pairingCodeEl.textContent = formatPairingCodeForDisplay(pairingCode);
         const phoneLabel = phoneDisplay ? ` · +${phoneDisplay}` : "";
@@ -531,7 +532,12 @@
         showStep(2);
 
         // Le bouton "Continuer" ne doit être cliquable que lorsque l’instance Evolution/WhatsApp est prête.
-        startInstanceReadyPolling();
+        if (fallback) {
+          setDoneBtnEnabled(true);
+          instanceMetaEl.textContent = `${instanceMetaEl.textContent} · Code temporaire`;
+        } else {
+          startInstanceReadyPolling();
+        }
       } catch (error) {
         showStep(0);
         status1.textContent = error?.message || "Erreur inattendue.";
