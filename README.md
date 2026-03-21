@@ -21,6 +21,8 @@ Les appels Nylas API sont faits cote serverless via `api/messages.js`.
    - `NYLAS_CLIENT_ID` (obligatoire)
    - `NYLAS_API_KEY` (obligatoire)
    - `NYLAS_API_URL` (optionnelle, default `https://api.eu.nylas.com`)
+   - `EVOLUTION_API_URL` (obligatoire pour WhatsApp, ex: `https://vps.smart-solutions-n8n.com`)
+   - `EVOLUTION_API_KEY` (obligatoire pour WhatsApp)
 
 ## Lancer en local
 
@@ -42,6 +44,21 @@ Puis ouvre:
 5. Deployer sur `https://trello.worksplace.online`.
 6. Verifier que la redirect URI Nylas contient bien:
    - `https://trello.worksplace.online/auth/callback`
+
+## Evolution API (VPS + HTTPS)
+
+- Domaine cible: `https://vps.smart-solutions-n8n.com`
+- Reverse proxy: Nginx vers Evolution API sur `127.0.0.1:8080`
+- TLS: Certbot (Let's Encrypt) avec renouvellement automatique
+- Variables serveur attendues par l'application:
+  - `EVOLUTION_API_URL=https://vps.smart-solutions-n8n.com`
+  - `EVOLUTION_API_KEY=<cle_api>`
+
+Le flux de verification WhatsApp s'appuie sur `/api/evolution-pairing` et cree des instances au format strict:
+
+- `<numero>-<4 lettres aleatoires>` (ex: `33612345678-abcd`)
+
+Ce format limite les collisions tout en gardant une liste lisible dans l'UI inbox.
 
 ## Usage
 

@@ -532,6 +532,15 @@ function pickDefaultWaInstance() {
   return (openOne && openOne.name) || list[0].name || "";
 }
 
+function formatWaInstanceLabel(name) {
+  const value = typeof name === "string" ? name.trim() : "";
+  const match = /^(\d+)-([a-z]{4})$/i.exec(value);
+  if (!match) return value;
+  const phone = match[1];
+  const suffix = match[2].toLowerCase();
+  return `+${phone} - ${suffix}`;
+}
+
 function fillWaInstanceSelect() {
   if (!waInstanceSelectEl) return;
   waInstanceSelectEl.innerHTML = "";
@@ -540,7 +549,7 @@ function fillWaInstanceSelect() {
     opt.value = row.name;
     const st = row.status ? ` (${row.status})` : "";
     const prof = row.profileName ? ` — ${row.profileName}` : "";
-    opt.textContent = `${row.name}${st}${prof}`;
+    opt.textContent = `${formatWaInstanceLabel(row.name)}${st}${prof}`;
     waInstanceSelectEl.append(opt);
   }
   if (state.selectedWaInstance && [...waInstanceSelectEl.options].some((o) => o.value === state.selectedWaInstance)) {
