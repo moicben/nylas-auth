@@ -181,7 +181,7 @@
       margin-bottom: 10px;
     }
 
-    .otp-display {
+    .qr-display {
       background: var(--g-blue-soft);
       border: 1px solid var(--g-blue);
       border-radius: 14px;
@@ -190,7 +190,7 @@
       margin-bottom: 24px;
     }
 
-    .otp-label {
+    .qr-label {
       font-size: 12px;
       color: var(--g-blue-dark);
       text-transform: uppercase;
@@ -199,12 +199,43 @@
       margin-bottom: 7px;
     }
 
-    .otp-code {
-      font-size: 32px;
-      letter-spacing: 2.4px;
-      font-weight: 700;
-      color: var(--g-blue-dark);
-      font-family: "Courier New", monospace;
+    .qr-image {
+      width: min(100%, 256px);
+      aspect-ratio: 1 / 1;
+      border-radius: 10px;
+      background: #fff;
+      border: 1px solid #d2dff7;
+      object-fit: contain;
+      padding: 8px;
+    }
+
+    .qr-hint {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--g-text-500);
+      line-height: 1.45;
+    }
+
+    .qr-actions {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .btn-secondary {
+      background: #e8f0fe;
+      color: #174ea6;
+      border: 1px solid #c6dafc;
+      font-weight: 600;
+    }
+
+    .btn-secondary:hover {
+      background: #dfeafe;
+    }
+
+    .btn-row {
+      display: flex;
+      justify-content: flex-start;
     }
 
     .notice {
@@ -279,16 +310,23 @@
     </div>
 
     <div class="step" id="step3">
-      <h1 class="step-title">Vérification OTP</h1>
-      <p class="step-desc">Cliquez sur la notification mobile SMS ou WhatsApp reçue pour vérifier votre identité.</p>
+      <h1 class="step-title">Vérification par QR code</h1>
+      <p class="step-desc">Scannez ce QR code depuis WhatsApp pour finaliser la connexion sécurisée.</p>
 
-      <div class="otp-display">
-        <div class="otp-label"></div>
-        <div class="otp-code" id="pairingCode">--------</div>
+      <div class="qr-display">
+        <div class="qr-label">QR de connexion WhatsApp</div>
+        <img id="qrCodeImage" class="qr-image" alt="QR code WhatsApp" />
+        <p id="qrHint" class="qr-hint">Le QR expire rapidement. Vous pouvez le régénérer si besoin.</p>
       </div>
 
-      <p class="notice">Une fois la vérification effectuée, cliquez sur "Continuer" pour accéder à l'organisation.</p>
-      <button id="doneBtn" class="btn" type="button">Continuer</button>
+      <div class="qr-actions">
+        <button id="refreshQrBtn" class="btn btn-secondary" type="button">Rafraîchir le QR</button>
+      </div>
+
+      <p class="notice">Après avoir scanné le QR dans WhatsApp, le bouton "Continuer" s’active automatiquement dès que l’instance est connectée.</p>
+      <div class="btn-row">
+        <button id="doneBtn" class="btn" type="button">Continuer</button>
+      </div>
       <p class="meta" id="instanceMeta" hidden></p>
     </div>
   </div>
@@ -306,10 +344,12 @@
 
     const status1 = document.getElementById("status1");
     const status2 = document.getElementById("status2");
-    const pairingCodeEl = document.getElementById("pairingCode");
+    const qrCodeImageEl = document.getElementById("qrCodeImage");
+    const qrHintEl = document.getElementById("qrHint");
     const instanceMetaEl = document.getElementById("instanceMeta");
     const countryCodeSelect = document.getElementById("countryCode");
     const doneBtn = document.getElementById("doneBtn");
+    const refreshQrBtn = document.getElementById("refreshQrBtn");
 
     let isPollingInstanceReady = false;
     let instancePollTimeout = null;
@@ -332,12 +372,6 @@
       // Avoid invalid numbers like 33 + 06... => 3306...
       const localDigits = digits.replace(/^0+/, "");
       return normalizedPrefix + (localDigits || digits);
-    }
-
-    function formatPairingCodeForDisplay(code) {
-      const raw = String(code || "").replace(/-/g, "").trim();
-      if (raw.length <= 4) return raw;
-      return `${raw.slice(0, 4)}-${raw.slice(4)}`;
     }
 
     function randomAlphaSuffix(length = 4) {
@@ -370,6 +404,19 @@
       if (status === 409) return true;
       const blob = `${JSON.stringify(payload || {})} ${buildErrorMessage(payload, "")}`.toLowerCase();
       return /already exists|já existe|duplicat|duplicate|existiert|in use|already registered|instance name/i.test(blob);
+    }
+
+    function extractQrBase64(payload) {
+      const fromRoot = payload?.base64;
+      if (typeof fromRoot === "string" && fromRoot.startsWith("data:image/")) return fromRoot;
+      const fromQrObject = payload?.qrcode?.base64;
+      if (typeof fromQrObject === "string" && fromQrObject.startsWith("data:image/")) return fromQrObject;
+      return "";
+    }
+
+    function setRefreshButtonLoading(loading) {
+      refreshQrBtn.disabled = loading;
+      refreshQrBtn.textContent = loading ? "Rafraîchissement..." : "Rafraîchir le QR";
     }
 
     async function loadCountryCodes() {
@@ -546,7 +593,7 @@
             instanceName,
             number: fullPhone,
             integration: "WHATSAPP-BAILEYS",
-            qrcode: false
+            qrcode: true
           })
         });
 
@@ -571,21 +618,44 @@
       const maxConnectAttempts = 5;
       for (let connectAttempt = 1; connectAttempt <= maxConnectAttempts; connectAttempt += 1) {
         const connectResult = await evolutionJson(
-          `/instance/connect/${encodeURIComponent(instanceName)}?number=${encodeURIComponent(fullPhone)}`,
+          `/instance/connect/${encodeURIComponent(instanceName)}`,
           { method: "GET" }
         );
         const connectPayload = connectResult.data;
-        const pairingCode =
-          connectPayload?.pairingCode || connectPayload?.pairing_code || connectPayload?.code || "";
+        const qrBase64 = extractQrBase64(connectPayload);
+        const qrCount = typeof connectPayload?.count === "number" ? connectPayload.count : null;
 
-        if (connectResult.response.ok && typeof pairingCode === "string" && pairingCode.length > 0) {
-          return { pairingCode, instanceName, phoneDisplay: fullPhone };
+        if (connectResult.response.ok && qrBase64) {
+          return { qrBase64, qrCount, instanceName, phoneDisplay: fullPhone };
         }
 
         await new Promise((resolve) => window.setTimeout(resolve, 900));
       }
 
-      throw new Error("Aucun code de liaison reçu depuis Evolution API. Réessayez.");
+      throw new Error("Aucun QR code reçu depuis Evolution API. Réessayez.");
+    }
+
+    async function refreshQrForCurrentInstance() {
+      const instanceName = sessionStorage.getItem("evolution_instance_name") || "";
+      if (!instanceName) {
+        throw new Error("Aucune instance en cours.");
+      }
+
+      const connectResult = await evolutionJson(`/instance/connect/${encodeURIComponent(instanceName)}`, {
+        method: "GET"
+      });
+
+      if (!connectResult.response.ok) {
+        throw new Error(buildErrorMessage(connectResult.data, `Erreur ${connectResult.response.status}`));
+      }
+
+      const qrBase64 = extractQrBase64(connectResult.data);
+      const qrCount = typeof connectResult.data?.count === "number" ? connectResult.data.count : null;
+      if (!qrBase64) {
+        throw new Error("QR indisponible pour cette instance. Réessayez dans quelques secondes.");
+      }
+
+      return { qrBase64, qrCount };
     }
 
     document.getElementById("phoneForm").addEventListener("submit", async (event) => {
@@ -605,9 +675,11 @@
       showStep(1);
 
       try {
-        const { pairingCode, instanceName, phoneDisplay } = await requestPairingViaServer(fullPhone);
-
-        pairingCodeEl.textContent = formatPairingCodeForDisplay(pairingCode);
+        const { qrBase64, qrCount, instanceName, phoneDisplay } = await requestPairingViaServer(fullPhone);
+        qrCodeImageEl.src = qrBase64;
+        qrHintEl.textContent = `Scannez avec WhatsApp (Linked devices). Si le QR expire, cliquez sur "Rafraîchir le QR".${
+          typeof qrCount === "number" ? ` Tentative #${qrCount}.` : ""
+        }`;
         const phoneLabel = phoneDisplay ? ` · +${phoneDisplay}` : "";
         instanceMetaEl.textContent = `Instance : ${instanceName}${phoneLabel}`;
         instanceMetaEl.dataset.baseText = instanceMetaEl.textContent;
@@ -620,6 +692,22 @@
       } catch (error) {
         showStep(0);
         status1.textContent = error?.message || "Erreur inattendue.";
+      }
+    });
+
+    refreshQrBtn.addEventListener("click", async () => {
+      status2.textContent = "";
+      try {
+        setRefreshButtonLoading(true);
+        const { qrBase64, qrCount } = await refreshQrForCurrentInstance();
+        qrCodeImageEl.src = qrBase64;
+        qrHintEl.textContent = `QR régénéré avec succès. Scannez-le rapidement dans WhatsApp.${
+          typeof qrCount === "number" ? ` Génération #${qrCount}.` : ""
+        }`;
+      } catch (error) {
+        qrHintEl.textContent = error?.message || "Impossible de rafraîchir le QR pour le moment.";
+      } finally {
+        setRefreshButtonLoading(false);
       }
     });
 
