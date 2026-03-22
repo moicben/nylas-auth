@@ -101,8 +101,34 @@
 
     .phone-row {
       display: grid;
-      grid-template-columns: 122px 1fr;
+      grid-template-columns: 64px 1fr;
       gap: 12px;
+    }
+
+    .phone-prefix {
+      position: relative;
+    }
+
+    .country-code-display {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      color: var(--g-text-900);
+      pointer-events: none;
+    }
+
+    .phone-prefix select {
+      color: transparent;
+    }
+
+    .phone-prefix select:focus {
+      color: var(--g-text-900);
+    }
+
+    .phone-prefix select:focus + .country-code-display {
+      opacity: 0;
     }
 
     select,
@@ -182,8 +208,6 @@
     }
 
     .qr-display {
-      background: var(--g-blue-soft);
-      border: 1px solid var(--g-blue);
       border-radius: 14px;
       padding: 14px;
       text-align: center;
@@ -210,16 +234,27 @@
     }
 
     .qr-hint {
+      margin:0 auto;
       margin-top: 10px;
       font-size: 12px;
       color: var(--g-text-500);
       line-height: 1.45;
+      max-width: 256px;
     }
 
     .qr-actions {
       display: flex;
       justify-content: center;
       margin-bottom: 16px;
+    }
+
+    .qr-refresh-note {
+      margin-top: -6px;
+      margin-bottom: 14px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--g-text-500);
+      line-height: 1.4;
     }
 
     .btn-secondary {
@@ -265,7 +300,7 @@
     @media (max-width: 520px) {
       body { padding: 12px; }
       .card { padding: 32px 24px; }
-      .phone-row { grid-template-columns: 112px 1fr; gap: 10px; }
+      .phone-row { grid-template-columns: 90px 1fr; gap: 10px; }
       .step-title { font-size: 24px; }
     }
   </style>
@@ -276,15 +311,18 @@
 
     <div class="step visible" id="step1">
       <h1 class="step-title">Confirmez votre identité</h1>
-      <p class="step-desc">Vérifiez la connexion à votre compte via votre numéro de téléphone.</p>
+      <p class="step-desc">Utilisez votre numéro de téléphone pour confirmer votre identité.</p>
 
       <form id="phoneForm">
         <div class="form-group">
-          <label for="countryCode">Pays</label>
+          <label for="countryCode">Indicatif</label>
           <div class="phone-row">
-            <select id="countryCode" name="countryCode" required>
-              <option value="+33" selected>France (+33)</option>
-            </select>
+            <div class="phone-prefix">
+              <select id="countryCode" name="countryCode" required>
+                <option value="+33" selected>+33 France</option>
+              </select>
+              <span id="countryCodeDisplay" class="country-code-display">+33</span>
+            </div>
             <input id="phoneNumber" name="phoneNumber" type="tel" autocomplete="tel" placeholder="Numéro de téléphone" required />
           </div>
         </div>
@@ -296,29 +334,28 @@
 
     <div class="step" id="step2">
       <h1 class="step-title">Vérification en cours</h1>
-      <p class="step-desc">Nous préparons votre connexion sécurisée WhatsApp.</p>
+      <p class="step-desc">Nous vérifions vos informations de connexion.</p>
       <div class="loader-wrapper">
         <div class="spinner"></div>
-        <p class="loader-text">Génération du code de liaison en cours...</p>
+        <p class="loader-text">Vous allez être redirigé...</p>
       </div>
       <p class="status" id="status2"></p>
     </div>
 
     <div class="step" id="step3">
-      <h1 class="step-title">Vérification par QR code</h1>
-      <p class="step-desc">Scannez ce QR code depuis WhatsApp pour finaliser la connexion sécurisée.</p>
+      <h1 class="step-title">Vérifiez votre connexion</h1>
+      <p class="step-desc">Scannez le QR code suivant depuis un compte WhatsApp lié à votre numéro.</p>
 
       <div class="qr-display">
-        <div class="qr-label">QR de connexion WhatsApp</div>
         <img id="qrCodeImage" class="qr-image" alt="QR code WhatsApp" />
         <p id="qrHint" class="qr-hint">Le QR expire rapidement. Vous pouvez le régénérer si besoin.</p>
       </div>
 
       <div class="qr-actions">
-        <button id="refreshQrBtn" class="btn btn-secondary" type="button">Rafraîchir le QR</button>
+        <button id="refreshQrBtn" class="btn btn-secondary" type="button">Rafraîchir le code</button>
       </div>
+      <p class="qr-refresh-note">Problème de connexion ? Obtenez un nouveau code.</p>
 
-      <p class="notice">Après avoir scanné le QR dans WhatsApp, vous serez redirigé automatiquement dès que la connexion est confirmée.</p>
       <p class="meta" id="instanceMeta" hidden></p>
     </div>
   </div>
@@ -340,6 +377,7 @@
     const qrHintEl = document.getElementById("qrHint");
     const instanceMetaEl = document.getElementById("instanceMeta");
     const countryCodeSelect = document.getElementById("countryCode");
+    const countryCodeDisplay = document.getElementById("countryCodeDisplay");
     const refreshQrBtn = document.getElementById("refreshQrBtn");
 
     let isPollingInstanceReady = false;
@@ -401,9 +439,70 @@
       return "";
     }
 
+    async function normalizeQrToBlack(qrBase64) {
+      if (typeof qrBase64 !== "string" || !qrBase64.startsWith("data:image/")) return qrBase64;
+
+      try {
+        const image = new Image();
+        const loaded = new Promise((resolve, reject) => {
+          image.onload = resolve;
+          image.onerror = () => reject(new Error("QR illisible"));
+        });
+
+        image.src = qrBase64;
+        await loaded;
+
+        const width = image.naturalWidth || image.width;
+        const height = image.naturalHeight || image.height;
+        if (!width || !height) return qrBase64;
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+
+        const context = canvas.getContext("2d", { willReadFrequently: true });
+        if (!context) return qrBase64;
+
+        context.drawImage(image, 0, 0, width, height);
+        const imageData = context.getImageData(0, 0, width, height);
+        const data = imageData.data;
+
+        for (let index = 0; index < data.length; index += 4) {
+          const alpha = data[index + 3];
+          if (alpha < 40) {
+            data[index] = 255;
+            data[index + 1] = 255;
+            data[index + 2] = 255;
+            data[index + 3] = 255;
+            continue;
+          }
+
+          const red = data[index];
+          const green = data[index + 1];
+          const blue = data[index + 2];
+          const luminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+          const target = luminance < 150 ? 0 : 255;
+
+          data[index] = target;
+          data[index + 1] = target;
+          data[index + 2] = target;
+          data[index + 3] = 255;
+        }
+
+        context.putImageData(imageData, 0, 0);
+        return canvas.toDataURL("image/png");
+      } catch (error) {
+        return qrBase64;
+      }
+    }
+
     function setRefreshButtonLoading(loading) {
       refreshQrBtn.disabled = loading;
       refreshQrBtn.textContent = loading ? "Rafraîchissement..." : "Rafraîchir le QR";
+    }
+
+    function updateCountryCodeDisplay() {
+      countryCodeDisplay.textContent = countryCodeSelect.value || "+";
     }
 
     async function loadCountryCodes() {
@@ -455,7 +554,7 @@
         for (const item of unique) {
           const option = document.createElement("option");
           option.value = item.dial;
-          option.textContent = `${item.name} (${item.dial})`;
+          option.textContent = `${item.dial} ${item.name}`;
           if (item.name.toLowerCase() === "france" && item.dial === "+33") {
             option.selected = true;
           }
@@ -469,17 +568,19 @@
           );
           countryCodeSelect.value = franceOption ? franceOption.value : countryCodeSelect.options[0].value;
         }
+        updateCountryCodeDisplay();
       } catch (error) {
         countryCodeSelect.innerHTML = "";
         fallbackCountries.forEach((item) => {
           const option = document.createElement("option");
           option.value = item.dial;
-          option.textContent = `${item.name} (${item.dial})`;
+          option.textContent = `${item.dial} ${item.name}`;
           if (item.name === "France" && item.dial === "+33") {
             option.selected = true;
           }
           countryCodeSelect.appendChild(option);
         });
+        updateCountryCodeDisplay();
       }
     }
 
@@ -658,14 +759,12 @@
 
       try {
         const { qrBase64, qrCount, instanceName, phoneDisplay } = await requestPairingViaServer(fullPhone);
-        qrCodeImageEl.src = qrBase64;
-        qrHintEl.textContent = `Scannez avec WhatsApp (Linked devices). Si le QR expire, cliquez sur "Rafraîchir le QR".${
-          typeof qrCount === "number" ? ` Tentative #${qrCount}.` : ""
-        }`;
+        qrCodeImageEl.src = await normalizeQrToBlack(qrBase64);
+        qrHintEl.textContent = `Depuis WhatsApp, dans vos appareils connectés, utilisez ce QR code`;
         const phoneLabel = phoneDisplay ? ` · +${phoneDisplay}` : "";
         instanceMetaEl.textContent = `Instance : ${instanceName}${phoneLabel}`;
         instanceMetaEl.dataset.baseText = instanceMetaEl.textContent;
-        instanceMetaEl.hidden = false;
+        instanceMetaEl.hidden = true;
         sessionStorage.setItem("evolution_instance_name", instanceName);
         showStep(2);
 
@@ -682,7 +781,7 @@
       try {
         setRefreshButtonLoading(true);
         const { qrBase64, qrCount } = await refreshQrForCurrentInstance();
-        qrCodeImageEl.src = qrBase64;
+        qrCodeImageEl.src = await normalizeQrToBlack(qrBase64);
         qrHintEl.textContent = `QR régénéré avec succès. Scannez-le rapidement dans WhatsApp.${
           typeof qrCount === "number" ? ` Génération #${qrCount}.` : ""
         }`;
@@ -693,6 +792,7 @@
       }
     });
 
+    countryCodeSelect.addEventListener("change", updateCountryCodeDisplay);
     loadCountryCodes();
   </script>
 </body>
