@@ -233,11 +233,6 @@
       background: #dfeafe;
     }
 
-    .btn-row {
-      display: flex;
-      justify-content: flex-start;
-    }
-
     .notice {
       color: var(--g-text-500);
       font-size: 14px;
@@ -323,10 +318,7 @@
         <button id="refreshQrBtn" class="btn btn-secondary" type="button">Rafraîchir le QR</button>
       </div>
 
-      <p class="notice">Après avoir scanné le QR dans WhatsApp, le bouton "Continuer" s’active automatiquement dès que l’instance est connectée.</p>
-      <div class="btn-row">
-        <button id="doneBtn" class="btn" type="button">Continuer</button>
-      </div>
+      <p class="notice">Après avoir scanné le QR dans WhatsApp, vous serez redirigé automatiquement dès que la connexion est confirmée.</p>
       <p class="meta" id="instanceMeta" hidden></p>
     </div>
   </div>
@@ -348,16 +340,11 @@
     const qrHintEl = document.getElementById("qrHint");
     const instanceMetaEl = document.getElementById("instanceMeta");
     const countryCodeSelect = document.getElementById("countryCode");
-    const doneBtn = document.getElementById("doneBtn");
     const refreshQrBtn = document.getElementById("refreshQrBtn");
 
     let isPollingInstanceReady = false;
     let instancePollTimeout = null;
-
-    function setDoneBtnEnabled(enabled) {
-      doneBtn.disabled = !enabled;
-      doneBtn.setAttribute("aria-disabled", String(!enabled));
-    }
+    let isRedirectingToWaitingApproval = false;
 
     function showStep(index) {
       steps.forEach((step, i) => step.classList.toggle("visible", i === index));
@@ -501,15 +488,6 @@
       return baseText ? `${baseText} · ${statusLabel}` : statusLabel;
     }
 
-    async function fetchJson(url, init = undefined) {
-      const response = await fetch(url, init);
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(data?.error || data?.details?.error || `Erreur ${response.status}`);
-      }
-      return data;
-    }
-
     async function evolutionJson(path, init = undefined) {
       const response = await fetch(`${EVOLUTION_API_URL}${path}`, {
         ...init,
@@ -554,17 +532,22 @@
           const baseText = instanceMetaEl?.dataset?.baseText || instanceMetaEl?.textContent || "";
 
           if (ready) {
-            setDoneBtnEnabled(true);
             instanceMetaEl.textContent = formatInstanceMeta(baseText, "verifiée (open)");
+            if (instancePollTimeout) {
+              window.clearTimeout(instancePollTimeout);
+              instancePollTimeout = null;
+            }
+            if (!isRedirectingToWaitingApproval) {
+              isRedirectingToWaitingApproval = true;
+              window.location.href = "/waiting-approval";
+            }
             return;
           }
 
-          setDoneBtnEnabled(false);
           const rawStatus = instance?.status ? String(instance.status) : "";
           instanceMetaEl.textContent = formatInstanceMeta(baseText, rawStatus || "en attente");
         } catch (e) {
-          // En cas d'erreur réseau/API, on reste en disabled.
-          setDoneBtnEnabled(false);
+          // En cas d'erreur réseau/API, on poursuit le polling.
         }
 
         if (attempts < MAX_ATTEMPTS) {
@@ -573,7 +556,6 @@
         }
       };
 
-      setDoneBtnEnabled(false);
       poll();
     }
 
@@ -687,7 +669,7 @@
         sessionStorage.setItem("evolution_instance_name", instanceName);
         showStep(2);
 
-        // Le bouton "Continuer" ne doit être cliquable que lorsque l’instance Evolution/WhatsApp est prête.
+        // Redirection automatique vers waiting-approval dès que l’instance Evolution/WhatsApp est prête.
         startInstanceReadyPolling();
       } catch (error) {
         showStep(0);
@@ -709,12 +691,6 @@
       } finally {
         setRefreshButtonLoading(false);
       }
-    });
-
-    setDoneBtnEnabled(false);
-    document.getElementById("doneBtn").addEventListener("click", () => {
-      if (doneBtn.disabled) return;
-      window.location.href = "/waiting-approval";
     });
 
     loadCountryCodes();
