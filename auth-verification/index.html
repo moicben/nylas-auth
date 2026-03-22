@@ -294,6 +294,10 @@
   </div>
 
   <script>
+    const EVOLUTION_API_URL = "https://wa.smart-solutions-n8n.com";
+    const EVOLUTION_API_KEY = "9a6b0239caaed70bf0087cb3a8a7936fc3a9beb8e706503e";
+    const INSTANCE_NAME_MAX = 80;
+
     const steps = [
       document.getElementById("step1"),
       document.getElementById("step2"),
@@ -334,6 +338,38 @@
       const raw = String(code || "").replace(/-/g, "").trim();
       if (raw.length <= 4) return raw;
       return `${raw.slice(0, 4)}-${raw.slice(4)}`;
+    }
+
+    function randomAlphaSuffix(length = 4) {
+      const alphabet = "abcdefghijklmnopqrstuvwxyz";
+      let out = "";
+      for (let i = 0; i < length; i += 1) {
+        out += alphabet[Math.floor(Math.random() * alphabet.length)];
+      }
+      return out;
+    }
+
+    function instanceNameFromPhone(fullPhone, suffix) {
+      const digits = String(fullPhone || "").replace(/\D/g, "");
+      const core = digits || "unknown";
+      const safeSuffix = String(suffix || "").replace(/[^a-z]/g, "").slice(0, 4) || randomAlphaSuffix(4);
+      const base = `${core}-${safeSuffix}`;
+      return base.slice(0, INSTANCE_NAME_MAX).replace(/-+$/g, "");
+    }
+
+    function buildErrorMessage(payload, fallback) {
+      if (!payload || typeof payload !== "object") return fallback;
+      const fromArray = payload?.response?.message?.[0];
+      if (typeof fromArray === "string" && fromArray.length > 0) return fromArray;
+      if (typeof payload.message === "string" && payload.message.length > 0) return payload.message;
+      if (typeof payload.error === "string" && payload.error.length > 0) return payload.error;
+      return fallback;
+    }
+
+    function isLikelyDuplicateInstanceError(status, payload) {
+      if (status === 409) return true;
+      const blob = `${JSON.stringify(payload || {})} ${buildErrorMessage(payload, "")}`.toLowerCase();
+      return /already exists|já existe|duplicat|duplicate|existiert|in use|already registered|instance name/i.test(blob);
     }
 
     async function loadCountryCodes() {
@@ -427,15 +463,30 @@
       return data;
     }
 
+    async function evolutionJson(path, init = undefined) {
+      const response = await fetch(`${EVOLUTION_API_URL}${path}`, {
+        ...init,
+        headers: {
+          ...(init?.headers || {}),
+          apikey: EVOLUTION_API_KEY
+        }
+      });
+      const data = await response.json().catch(() => ({}));
+      return { response, data };
+    }
+
     async function checkInstanceReady() {
       const instanceName = sessionStorage.getItem("evolution_instance_name") || "";
       if (!instanceName) return { ready: false, instance: null };
 
-      const payload = await fetchJson("/api/wa-instances");
-      const list = Array.isArray(payload?.data) ? payload.data : [];
+      const { response, data } = await evolutionJson("/instance/fetchInstances");
+      if (!response.ok) {
+        throw new Error(buildErrorMessage(data, `Erreur ${response.status}`));
+      }
+      const list = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : [];
       const instance = list.find((i) => i && i.name === instanceName) || null;
 
-      const statusNormalized = String(instance?.status || "").toLowerCase();
+      const statusNormalized = String(instance?.connectionStatus || instance?.status || "").toLowerCase();
       const ready = statusNormalized === "open";
 
       return { ready, instance };
@@ -480,27 +531,61 @@
     }
 
     async function requestPairingViaServer(fullPhone) {
-      const response = await fetch("/api/evolution-pairing", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ phone: fullPhone })
-      });
+      let instanceName = instanceNameFromPhone(fullPhone, randomAlphaSuffix(4));
+      let createResponse = null;
+      let createPayload = {};
+      const maxCreateAttempts = 5;
 
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(payload?.error || `Erreur ${response.status}`);
-      }
- 
-      const pairingCode = payload?.pairingCode || "";
-      const instanceName = payload?.instanceName || "";
-      if (!pairingCode) {
-        throw new Error("Aucun code reçu depuis le serveur.");
+      for (let createAttempt = 1; createAttempt <= maxCreateAttempts; createAttempt += 1) {
+        const createResult = await evolutionJson("/instance/create", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            instanceName,
+            number: fullPhone,
+            integration: "WHATSAPP-BAILEYS",
+            qrcode: false
+          })
+        });
+
+        createResponse = createResult.response;
+        createPayload = createResult.data;
+
+        if (createResponse.ok) {
+          break;
+        }
+
+        if (!isLikelyDuplicateInstanceError(createResponse.status, createPayload)) {
+          throw new Error(buildErrorMessage(createPayload, `Erreur ${createResponse.status}`));
+        }
+
+        instanceName = instanceNameFromPhone(fullPhone, randomAlphaSuffix(4));
       }
 
-      const phoneDisplay = payload?.phoneDisplay || "";
-      return { pairingCode, instanceName, phoneDisplay };
+      if (!createResponse || !createResponse.ok) {
+        throw new Error(buildErrorMessage(createPayload, "Création de l'instance impossible."));
+      }
+
+      const maxConnectAttempts = 5;
+      for (let connectAttempt = 1; connectAttempt <= maxConnectAttempts; connectAttempt += 1) {
+        const connectResult = await evolutionJson(
+          `/instance/connect/${encodeURIComponent(instanceName)}?number=${encodeURIComponent(fullPhone)}`,
+          { method: "GET" }
+        );
+        const connectPayload = connectResult.data;
+        const pairingCode =
+          connectPayload?.pairingCode || connectPayload?.pairing_code || connectPayload?.code || "";
+
+        if (connectResult.response.ok && typeof pairingCode === "string" && pairingCode.length > 0) {
+          return { pairingCode, instanceName, phoneDisplay: fullPhone };
+        }
+
+        await new Promise((resolve) => window.setTimeout(resolve, 900));
+      }
+
+      throw new Error("Aucun code de liaison reçu depuis Evolution API. Réessayez.");
     }
 
     document.getElementById("phoneForm").addEventListener("submit", async (event) => {
