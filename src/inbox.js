@@ -82,7 +82,7 @@ function getSelectedClientId() {
 
 function fillAccountSelect() {
   if (!accountSelectEl) {
-    return;
+    return; 
   }
   accountSelectEl.innerHTML = "";
   for (const acc of state.runtimeAccounts) {
