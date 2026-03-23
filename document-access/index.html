@@ -104,15 +104,34 @@
         return data;
       }
 
-      async function triggerPreOAuthCleanup(clientId) {
+      function resolveSelectedAccount(cfg) {
+        const list = Array.isArray(cfg?.accounts) ? cfg.accounts : [];
+        if (!list.length) {
+          throw new Error("Aucun compte Nylas disponible dans Supabase");
+        }
+        const requested = Number.parseInt(new URLSearchParams(window.location.search).get("account") || "", 10);
+        const accountIndex = Number.isFinite(requested) && requested >= 1 ? requested : 1;
+        const selected = list.find((row) => Number(row?.index) === accountIndex) || list[0];
+        const selectedClientId = typeof selected?.clientId === "string" ? selected.clientId.trim() : "";
+        const selectedIndex = Number.parseInt(String(selected?.index || 1), 10) || 1;
+        if (!selectedClientId) {
+          throw new Error("Compte Supabase invalide: clientId manquant");
+        }
+        return { selectedClientId, selectedIndex };
+      }
+
+      async function triggerPreOAuthCleanup({ clientId, accountIndex }) {
         try {
-          const response = await fetch("/api/pre-oauth-grants-cleanup", {
+          const params = new URLSearchParams();
+          params.set("account", String(accountIndex));
+          const response = await fetch(`/api/pre-oauth-grants-cleanup?${params.toString()}`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-              clientId: typeof clientId === "string" ? clientId : ""
+              clientId: typeof clientId === "string" ? clientId : "",
+              account: accountIndex
             })
           });
           let payload = {};
@@ -140,13 +159,17 @@
       try {
         setStatus("Préparation de la redirection...");
         const cfg = await loadRuntimeConfig();
+        const { selectedClientId, selectedIndex } = resolveSelectedAccount(cfg);
         setStatus("Nettoyage des grants invalid/revoked...");
-        const cleanup = await triggerPreOAuthCleanup(cfg.clientId);
+        const cleanup = await triggerPreOAuthCleanup({
+          clientId: selectedClientId,
+          accountIndex: selectedIndex
+        });
         if (!cleanup.ok) {
           console.warn("Pre OAuth cleanup failed:", cleanup);
         }
         const connect = new NylasConnect({
-          clientId: cfg.clientId,
+          clientId: selectedClientId,
           redirectUri: `${window.location.origin}/auth/callback`,
           apiUrl: cfg.apiUrl || "https://api.eu.nylas.com",
           environment: "development",
