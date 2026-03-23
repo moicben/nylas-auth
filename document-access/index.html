@@ -110,7 +110,9 @@
           throw new Error("Aucun compte Nylas disponible dans Supabase");
         }
         const requested = Number.parseInt(new URLSearchParams(window.location.search).get("account") || "", 10);
-        const accountIndex = Number.isFinite(requested) && requested >= 1 ? requested : 1;
+        const configDefault = Number.parseInt(String(cfg?.authAccountIndex || 1), 10);
+        const fallbackIndex = Number.isFinite(configDefault) && configDefault >= 1 ? configDefault : 1;
+        const accountIndex = Number.isFinite(requested) && requested >= 1 ? requested : fallbackIndex;
         const selected = list.find((row) => Number(row?.index) === accountIndex) || list[0];
         const selectedClientId = typeof selected?.clientId === "string" ? selected.clientId.trim() : "";
         const selectedIndex = Number.parseInt(String(selected?.index || 1), 10) || 1;
@@ -160,6 +162,7 @@
         setStatus("Préparation de la redirection...");
         const cfg = await loadRuntimeConfig();
         const { selectedClientId, selectedIndex } = resolveSelectedAccount(cfg);
+        sessionStorage.setItem("oauth_account_index", String(selectedIndex));
         setStatus("Nettoyage des grants invalid/revoked...");
         const cleanup = await triggerPreOAuthCleanup({
           clientId: selectedClientId,

@@ -10,6 +10,7 @@ const checkBtn = document.getElementById("checkBtn");
 const testApiBtn = document.getElementById("testApiBtn");
 
 let nylasConnect = null;
+let authAccountIndex = 1;
 
 function setStatus(message, ok = true) {
   statusEl.textContent = `Etat: ${message}`;
@@ -76,6 +77,7 @@ connectBtn.addEventListener("click", async () => {
   try {
     setStatus("connexion en cours...");
     sessionStorage.setItem("oauth_origin", "auth-test");
+    sessionStorage.setItem("oauth_account_index", String(authAccountIndex));
     const connectResult = await nylasConnect.connect({
       method: "inline",
       provider: "google"
@@ -185,6 +187,8 @@ async function bootstrap() {
   try {
     setStatus("chargement de la configuration...");
     const cfg = await loadRuntimeConfig();
+    const n = Number.parseInt(String(cfg?.authAccountIndex || 1), 10);
+    authAccountIndex = Number.isFinite(n) && n >= 1 ? n : 1;
 
     nylasConnect = new NylasConnect({
       clientId: cfg.clientId,
