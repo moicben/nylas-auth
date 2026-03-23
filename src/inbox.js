@@ -5,6 +5,8 @@ const accountSelectEl = document.getElementById("accountSelect");
 const grantSelectEl = document.getElementById("grantSelect");
 const deleteGrantBtn = document.getElementById("deleteGrantBtn");
 const readFilterEl = document.getElementById("readFilter");
+const subjectSearchInputEl = document.getElementById("subjectSearchInput");
+const subjectSearchBtnEl = document.getElementById("subjectSearchBtn");
 const refreshBtn = document.getElementById("refreshBtn");
 const messagesListEl = document.getElementById("messagesList");
 const readerPanelEl = document.getElementById("readerPanel");
@@ -19,6 +21,7 @@ const state = {
   selectedGrantId: "",
   mailbox: "INBOX",
   readFilter: "all",
+  subjectQuery: "",
   messages: [],
   selectedMessageId: "",
   nextCursor: "",
@@ -753,6 +756,9 @@ async function loadMessages({ append = false } = {}) {
     params.set("limit", "200");
     params.set("mailbox", state.mailbox);
     params.set("read", state.readFilter);
+    if (state.subjectQuery.trim()) {
+      params.set("subject", state.subjectQuery.trim());
+    }
     if (append && state.nextCursor) {
       params.set("cursor", state.nextCursor);
     }
@@ -876,6 +882,18 @@ async function loadMessageDetail(messageId) {
   }
 }
 
+async function applySubjectSearch() {
+  const nextSubjectQuery = (subjectSearchInputEl?.value || "").trim();
+  state.subjectQuery = nextSubjectQuery;
+  if (subjectSearchInputEl && subjectSearchInputEl.value !== nextSubjectQuery) {
+    subjectSearchInputEl.value = nextSubjectQuery;
+  }
+  state.nextCursor = "";
+  state.selectedMessageId = "";
+  state.detailById.clear();
+  await loadMessages({ append: false });
+}
+
 async function refreshCurrentSource() {
   if (state.source === "email") {
     state.nextCursor = "";
@@ -950,6 +968,23 @@ function setupEvents() {
     state.selectedMessageId = "";
     state.detailById.clear();
     await loadMessages({ append: false });
+  });
+
+  subjectSearchInputEl?.addEventListener("keydown", async (event) => {
+    if (state.source !== "email") return;
+    const isEnter =
+      event.key === "Enter" ||
+      event.code === "Enter" ||
+      event.code === "NumpadEnter" ||
+      event.keyCode === 13;
+    if (!isEnter) return;
+    event.preventDefault();
+    await applySubjectSearch();
+  });
+
+  subjectSearchBtnEl?.addEventListener("click", async () => {
+    if (state.source !== "email") return;
+    await applySubjectSearch();
   });
 
   toolbarEl?.addEventListener("click", async (event) => {
@@ -1064,6 +1099,9 @@ async function bootstrap() {
     fillAccountSelect();
     if (accountSelectEl) {
       accountSelectEl.value = String(state.selectedAccountIndex);
+    }
+    if (subjectSearchInputEl) {
+      subjectSearchInputEl.value = state.subjectQuery;
     }
     await reinitNylasSession();
 
