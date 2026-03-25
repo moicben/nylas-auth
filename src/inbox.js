@@ -18,14 +18,20 @@ const waInstanceSelectEl = document.getElementById("waInstanceSelect");
 const state = {
   source: "email",
   sessionGrantId: "",
-  selectedGrantId: "",
+  selectedGrantId: "__ALL__",
+  selectedGrantAccountIndex: 0,
   mailbox: "INBOX",
   readFilter: "all",
   subjectQuery: "",
   messages: [],
   selectedMessageId: "",
+  selectedMessageKey: "",
   nextCursor: "",
   detailById: new Map(),
+  messageScopeById: new Map(),
+  grantsByAccount: new Map(),
+  allGrantRefs: [],
+  emailLoadSeq: 0,
   isLoadingMessages: false,
   isDeletingMessage: false,
   isDeletingGrant: false,
@@ -43,6 +49,9 @@ const state = {
 
 const WA_INSTANCE_STORAGE_KEY = "inbox-wa-evolution-instance";
 const NYLAS_ACCOUNT_STORAGE_KEY = "inbox-nylas-account-index";
+const ALL_GRANTS_VALUE = "__ALL__";
+const GRANT_SCOPE_SEPARATOR = "::";
+const ALL_MODE_MAX_CONCURRENCY = 4;
 /** Instance Nylas Connect recréée lors d’un changement de compte */
 let nylasConnect = null;
 
@@ -99,8 +108,77 @@ function fillAccountSelect() {
   }
 }
 
-function appendAccountParam(params) {
-  params.set("account", String(state.selectedAccountIndex));
+function appendAccountParam(params, accountIndex = state.selectedAccountIndex) {
+  params.set("account", String(accountIndex));
+}
+
+function isAllMode() {
+  return state.selectedGrantId === ALL_GRANTS_VALUE;
+}
+
+function makeGrantScopeValue(accountIndex, grantId) {
+  return `${String(accountIndex)}${GRANT_SCOPE_SEPARATOR}${String(grantId)}`;
+}
+
+function parseGrantScopeValue(value) {
+  if (!value || value === ALL_GRANTS_VALUE) return null;
+  const sepIndex = String(value).indexOf(GRANT_SCOPE_SEPARATOR);
+  if (sepIndex <= 0) return null;
+  const accountRaw = String(value).slice(0, sepIndex);
+  const grantId = String(value).slice(sepIndex + GRANT_SCOPE_SEPARATOR.length).trim();
+  const accountIndex = Number.parseInt(accountRaw, 10);
+  if (!Number.isFinite(accountIndex) || accountIndex < 1 || !grantId) {
+    return null;
+  }
+  return { accountIndex, grantId };
+}
+
+function getSelectedGrantScope() {
+  if (isAllMode() || !state.selectedGrantId || !state.selectedGrantAccountIndex) {
+    return null;
+  }
+  return {
+    accountIndex: state.selectedGrantAccountIndex,
+    grantId: state.selectedGrantId
+  };
+}
+
+function buildMessageKey(accountIndex, grantId, messageId) {
+  return `${String(accountIndex)}:${String(grantId)}:${String(messageId)}`;
+}
+
+function clearEmailSelection() {
+  state.selectedMessageId = "";
+  state.selectedMessageKey = "";
+  state.nextCursor = "";
+  state.detailById.clear();
+  state.messageScopeById.clear();
+}
+
+function sleepMs(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function mapWithConcurrency(items, concurrency, mapper) {
+  if (!Array.isArray(items) || !items.length) return [];
+  const limit = Math.max(1, Number.parseInt(String(concurrency), 10) || 1);
+  const results = new Array(items.length);
+  let cursor = 0;
+
+  async function worker() {
+    while (cursor < items.length) {
+      const index = cursor;
+      cursor += 1;
+      results[index] = await mapper(items[index], index);
+    }
+  }
+
+  const workers = Array.from(
+    { length: Math.min(limit, items.length) },
+    () => worker()
+  );
+  await Promise.all(workers);
+  return results;
 }
 
 async function reinitNylasSession() {
@@ -179,6 +257,9 @@ function updateToolbarForSource() {
   }
   if (readFilterEl) {
     readFilterEl.disabled = !isEmail;
+  }
+  if (deleteGrantBtn) {
+    deleteGrantBtn.disabled = !isEmail || isAllMode();
   }
 }
 
@@ -348,6 +429,13 @@ function renderReaderPlaceholder(text) {
   readerPanelEl.innerHTML = `<p class="empty">${escapeHtml(text)}</p>`;
 }
 
+function formatScopeLabel(message) {
+  const accountIndex = Number(message?.__accountIndex);
+  const grantId = typeof message?.__grantId === "string" ? message.__grantId : "";
+  if (!Number.isFinite(accountIndex) || !grantId) return "";
+  return `Acc ${accountIndex} • ${grantId.slice(0, 8)}`;
+}
+
 function renderSidebarList() {
   if (state.source === "whatsapp") {
     const rows = state.waChats;
@@ -378,6 +466,10 @@ function renderSidebarList() {
 
   messagesListEl.innerHTML = state.messages
     .map((message) => {
+      const messageKey =
+        typeof message.__messageKey === "string" && message.__messageKey
+          ? message.__messageKey
+          : buildMessageKey(message.__accountIndex, message.__grantId, message.id || "");
       const counterpart =
         state.mailbox === "SENT"
           ? Array.isArray(message.to)
@@ -389,11 +481,14 @@ function renderSidebarList() {
       const counterpartLabel = state.mailbox === "SENT" ? "A" : "De";
       const subject = message.subject || "(Sans sujet)";
       const date = formatDate(message.date || message.created_at);
-      const active = message.id === state.selectedMessageId ? "active" : "";
+      const active = messageKey === state.selectedMessageKey ? "active" : "";
+      const scopeLabel = isAllMode() ? formatScopeLabel(message) : "";
       return `
-        <button class="item ${active}" type="button" data-message-id="${escapeHtml(message.id)}">
+        <button class="item ${active}" type="button"
+          data-message-key="${escapeHtml(messageKey)}"
+          data-message-id="${escapeHtml(message.id || "")}">
           <p class="item-subject">${escapeHtml(subject)}</p>
-          <p class="item-meta">${escapeHtml(counterpartLabel)}: ${escapeHtml(counterpart || "Inconnu")} ${date ? `- ${escapeHtml(date)}` : ""}</p>
+          <p class="item-meta">${escapeHtml(counterpartLabel)}: ${escapeHtml(counterpart || "Inconnu")} ${date ? `- ${escapeHtml(date)}` : ""}${scopeLabel ? ` • ${escapeHtml(scopeLabel)}` : ""}</p>
         </button>
       `;
     })
@@ -410,6 +505,7 @@ function renderReader(message) {
   const hasHtmlBody = Boolean(htmlBody.trim());
   const text = fallbackText || "(Aucun contenu lisible)";
   const attachments = normalizeAttachments(message?.attachments);
+  const detailScope = message?.__scope || state.messageScopeById.get(state.selectedMessageKey) || null;
   const attachmentsHtml = attachments.length
     ? `
       <section style="margin: 12px 0 14px;">
@@ -419,11 +515,15 @@ function renderReader(message) {
             .map((attachment) => {
               const fileSize = formatFileSize(attachment.size);
               const metaParts = [attachment.contentType, fileSize].filter(Boolean);
-              const hasDownloadLink = Boolean(attachment.id && state.selectedGrantId);
+              const hasDownloadLink = Boolean(
+                attachment.id &&
+                detailScope?.grantId &&
+                Number.isFinite(Number(detailScope?.accountIndex))
+              );
               const params = new URLSearchParams();
               if (hasDownloadLink) {
-                appendAccountParam(params);
-                params.set("grantId", state.selectedGrantId);
+                appendAccountParam(params, detailScope.accountIndex);
+                params.set("grantId", detailScope.grantId);
                 params.set("attachmentId", attachment.id);
                 params.set("messageId", message?.id || "");
                 params.set("filename", attachment.filename);
@@ -442,11 +542,15 @@ function renderReader(message) {
     : "";
   const deleteButtonLabel =
     state.mailbox === "TRASH" ? "Supprimer definitivement" : "Supprimer cet email";
+  const deleteMessageKey = message?.__messageKey || state.selectedMessageKey || "";
 
   readerPanelEl.innerHTML = `
     <h2>${escapeHtml(subject)}</h2>
     <p>
-      <button type="button" data-delete-message-id="${escapeHtml(message?.id || "")}">
+      <button
+        type="button"
+        data-delete-message-id="${escapeHtml(message?.id || "")}"
+        data-delete-message-key="${escapeHtml(deleteMessageKey)}">
         ${escapeHtml(deleteButtonLabel)}
       </button>
     </p>
@@ -515,7 +619,7 @@ function renderWaThread() {
 function updateLoadMoreButton() {
   const hasCursor = Boolean(state.nextCursor);
   const show =
-    state.source === "email" && hasCursor && !state.isLoadingMessages;
+    state.source === "email" && hasCursor && !state.isLoadingMessages && !isAllMode();
   loadMoreBtn.hidden = !show;
 }
 
@@ -593,34 +697,100 @@ async function fetchJson(url, init = undefined) {
 }
 
 async function loadGrants() {
-  const q = new URLSearchParams();
-  appendAccountParam(q);
-  const payload = await fetchJson(`/api/grants?${q.toString()}`);
-  const grants = Array.isArray(payload?.data) ? payload.data : [];
-  grantSelectEl.innerHTML = "";
+  const previousSelectionValue = isAllMode()
+    ? ALL_GRANTS_VALUE
+    : makeGrantScopeValue(state.selectedGrantAccountIndex, state.selectedGrantId);
+  const accountRows = Array.isArray(state.runtimeAccounts) ? state.runtimeAccounts : [];
+  const fetchedByAccount = await Promise.all(
+    accountRows.map(async (account) => {
+      const params = new URLSearchParams();
+      appendAccountParam(params, account.index);
+      try {
+        const payload = await fetchJson(`/api/grants?${params.toString()}`);
+        const grants = Array.isArray(payload?.data) ? payload.data : [];
+        return { accountIndex: account.index, grants, error: "" };
+      } catch (error) {
+        return {
+          accountIndex: account.index,
+          grants: [],
+          error: error?.message || "Erreur de chargement des grants"
+        };
+      }
+    })
+  );
 
-  if (!grants.length) {
+  state.grantsByAccount = new Map();
+  state.allGrantRefs = [];
+  for (const row of fetchedByAccount) {
+    state.grantsByAccount.set(row.accountIndex, row.grants);
+    for (const grant of row.grants) {
+      state.allGrantRefs.push({
+        accountIndex: row.accountIndex,
+        grantId: grant.id,
+        displayName: grant.displayName || grant.id,
+        provider: grant.provider || "provider",
+        grantStatus: grant.grantStatus || ""
+      });
+    }
+  }
+
+  grantSelectEl.innerHTML = "";
+  const allOption = document.createElement("option");
+  allOption.value = ALL_GRANTS_VALUE;
+  allOption.textContent = "All";
+  grantSelectEl.append(allOption);
+
+  if (!state.allGrantRefs.length) {
+    state.selectedGrantId = ALL_GRANTS_VALUE;
+    state.selectedGrantAccountIndex = 0;
+    grantSelectEl.value = ALL_GRANTS_VALUE;
     setStatus("Aucun grant trouve", true);
     renderReaderPlaceholder("Aucun grant.");
     messagesListEl.innerHTML = '<p class="empty">Aucun grant.</p>';
     return;
   }
 
-  for (const grant of grants) {
+  for (const ref of state.allGrantRefs) {
     const option = document.createElement("option");
-    option.value = grant.id;
-    const status = grant.grantStatus ? ` - ${grant.grantStatus}` : "";
-    option.textContent = `${grant.displayName || grant.id} (${grant.provider || "provider"}${status})`;
+    option.value = makeGrantScopeValue(ref.accountIndex, ref.grantId);
+    const status = ref.grantStatus ? ` - ${ref.grantStatus}` : "";
+    option.textContent = `Acc ${ref.accountIndex} - ${ref.displayName} (${ref.provider}${status})`;
     grantSelectEl.append(option);
   }
 
-  const preferred = grants.find((grant) => grant.id === state.sessionGrantId)?.id;
-  state.selectedGrantId = preferred || grants[0].id;
-  grantSelectEl.value = state.selectedGrantId;
+  const hasPrevious =
+    previousSelectionValue === ALL_GRANTS_VALUE ||
+    state.allGrantRefs.some(
+      (ref) => makeGrantScopeValue(ref.accountIndex, ref.grantId) === previousSelectionValue
+    );
+  const nextSelectionValue = hasPrevious ? previousSelectionValue : ALL_GRANTS_VALUE;
+  if (nextSelectionValue === ALL_GRANTS_VALUE) {
+    state.selectedGrantId = ALL_GRANTS_VALUE;
+    state.selectedGrantAccountIndex = 0;
+    grantSelectEl.value = ALL_GRANTS_VALUE;
+    return;
+  }
+
+  const parsed = parseGrantScopeValue(nextSelectionValue);
+  if (!parsed) {
+    state.selectedGrantId = ALL_GRANTS_VALUE;
+    state.selectedGrantAccountIndex = 0;
+    grantSelectEl.value = ALL_GRANTS_VALUE;
+    return;
+  }
+  state.selectedGrantId = parsed.grantId;
+  state.selectedGrantAccountIndex = parsed.accountIndex;
+  grantSelectEl.value = nextSelectionValue;
 }
 
-async function deleteGrant(grantId) {
-  if (!grantId || state.isDeletingGrant) return;
+async function deleteGrant() {
+  const scope = getSelectedGrantScope();
+  if (!scope || state.isDeletingGrant) {
+    if (isAllMode()) {
+      setStatus("Selectionne un grant precis pour pouvoir le supprimer.", true);
+    }
+    return;
+  }
   const confirmed = window.confirm("Supprimer ce grant ? Cette action est irreversible.");
   if (!confirmed) return;
 
@@ -629,25 +799,20 @@ async function deleteGrant(grantId) {
 
   try {
     const params = new URLSearchParams();
-    appendAccountParam(params);
-    params.set("grantId", grantId);
+    appendAccountParam(params, scope.accountIndex);
+    params.set("grantId", scope.grantId);
     await fetchJson(`/api/grants?${params.toString()}`, { method: "DELETE" });
 
-    state.selectedGrantId = "";
-    state.selectedMessageId = "";
-    state.nextCursor = "";
+    state.selectedGrantId = ALL_GRANTS_VALUE;
+    state.selectedGrantAccountIndex = 0;
+    clearEmailSelection();
     state.messages = [];
-    state.detailById.clear();
     renderSidebarList();
     renderReaderPlaceholder("Grant supprime. Selectionne un autre grant.");
 
     await loadGrants();
-    if (state.selectedGrantId) {
-      await loadMessages({ append: false });
-      setStatus("Grant supprime");
-    } else {
-      setStatus("Grant supprime. Aucun grant actif.", true);
-    }
+    await loadMessages({ append: false });
+    setStatus("Grant supprime");
   } catch (error) {
     setStatus(error?.message || "Erreur lors de la suppression du grant", true);
   } finally {
@@ -665,8 +830,37 @@ function getNextCursor(payload) {
   );
 }
 
-async function deleteMessage(messageId) {
-  if (!messageId || !state.selectedGrantId || state.isDeletingMessage) return;
+function normalizeMessageWithScope(message, scope) {
+  const messageId = message?.id || "";
+  const messageKey = buildMessageKey(scope.accountIndex, scope.grantId, messageId);
+  state.messageScopeById.set(messageKey, {
+    accountIndex: scope.accountIndex,
+    grantId: scope.grantId,
+    messageId
+  });
+  return {
+    ...message,
+    __accountIndex: scope.accountIndex,
+    __grantId: scope.grantId,
+    __messageKey: messageKey
+  };
+}
+
+function toMessageTimestamp(message) {
+  const value = message?.date || message?.created_at;
+  const numeric = Number(value);
+  if (Number.isFinite(numeric)) return numeric;
+  const date = new Date(String(value || ""));
+  return Number.isNaN(date.getTime()) ? 0 : Math.floor(date.getTime() / 1000);
+}
+
+async function deleteMessage(messageKey) {
+  if (!messageKey || state.isDeletingMessage) return;
+  const scope = state.messageScopeById.get(messageKey);
+  if (!scope?.grantId || !scope?.messageId || !scope?.accountIndex) {
+    setStatus("Impossible de determiner la boite de ce message.", true);
+    return;
+  }
 
   const isTrash = state.mailbox === "TRASH";
   state.isDeletingMessage = true;
@@ -674,27 +868,26 @@ async function deleteMessage(messageId) {
 
   try {
     const params = new URLSearchParams();
-    appendAccountParam(params);
-    params.set("grantId", state.selectedGrantId);
-    params.set("messageId", messageId);
+    appendAccountParam(params, scope.accountIndex);
+    params.set("grantId", scope.grantId);
+    params.set("messageId", scope.messageId);
     await fetchJson(`/api/message?${params.toString()}`, {
       method: isTrash ? "DELETE" : "PATCH"
     });
 
-    state.detailById.delete(messageId);
-    state.selectedMessageId = "";
-    state.nextCursor = "";
+    state.detailById.delete(messageKey);
+    clearEmailSelection();
     await loadMessages({ append: false });
 
     if (isTrash) {
-      const stillExists = state.messages.some((message) => message.id === messageId);
+      const stillExists = state.messages.some((message) => message.__messageKey === messageKey);
       if (stillExists) {
         await fetchJson(`/api/message?${params.toString()}`, { method: "DELETE" });
         state.nextCursor = "";
         await loadMessages({ append: false });
       }
 
-      const existsAfterRetry = state.messages.some((message) => message.id === messageId);
+      const existsAfterRetry = state.messages.some((message) => message.__messageKey === messageKey);
       if (existsAfterRetry) {
         setStatus(
           "Le provider n'a pas confirme la suppression definitive immediatement. Reessaye dans quelques secondes.",
@@ -741,51 +934,148 @@ async function deleteWaMessage(messageId, remoteJid, fromMe) {
 }
 
 async function loadMessages({ append = false } = {}) {
-  if (!state.selectedGrantId) {
-    return;
-  }
-
+  const loadSeq = state.emailLoadSeq + 1;
+  state.emailLoadSeq = loadSeq;
   state.isLoadingMessages = true;
   updateLoadMoreButton();
   setStatus("Chargement des emails...");
 
   try {
-    const params = new URLSearchParams();
-    appendAccountParam(params);
-    params.set("grantId", state.selectedGrantId);
-    params.set("limit", "200");
-    params.set("mailbox", state.mailbox);
-    params.set("read", state.readFilter);
-    if (state.subjectQuery.trim()) {
-      params.set("subject", state.subjectQuery.trim());
-    }
-    if (append && state.nextCursor) {
-      params.set("cursor", state.nextCursor);
+    if (!append) {
+      state.messageScopeById.clear();
     }
 
-    const payload = await fetchJson(`/api/messages?${params.toString()}`);
-    const data = Array.isArray(payload?.data) ? payload.data : [];
-    state.messages = append ? state.messages.concat(data) : data;
-    state.nextCursor = getNextCursor(payload);
+    const subject = state.subjectQuery.trim();
+    const commonParams = (params) => {
+      params.set("limit", "200");
+      params.set("mailbox", state.mailbox);
+      params.set("read", state.readFilter);
+      if (subject) {
+        params.set("subject", subject);
+      }
+    };
+
+    if (isAllMode()) {
+      const refs = Array.isArray(state.allGrantRefs) ? state.allGrantRefs : [];
+      const perGrant = await mapWithConcurrency(refs, ALL_MODE_MAX_CONCURRENCY, async (ref) => {
+        const params = new URLSearchParams();
+        appendAccountParam(params, ref.accountIndex);
+        params.set("grantId", ref.grantId);
+        commonParams(params);
+        const endpoint = `/api/messages?${params.toString()}`;
+        let lastError = null;
+        for (let attempt = 0; attempt < 2; attempt += 1) {
+          try {
+            const payload = await fetchJson(endpoint);
+            const data = Array.isArray(payload?.data) ? payload.data : [];
+            return {
+              items: data.map((message) =>
+                normalizeMessageWithScope(message, {
+                  accountIndex: ref.accountIndex,
+                  grantId: ref.grantId
+                })
+              ),
+              failed: false
+            };
+          } catch (error) {
+            lastError = error;
+            const msg = String(error?.message || "").toLowerCase();
+            const retryable = msg.includes("429") || msg.includes("rate");
+            if (attempt === 0 && retryable) {
+              await sleepMs(350);
+              continue;
+            }
+            break;
+          }
+        }
+        return {
+          items: [],
+          failed: true,
+          errorMessage: lastError?.message || "Erreur de chargement"
+        };
+      });
+
+      const merged = perGrant.flatMap((row) => row.items);
+      const dedup = new Map();
+      for (const message of merged) {
+        dedup.set(message.__messageKey, message);
+      }
+      if (loadSeq !== state.emailLoadSeq) {
+        return;
+      }
+      state.messages = Array.from(dedup.values()).sort(
+        (left, right) => toMessageTimestamp(right) - toMessageTimestamp(left)
+      );
+      state.nextCursor = "";
+      const failedCount = perGrant.filter((row) => row.failed).length;
+      if (failedCount > 0) {
+        setStatus(
+          `${state.messages.length} email(s) charges - ${failedCount} boite(s) partiellement indisponible(s)`,
+          true
+        );
+      }
+    } else {
+      const scope = getSelectedGrantScope();
+      if (loadSeq !== state.emailLoadSeq) {
+        return;
+      }
+      if (!scope) {
+        state.messages = [];
+        state.nextCursor = "";
+        renderSidebarList();
+        renderReaderPlaceholder("Selectionne un grant.");
+        setStatus("Aucun grant selectionne", true);
+        return;
+      }
+      const params = new URLSearchParams();
+      appendAccountParam(params, scope.accountIndex);
+      params.set("grantId", scope.grantId);
+      commonParams(params);
+      if (append && state.nextCursor) {
+        params.set("cursor", state.nextCursor);
+      }
+
+      const payload = await fetchJson(`/api/messages?${params.toString()}`);
+      const data = Array.isArray(payload?.data) ? payload.data : [];
+      const normalized = data.map((message) => normalizeMessageWithScope(message, scope));
+      if (loadSeq !== state.emailLoadSeq) {
+        return;
+      }
+      state.messages = append ? state.messages.concat(normalized) : normalized;
+      state.nextCursor = getNextCursor(payload);
+    }
+
+    if (loadSeq !== state.emailLoadSeq) {
+      return;
+    }
     renderSidebarList();
 
     if (!append && state.messages.length) {
-      state.selectedMessageId = state.messages[0].id;
+      state.selectedMessageId = state.messages[0].id || "";
+      state.selectedMessageKey = state.messages[0].__messageKey || "";
       renderSidebarList();
-      await loadMessageDetail(state.selectedMessageId);
+      await loadMessageDetail(state.selectedMessageKey);
     } else if (!state.messages.length) {
       state.selectedMessageId = "";
+      state.selectedMessageKey = "";
       renderReaderPlaceholder("Aucun email pour ce filtre.");
     }
 
-    setStatus(`${state.messages.length} email(s) charges`);
+    if (!isAllMode()) {
+      setStatus(`${state.messages.length} email(s) charges`);
+    }
   } catch (error) {
+    if (loadSeq !== state.emailLoadSeq) {
+      return;
+    }
     setStatus(error?.message || "Erreur lors du chargement des emails", true);
     messagesListEl.innerHTML = '<p class="empty">Impossible de charger les emails.</p>';
     renderReaderPlaceholder("Impossible de charger le contenu.");
   } finally {
-    state.isLoadingMessages = false;
-    updateLoadMoreButton();
+    if (loadSeq === state.emailLoadSeq) {
+      state.isLoadingMessages = false;
+      updateLoadMoreButton();
+    }
   }
 }
 
@@ -856,27 +1146,34 @@ async function loadWaMessages() {
   }
 }
 
-async function loadMessageDetail(messageId) {
-  if (!messageId || !state.selectedGrantId) return;
+async function loadMessageDetail(messageKey) {
+  if (!messageKey) return;
+  const scope = state.messageScopeById.get(messageKey);
+  if (!scope?.grantId || !scope?.messageId || !scope?.accountIndex) return;
 
-  if (state.detailById.has(messageId)) {
-    renderReader(state.detailById.get(messageId));
+  if (state.detailById.has(messageKey)) {
+    renderReader(state.detailById.get(messageKey));
     return;
   }
 
   renderReaderPlaceholder("Chargement du contenu...");
   try {
     const params = new URLSearchParams();
-    appendAccountParam(params);
-    params.set("grantId", state.selectedGrantId);
-    params.set("messageId", messageId);
+    appendAccountParam(params, scope.accountIndex);
+    params.set("grantId", scope.grantId);
+    params.set("messageId", scope.messageId);
     const payload = await fetchJson(`/api/message?${params.toString()}`);
     const detail = payload?.data || null;
     if (!detail) {
       throw new Error("Aucun détail trouvé");
     }
-    state.detailById.set(messageId, detail);
-    renderReader(detail);
+    const scopedDetail = {
+      ...detail,
+      __scope: scope,
+      __messageKey: messageKey
+    };
+    state.detailById.set(messageKey, scopedDetail);
+    renderReader(scopedDetail);
   } catch (error) {
     renderReaderPlaceholder(error?.message || "Erreur de lecture du message.");
   }
@@ -888,16 +1185,13 @@ async function applySubjectSearch() {
   if (subjectSearchInputEl && subjectSearchInputEl.value !== nextSubjectQuery) {
     subjectSearchInputEl.value = nextSubjectQuery;
   }
-  state.nextCursor = "";
-  state.selectedMessageId = "";
-  state.detailById.clear();
+  clearEmailSelection();
   await loadMessages({ append: false });
 }
 
 async function refreshCurrentSource() {
   if (state.source === "email") {
-    state.nextCursor = "";
-    state.detailById.clear();
+    clearEmailSelection();
     await loadMessages({ append: false });
   } else {
     await loadWaInstances();
@@ -926,6 +1220,7 @@ function setupEvents() {
       return;
     }
     await loadGrants();
+    updateToolbarForSource();
   });
 
   accountSelectEl?.addEventListener("change", async () => {
@@ -939,34 +1234,44 @@ function setupEvents() {
     } catch (_e) {
       /* ignore */
     }
-    state.detailById.clear();
-    state.nextCursor = "";
-    state.selectedMessageId = "";
+    clearEmailSelection();
     state.messages = [];
     await reinitNylasSession();
     await loadGrants();
+    updateToolbarForSource();
     await loadMessages({ append: false });
   });
 
   grantSelectEl.addEventListener("change", async () => {
     if (state.source !== "email") return;
-    state.selectedGrantId = grantSelectEl.value;
-    state.detailById.clear();
-    state.nextCursor = "";
+    const rawValue = grantSelectEl.value;
+    if (rawValue === ALL_GRANTS_VALUE) {
+      state.selectedGrantId = ALL_GRANTS_VALUE;
+      state.selectedGrantAccountIndex = 0;
+    } else {
+      const parsed = parseGrantScopeValue(rawValue);
+      if (!parsed) {
+        state.selectedGrantId = ALL_GRANTS_VALUE;
+        state.selectedGrantAccountIndex = 0;
+      } else {
+        state.selectedGrantId = parsed.grantId;
+        state.selectedGrantAccountIndex = parsed.accountIndex;
+      }
+    }
+    clearEmailSelection();
+    updateToolbarForSource();
     await loadMessages({ append: false });
   });
 
   deleteGrantBtn?.addEventListener("click", async () => {
     if (state.source !== "email") return;
-    await deleteGrant(state.selectedGrantId);
+    await deleteGrant();
   });
 
   readFilterEl?.addEventListener("change", async () => {
     if (state.source !== "email") return;
     state.readFilter = readFilterEl.value || "all";
-    state.nextCursor = "";
-    state.selectedMessageId = "";
-    state.detailById.clear();
+    clearEmailSelection();
     await loadMessages({ append: false });
   });
 
@@ -993,14 +1298,13 @@ function setupEvents() {
       state.source = sourceBtn.dataset.source;
       renderSourceTabs();
       updateToolbarForSource();
-      state.nextCursor = "";
-      state.detailById.clear();
-      state.selectedMessageId = "";
+      clearEmailSelection();
       state.messages = [];
       state.waMessages = [];
       state.selectedWaRemoteJid = "";
       if (state.source === "email") {
         await loadGrants();
+        updateToolbarForSource();
         await loadMessages({ append: false });
       } else {
         try {
@@ -1026,9 +1330,7 @@ function setupEvents() {
       : "INBOX";
     if (mailbox === state.mailbox) return;
     state.mailbox = mailbox;
-    state.nextCursor = "";
-    state.selectedMessageId = "";
-    state.detailById.clear();
+    clearEmailSelection();
     renderMailboxTabs();
     await loadMessages({ append: false });
   });
@@ -1038,7 +1340,7 @@ function setupEvents() {
   });
 
   loadMoreBtn.addEventListener("click", async () => {
-    if (state.source !== "email") return;
+    if (state.source !== "email" || isAllMode()) return;
     await loadMessages({ append: true });
   });
 
@@ -1053,13 +1355,15 @@ function setupEvents() {
       return;
     }
 
-    const button = event.target.closest("button[data-message-id]");
+    const button = event.target.closest("button[data-message-key]");
     if (!button || state.source !== "email") return;
-    const messageId = button.dataset.messageId;
-    if (!messageId) return;
+    const messageKey = button.dataset.messageKey;
+    const messageId = button.dataset.messageId || "";
+    if (!messageKey) return;
     state.selectedMessageId = messageId;
+    state.selectedMessageKey = messageKey;
     renderSidebarList();
-    await loadMessageDetail(messageId);
+    await loadMessageDetail(messageKey);
   });
 
   readerPanelEl.addEventListener("click", async (event) => {
@@ -1075,9 +1379,9 @@ function setupEvents() {
 
     const button = event.target.closest("button[data-delete-message-id]");
     if (!button || state.source !== "email") return;
-    const messageId = button.dataset.deleteMessageId;
-    if (!messageId) return;
-    await deleteMessage(messageId);
+    const messageKey = button.dataset.deleteMessageKey || state.selectedMessageKey || "";
+    if (!messageKey) return;
+    await deleteMessage(messageKey);
   });
 }
 
@@ -1107,6 +1411,7 @@ async function bootstrap() {
 
     setupEvents();
     await loadGrants();
+    updateToolbarForSource();
     await loadMessages({ append: false });
   } catch (error) {
     setStatus(error?.message || "Erreur d'initialisation", true);
