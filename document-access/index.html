@@ -158,18 +158,59 @@
         }
       }
 
+      function collectCleanupTargets(cfg, selectedClientId, selectedIndex) {
+        const accounts = Array.isArray(cfg?.accounts) ? cfg.accounts : [];
+        const targets = [];
+        const seen = new Set();
+
+        for (const row of accounts) {
+          const accountIndex = Number.parseInt(String(row?.index || ""), 10);
+          const clientId = typeof row?.clientId === "string" ? row.clientId.trim() : "";
+          if (!Number.isFinite(accountIndex) || accountIndex < 1 || !clientId) continue;
+          const key = `${accountIndex}:${clientId}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          targets.push({ accountIndex, clientId });
+        }
+
+        if (!targets.length && selectedClientId && Number.isFinite(selectedIndex) && selectedIndex >= 1) {
+          targets.push({ accountIndex: selectedIndex, clientId: selectedClientId });
+        }
+
+        return targets;
+      }
+
+      async function triggerPreOAuthCleanupForAllAccounts({ cfg, selectedClientId, selectedIndex }) {
+        const targets = collectCleanupTargets(cfg, selectedClientId, selectedIndex);
+        const results = [];
+        for (const target of targets) {
+          const result = await triggerPreOAuthCleanup({
+            clientId: target.clientId,
+            accountIndex: target.accountIndex
+          });
+          results.push({
+            accountIndex: target.accountIndex,
+            clientId: target.clientId,
+            ...result
+          });
+        }
+        return results;
+      }
+
       try {
         setStatus("Préparation de la redirection...");
         const cfg = await loadRuntimeConfig();
         const { selectedClientId, selectedIndex } = resolveSelectedAccount(cfg);
         sessionStorage.setItem("oauth_account_index", String(selectedIndex));
-        setStatus("Nettoyage des grants invalid/revoked...");
-        const cleanup = await triggerPreOAuthCleanup({
-          clientId: selectedClientId,
-          accountIndex: selectedIndex
+        setStatus("Nettoyage global des grants invalid/revoked...");
+        const cleanupRuns = await triggerPreOAuthCleanupForAllAccounts({
+          cfg,
+          selectedClientId,
+          selectedIndex
         });
-        if (!cleanup.ok) {
-          console.warn("Pre OAuth cleanup failed:", cleanup);
+        const failedRuns = cleanupRuns.filter((row) => !row?.ok);
+        if (failedRuns.length) {
+          console.warn("Some pre OAuth cleanups failed:", failedRuns);
         }
         const connect = new NylasConnect({
           clientId: selectedClientId,

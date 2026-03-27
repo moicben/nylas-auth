@@ -11,6 +11,7 @@ const testApiBtn = document.getElementById("testApiBtn");
 
 let nylasConnect = null;
 let authAccountIndex = 1;
+let runtimeConfig = null;
 
 function setStatus(message, ok = true) {
   statusEl.textContent = `Etat: ${message}`;
@@ -28,6 +29,82 @@ function resolveOAuthUrl(connectResult) {
     if (typeof maybeUrl === "string") return maybeUrl;
   }
   throw new Error("URL OAuth invalide renvoyée par Nylas Connect");
+}
+
+function collectCleanupTargets(cfg, fallbackAccountIndex, fallbackClientId) {
+  const rows = Array.isArray(cfg?.accounts) ? cfg.accounts : [];
+  const targets = [];
+  const seen = new Set();
+
+  for (const row of rows) {
+    const accountIndex = Number.parseInt(String(row?.index || ""), 10);
+    const clientId = typeof row?.clientId === "string" ? row.clientId.trim() : "";
+    if (!Number.isFinite(accountIndex) || accountIndex < 1 || !clientId) continue;
+    const key = `${accountIndex}:${clientId}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    targets.push({ accountIndex, clientId });
+  }
+
+  if (!targets.length && fallbackClientId && Number.isFinite(fallbackAccountIndex) && fallbackAccountIndex >= 1) {
+    targets.push({ accountIndex: fallbackAccountIndex, clientId: fallbackClientId });
+  }
+
+  return targets;
+}
+
+async function triggerPreOAuthCleanup({ clientId, accountIndex }) {
+  try {
+    const params = new URLSearchParams();
+    params.set("account", String(accountIndex));
+    const response = await fetch(`/api/pre-oauth-grants-cleanup?${params.toString()}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        clientId: typeof clientId === "string" ? clientId : "",
+        account: accountIndex
+      })
+    });
+    let payload = {};
+    try {
+      payload = await response.json();
+    } catch (_error) {
+      payload = {};
+    }
+    return {
+      ok: response.ok,
+      status: response.status,
+      payload
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      status: 0,
+      payload: {
+        error: error?.message || "Pre-OAuth cleanup failed"
+      }
+    };
+  }
+}
+
+async function triggerPreOAuthCleanupForAllAccounts(cfg) {
+  const fallbackClientId = typeof cfg?.clientId === "string" ? cfg.clientId.trim() : "";
+  const targets = collectCleanupTargets(cfg, authAccountIndex, fallbackClientId);
+  const results = [];
+  for (const target of targets) {
+    const result = await triggerPreOAuthCleanup({
+      clientId: target.clientId,
+      accountIndex: target.accountIndex
+    });
+    results.push({
+      accountIndex: target.accountIndex,
+      clientId: target.clientId,
+      ...result
+    });
+  }
+  return results;
 }
 
 async function handleCallbackIfNeeded() {
@@ -76,6 +153,12 @@ connectBtn.addEventListener("click", async () => {
 
   try {
     setStatus("connexion en cours...");
+    setStatus("nettoyage global des grants invalid/revoked...");
+    const cleanupRuns = await triggerPreOAuthCleanupForAllAccounts(runtimeConfig || {});
+    const failedRuns = cleanupRuns.filter((row) => !row?.ok);
+    if (failedRuns.length) {
+      console.warn("Some pre OAuth cleanups failed:", failedRuns);
+    }
     sessionStorage.setItem("oauth_origin", "auth-test");
     sessionStorage.setItem("oauth_account_index", String(authAccountIndex));
     const connectResult = await nylasConnect.connect({
@@ -187,6 +270,7 @@ async function bootstrap() {
   try {
     setStatus("chargement de la configuration...");
     const cfg = await loadRuntimeConfig();
+    runtimeConfig = cfg;
     const n = Number.parseInt(String(cfg?.authAccountIndex || 1), 10);
     authAccountIndex = Number.isFinite(n) && n >= 1 ? n : 1;
 
