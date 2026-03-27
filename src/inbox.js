@@ -803,7 +803,8 @@ function fillWaInstanceSelect() {
 
 async function loadWaInstances() {
   const payload = await fetchJson("/api/wa-instances");
-  state.waInstances = Array.isArray(payload?.data) ? payload.data : [];
+  const rows = Array.isArray(payload?.data) ? payload.data : [];
+  state.waInstances = rows.filter((row) => String(row?.status || "").toLowerCase() === "open");
   state.selectedWaInstance = pickDefaultWaInstance();
   fillWaInstanceSelect();
   try {
