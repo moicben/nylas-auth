@@ -94,11 +94,33 @@
         min-width: 0;
       }
       .grant-dropdown-btn-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
         font-size: 0.92rem;
         font-weight: 600;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+      }
+      .grant-status-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+        flex: 0 0 9px;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.05);
+      }
+      .grant-status-dot.is-valid {
+        background: #22c55e;
+      }
+      .grant-status-dot.is-invalid {
+        background: #ef4444;
+      }
+      .grant-title-text {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
       .grant-dropdown-btn-meta {
         margin-top: 2px;

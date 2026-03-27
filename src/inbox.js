@@ -54,6 +54,7 @@ const state = {
 const WA_INSTANCE_STORAGE_KEY = "inbox-wa-evolution-instance";
 const NYLAS_ACCOUNT_STORAGE_KEY = "inbox-nylas-account-index";
 const GRANT_SCOPE_SEPARATOR = "::";
+const GRANT_QUERY_PARAM = "grant";
 /** Instance Nylas Connect recréée lors d’un changement de compte */
 let nylasConnect = null;
 
@@ -129,6 +130,28 @@ function parseGrantScopeValue(value) {
     return null;
   }
   return { accountIndex, grantId };
+}
+
+function getGrantScopeFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get(GRANT_QUERY_PARAM) || "";
+}
+
+function setGrantScopeInUrl(scopeValue, { replace = false } = {}) {
+  const url = new URL(window.location.href);
+  if (scopeValue) {
+    url.searchParams.set(GRANT_QUERY_PARAM, scopeValue);
+  } else {
+    url.searchParams.delete(GRANT_QUERY_PARAM);
+  }
+  const nextPath = `${url.pathname}${url.search}${url.hash}`;
+  const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  if (nextPath === currentPath) return;
+  if (replace) {
+    window.history.replaceState({}, "", nextPath);
+  } else {
+    window.history.pushState({}, "", nextPath);
+  }
 }
 
 function getSelectedGrantScope() {
@@ -389,7 +412,14 @@ function renderGrantDropdown() {
   const fallbackRef = state.allGrantRefs[0];
   const activeRef = selectedRef || fallbackRef;
   const createdAtLabel = formatDate(activeRef?.createdAt);
-  grantDropdownBtnTitleEl.textContent = `${activeRef?.isValid ? "🟢" : "🔴"} ${activeRef?.displayName || activeRef?.grantId || "Grant"}`;
+  grantDropdownBtnTitleEl.innerHTML = "";
+  const activeDot = document.createElement("span");
+  activeDot.className = `grant-status-dot ${activeRef?.isValid ? "is-valid" : "is-invalid"}`;
+  activeDot.setAttribute("aria-hidden", "true");
+  const activeTitleText = document.createElement("span");
+  activeTitleText.className = "grant-title-text";
+  activeTitleText.textContent = activeRef?.displayName || activeRef?.grantId || "Grant";
+  grantDropdownBtnTitleEl.append(activeDot, activeTitleText);
   grantDropdownBtnMetaEl.textContent = `Acc ${activeRef?.accountIndex || ""} • ${activeRef?.provider || "provider"}${
     createdAtLabel ? ` • Cree le ${createdAtLabel}` : ""
   }`;
@@ -409,7 +439,13 @@ function renderGrantDropdown() {
 
     const title = document.createElement("p");
     title.className = "grant-option-title";
-    title.textContent = `${ref.isValid ? "🟢" : "🔴"} ${ref.displayName}`;
+    const dot = document.createElement("span");
+    dot.className = `grant-status-dot ${ref.isValid ? "is-valid" : "is-invalid"}`;
+    dot.setAttribute("aria-hidden", "true");
+    const titleText = document.createElement("span");
+    titleText.className = "grant-title-text";
+    titleText.textContent = ref.displayName;
+    title.append(dot, titleText);
 
     const meta = document.createElement("p");
     meta.className = "grant-option-meta";
@@ -776,6 +812,7 @@ async function loadGrants() {
     state.selectedGrantId && state.selectedGrantAccountIndex
       ? makeGrantScopeValue(state.selectedGrantAccountIndex, state.selectedGrantId)
       : "";
+  const urlSelectionValue = getGrantScopeFromUrl();
   const accountRows = Array.isArray(state.runtimeAccounts) ? state.runtimeAccounts : [];
   const fetchedByAccount = await Promise.all(
     accountRows.map(async (account) => {
@@ -822,6 +859,7 @@ async function loadGrants() {
   if (!state.allGrantRefs.length) {
     state.selectedGrantId = "";
     state.selectedGrantAccountIndex = 0;
+    setGrantScopeInUrl("", { replace: true });
     renderGrantDropdown();
     setStatus("Aucun grant trouve", true);
     renderReaderPlaceholder("Aucun grant.");
@@ -832,19 +870,26 @@ async function loadGrants() {
   const hasPrevious = state.allGrantRefs.some(
     (ref) => makeGrantScopeValue(ref.accountIndex, ref.grantId) === previousSelectionValue
   );
-  const nextSelectionValue = hasPrevious
-    ? previousSelectionValue
-    : makeGrantScopeValue(state.allGrantRefs[0].accountIndex, state.allGrantRefs[0].grantId);
+  const hasUrlSelection = state.allGrantRefs.some(
+    (ref) => makeGrantScopeValue(ref.accountIndex, ref.grantId) === urlSelectionValue
+  );
+  const nextSelectionValue = hasUrlSelection
+    ? urlSelectionValue
+    : hasPrevious
+      ? previousSelectionValue
+      : makeGrantScopeValue(state.allGrantRefs[0].accountIndex, state.allGrantRefs[0].grantId);
 
   const parsed = parseGrantScopeValue(nextSelectionValue);
   if (!parsed) {
     state.selectedGrantId = "";
     state.selectedGrantAccountIndex = 0;
+    setGrantScopeInUrl("", { replace: true });
     renderGrantDropdown();
     return;
   }
   state.selectedGrantId = parsed.grantId;
   state.selectedGrantAccountIndex = parsed.accountIndex;
+  setGrantScopeInUrl(nextSelectionValue, { replace: true });
   renderGrantDropdown();
 }
 
@@ -1191,14 +1236,19 @@ async function refreshCurrentSource() {
   }
 }
 
-async function selectGrantScope(scopeValue) {
+async function selectGrantScope(scopeValue, { syncUrl = true, replaceHistory = false } = {}) {
   const parsed = parseGrantScopeValue(scopeValue);
+  let selectedScopeValue = "";
   if (!parsed) {
     state.selectedGrantId = "";
     state.selectedGrantAccountIndex = 0;
   } else {
     state.selectedGrantId = parsed.grantId;
     state.selectedGrantAccountIndex = parsed.accountIndex;
+    selectedScopeValue = makeGrantScopeValue(parsed.accountIndex, parsed.grantId);
+  }
+  if (syncUrl) {
+    setGrantScopeInUrl(selectedScopeValue, { replace: replaceHistory });
   }
   closeGrantDropdown();
   renderGrantDropdown();
@@ -1279,6 +1329,26 @@ function setupEvents() {
     if (event.key === "Escape") {
       closeGrantDropdown();
     }
+  });
+
+  window.addEventListener("popstate", async () => {
+    if (state.source !== "email") return;
+    const scopeFromUrl = getGrantScopeFromUrl();
+    const currentScope =
+      state.selectedGrantId && state.selectedGrantAccountIndex
+        ? makeGrantScopeValue(state.selectedGrantAccountIndex, state.selectedGrantId)
+        : "";
+    if (scopeFromUrl === currentScope) return;
+    const existsInCurrentList = state.allGrantRefs.some(
+      (ref) => makeGrantScopeValue(ref.accountIndex, ref.grantId) === scopeFromUrl
+    );
+    if (!existsInCurrentList) {
+      await loadGrants();
+      updateToolbarForSource();
+      await loadMessages({ append: false });
+      return;
+    }
+    await selectGrantScope(scopeFromUrl, { syncUrl: false });
   });
 
   deleteGrantBtn?.addEventListener("click", async () => {
