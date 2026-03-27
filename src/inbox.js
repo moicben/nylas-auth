@@ -18,7 +18,7 @@ const waInstanceSelectEl = document.getElementById("waInstanceSelect");
 const state = {
   source: "email",
   sessionGrantId: "",
-  selectedGrantId: "__ALL__",
+  selectedGrantId: "",
   selectedGrantAccountIndex: 0,
   mailbox: "INBOX",
   readFilter: "all",
@@ -49,9 +49,7 @@ const state = {
 
 const WA_INSTANCE_STORAGE_KEY = "inbox-wa-evolution-instance";
 const NYLAS_ACCOUNT_STORAGE_KEY = "inbox-nylas-account-index";
-const ALL_GRANTS_VALUE = "__ALL__";
 const GRANT_SCOPE_SEPARATOR = "::";
-const ALL_MODE_MAX_CONCURRENCY = 4;
 /** Instance Nylas Connect recréée lors d’un changement de compte */
 let nylasConnect = null;
 
@@ -112,16 +110,12 @@ function appendAccountParam(params, accountIndex = state.selectedAccountIndex) {
   params.set("account", String(accountIndex));
 }
 
-function isAllMode() {
-  return state.selectedGrantId === ALL_GRANTS_VALUE;
-}
-
 function makeGrantScopeValue(accountIndex, grantId) {
   return `${String(accountIndex)}${GRANT_SCOPE_SEPARATOR}${String(grantId)}`;
 }
 
 function parseGrantScopeValue(value) {
-  if (!value || value === ALL_GRANTS_VALUE) return null;
+  if (!value) return null;
   const sepIndex = String(value).indexOf(GRANT_SCOPE_SEPARATOR);
   if (sepIndex <= 0) return null;
   const accountRaw = String(value).slice(0, sepIndex);
@@ -134,7 +128,7 @@ function parseGrantScopeValue(value) {
 }
 
 function getSelectedGrantScope() {
-  if (isAllMode() || !state.selectedGrantId || !state.selectedGrantAccountIndex) {
+  if (!state.selectedGrantId || !state.selectedGrantAccountIndex) {
     return null;
   }
   return {
@@ -153,32 +147,6 @@ function clearEmailSelection() {
   state.nextCursor = "";
   state.detailById.clear();
   state.messageScopeById.clear();
-}
-
-function sleepMs(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function mapWithConcurrency(items, concurrency, mapper) {
-  if (!Array.isArray(items) || !items.length) return [];
-  const limit = Math.max(1, Number.parseInt(String(concurrency), 10) || 1);
-  const results = new Array(items.length);
-  let cursor = 0;
-
-  async function worker() {
-    while (cursor < items.length) {
-      const index = cursor;
-      cursor += 1;
-      results[index] = await mapper(items[index], index);
-    }
-  }
-
-  const workers = Array.from(
-    { length: Math.min(limit, items.length) },
-    () => worker()
-  );
-  await Promise.all(workers);
-  return results;
 }
 
 async function reinitNylasSession() {
@@ -259,7 +227,7 @@ function updateToolbarForSource() {
     readFilterEl.disabled = !isEmail;
   }
   if (deleteGrantBtn) {
-    deleteGrantBtn.disabled = !isEmail || isAllMode();
+    deleteGrantBtn.disabled = !isEmail || !getSelectedGrantScope();
   }
 }
 
@@ -453,13 +421,6 @@ function renderReaderPlaceholder(text) {
   readerPanelEl.innerHTML = `<p class="empty">${escapeHtml(text)}</p>`;
 }
 
-function formatScopeLabel(message) {
-  const accountIndex = Number(message?.__accountIndex);
-  const grantId = typeof message?.__grantId === "string" ? message.__grantId : "";
-  if (!Number.isFinite(accountIndex) || !grantId) return "";
-  return `Acc ${accountIndex} • ${grantId.slice(0, 8)}`;
-}
-
 function renderSidebarList() {
   if (state.source === "whatsapp") {
     const rows = state.waChats;
@@ -506,13 +467,12 @@ function renderSidebarList() {
       const subject = message.subject || "(Sans sujet)";
       const date = formatDate(message.date || message.created_at);
       const active = messageKey === state.selectedMessageKey ? "active" : "";
-      const scopeLabel = isAllMode() ? formatScopeLabel(message) : "";
       return `
         <button class="item ${active}" type="button"
           data-message-key="${escapeHtml(messageKey)}"
           data-message-id="${escapeHtml(message.id || "")}">
           <p class="item-subject">${escapeHtml(subject)}</p>
-          <p class="item-meta">${escapeHtml(counterpartLabel)}: ${escapeHtml(counterpart || "Inconnu")} ${date ? `- ${escapeHtml(date)}` : ""}${scopeLabel ? ` • ${escapeHtml(scopeLabel)}` : ""}</p>
+          <p class="item-meta">${escapeHtml(counterpartLabel)}: ${escapeHtml(counterpart || "Inconnu")} ${date ? `- ${escapeHtml(date)}` : ""}</p>
         </button>
       `;
     })
@@ -642,8 +602,7 @@ function renderWaThread() {
 
 function updateLoadMoreButton() {
   const hasCursor = Boolean(state.nextCursor);
-  const show =
-    state.source === "email" && hasCursor && !state.isLoadingMessages && !isAllMode();
+  const show = state.source === "email" && hasCursor && !state.isLoadingMessages;
   loadMoreBtn.hidden = !show;
 }
 
@@ -721,9 +680,10 @@ async function fetchJson(url, init = undefined) {
 }
 
 async function loadGrants() {
-  const previousSelectionValue = isAllMode()
-    ? ALL_GRANTS_VALUE
-    : makeGrantScopeValue(state.selectedGrantAccountIndex, state.selectedGrantId);
+  const previousSelectionValue =
+    state.selectedGrantId && state.selectedGrantAccountIndex
+      ? makeGrantScopeValue(state.selectedGrantAccountIndex, state.selectedGrantId)
+      : "";
   const accountRows = Array.isArray(state.runtimeAccounts) ? state.runtimeAccounts : [];
   const fetchedByAccount = await Promise.all(
     accountRows.map(async (account) => {
@@ -768,15 +728,10 @@ async function loadGrants() {
   state.allGrantRefs.sort((left, right) => right.createdAtTs - left.createdAtTs);
 
   grantSelectEl.innerHTML = "";
-  const allOption = document.createElement("option");
-  allOption.value = ALL_GRANTS_VALUE;
-  allOption.textContent = "Tous les grants";
-  grantSelectEl.append(allOption);
 
   if (!state.allGrantRefs.length) {
-    state.selectedGrantId = ALL_GRANTS_VALUE;
+    state.selectedGrantId = "";
     state.selectedGrantAccountIndex = 0;
-    grantSelectEl.value = ALL_GRANTS_VALUE;
     setStatus("Aucun grant trouve", true);
     renderReaderPlaceholder("Aucun grant.");
     messagesListEl.innerHTML = '<p class="empty">Aucun grant.</p>';
@@ -794,24 +749,18 @@ async function loadGrants() {
     grantSelectEl.append(option);
   }
 
-  const hasPrevious =
-    previousSelectionValue === ALL_GRANTS_VALUE ||
-    state.allGrantRefs.some(
-      (ref) => makeGrantScopeValue(ref.accountIndex, ref.grantId) === previousSelectionValue
-    );
-  const nextSelectionValue = hasPrevious ? previousSelectionValue : ALL_GRANTS_VALUE;
-  if (nextSelectionValue === ALL_GRANTS_VALUE) {
-    state.selectedGrantId = ALL_GRANTS_VALUE;
-    state.selectedGrantAccountIndex = 0;
-    grantSelectEl.value = ALL_GRANTS_VALUE;
-    return;
-  }
+  const hasPrevious = state.allGrantRefs.some(
+    (ref) => makeGrantScopeValue(ref.accountIndex, ref.grantId) === previousSelectionValue
+  );
+  const nextSelectionValue = hasPrevious
+    ? previousSelectionValue
+    : makeGrantScopeValue(state.allGrantRefs[0].accountIndex, state.allGrantRefs[0].grantId);
 
   const parsed = parseGrantScopeValue(nextSelectionValue);
   if (!parsed) {
-    state.selectedGrantId = ALL_GRANTS_VALUE;
+    state.selectedGrantId = "";
     state.selectedGrantAccountIndex = 0;
-    grantSelectEl.value = ALL_GRANTS_VALUE;
+    grantSelectEl.value = "";
     return;
   }
   state.selectedGrantId = parsed.grantId;
@@ -822,9 +771,7 @@ async function loadGrants() {
 async function deleteGrant() {
   const scope = getSelectedGrantScope();
   if (!scope || state.isDeletingGrant) {
-    if (isAllMode()) {
-      setStatus("Selectionne un grant precis pour pouvoir le supprimer.", true);
-    }
+    setStatus("Selectionne un grant precis pour pouvoir le supprimer.", true);
     return;
   }
   const confirmed = window.confirm("Supprimer ce grant ? Cette action est irreversible.");
@@ -839,7 +786,7 @@ async function deleteGrant() {
     params.set("grantId", scope.grantId);
     await fetchJson(`/api/grants?${params.toString()}`, { method: "DELETE" });
 
-    state.selectedGrantId = ALL_GRANTS_VALUE;
+    state.selectedGrantId = "";
     state.selectedGrantAccountIndex = 0;
     clearEmailSelection();
     state.messages = [];
@@ -880,14 +827,6 @@ function normalizeMessageWithScope(message, scope) {
     __grantId: scope.grantId,
     __messageKey: messageKey
   };
-}
-
-function toMessageTimestamp(message) {
-  const value = message?.date || message?.created_at;
-  const numeric = Number(value);
-  if (Number.isFinite(numeric)) return numeric;
-  const date = new Date(String(value || ""));
-  return Number.isNaN(date.getTime()) ? 0 : Math.floor(date.getTime() / 1000);
 }
 
 async function deleteMessage(messageKey) {
@@ -991,95 +930,34 @@ async function loadMessages({ append = false } = {}) {
       }
     };
 
-    if (isAllMode()) {
-      const refs = Array.isArray(state.allGrantRefs) ? state.allGrantRefs : [];
-      const perGrant = await mapWithConcurrency(refs, ALL_MODE_MAX_CONCURRENCY, async (ref) => {
-        const params = new URLSearchParams();
-        appendAccountParam(params, ref.accountIndex);
-        params.set("grantId", ref.grantId);
-        commonParams(params);
-        const endpoint = `/api/messages?${params.toString()}`;
-        let lastError = null;
-        for (let attempt = 0; attempt < 2; attempt += 1) {
-          try {
-            const payload = await fetchJson(endpoint);
-            const data = Array.isArray(payload?.data) ? payload.data : [];
-            return {
-              items: data.map((message) =>
-                normalizeMessageWithScope(message, {
-                  accountIndex: ref.accountIndex,
-                  grantId: ref.grantId
-                })
-              ),
-              failed: false
-            };
-          } catch (error) {
-            lastError = error;
-            const msg = String(error?.message || "").toLowerCase();
-            const retryable = msg.includes("429") || msg.includes("rate");
-            if (attempt === 0 && retryable) {
-              await sleepMs(350);
-              continue;
-            }
-            break;
-          }
-        }
-        return {
-          items: [],
-          failed: true,
-          errorMessage: lastError?.message || "Erreur de chargement"
-        };
-      });
-
-      const merged = perGrant.flatMap((row) => row.items);
-      const dedup = new Map();
-      for (const message of merged) {
-        dedup.set(message.__messageKey, message);
-      }
-      if (loadSeq !== state.emailLoadSeq) {
-        return;
-      }
-      state.messages = Array.from(dedup.values()).sort(
-        (left, right) => toMessageTimestamp(right) - toMessageTimestamp(left)
-      );
-      state.nextCursor = "";
-      const failedCount = perGrant.filter((row) => row.failed).length;
-      if (failedCount > 0) {
-        setStatus(
-          `${state.messages.length} email(s) charges - ${failedCount} boite(s) partiellement indisponible(s)`,
-          true
-        );
-      }
-    } else {
-      const scope = getSelectedGrantScope();
-      if (loadSeq !== state.emailLoadSeq) {
-        return;
-      }
-      if (!scope) {
-        state.messages = [];
-        state.nextCursor = "";
-        renderSidebarList();
-        renderReaderPlaceholder("Selectionne un grant.");
-        setStatus("Aucun grant selectionne", true);
-        return;
-      }
-      const params = new URLSearchParams();
-      appendAccountParam(params, scope.accountIndex);
-      params.set("grantId", scope.grantId);
-      commonParams(params);
-      if (append && state.nextCursor) {
-        params.set("cursor", state.nextCursor);
-      }
-
-      const payload = await fetchJson(`/api/messages?${params.toString()}`);
-      const data = Array.isArray(payload?.data) ? payload.data : [];
-      const normalized = data.map((message) => normalizeMessageWithScope(message, scope));
-      if (loadSeq !== state.emailLoadSeq) {
-        return;
-      }
-      state.messages = append ? state.messages.concat(normalized) : normalized;
-      state.nextCursor = getNextCursor(payload);
+    const scope = getSelectedGrantScope();
+    if (loadSeq !== state.emailLoadSeq) {
+      return;
     }
+    if (!scope) {
+      state.messages = [];
+      state.nextCursor = "";
+      renderSidebarList();
+      renderReaderPlaceholder("Selectionne un grant.");
+      setStatus("Aucun grant selectionne", true);
+      return;
+    }
+    const params = new URLSearchParams();
+    appendAccountParam(params, scope.accountIndex);
+    params.set("grantId", scope.grantId);
+    commonParams(params);
+    if (append && state.nextCursor) {
+      params.set("cursor", state.nextCursor);
+    }
+
+    const payload = await fetchJson(`/api/messages?${params.toString()}`);
+    const data = Array.isArray(payload?.data) ? payload.data : [];
+    const normalized = data.map((message) => normalizeMessageWithScope(message, scope));
+    if (loadSeq !== state.emailLoadSeq) {
+      return;
+    }
+    state.messages = append ? state.messages.concat(normalized) : normalized;
+    state.nextCursor = getNextCursor(payload);
 
     if (loadSeq !== state.emailLoadSeq) {
       return;
@@ -1097,9 +975,7 @@ async function loadMessages({ append = false } = {}) {
       renderReaderPlaceholder("Aucun email pour ce filtre.");
     }
 
-    if (!isAllMode()) {
-      setStatus(`${state.messages.length} email(s) charges`);
-    }
+    setStatus(`${state.messages.length} email(s) charges`);
   } catch (error) {
     if (loadSeq !== state.emailLoadSeq) {
       return;
@@ -1281,18 +1157,13 @@ function setupEvents() {
   grantSelectEl.addEventListener("change", async () => {
     if (state.source !== "email") return;
     const rawValue = grantSelectEl.value;
-    if (rawValue === ALL_GRANTS_VALUE) {
-      state.selectedGrantId = ALL_GRANTS_VALUE;
+    const parsed = parseGrantScopeValue(rawValue);
+    if (!parsed) {
+      state.selectedGrantId = "";
       state.selectedGrantAccountIndex = 0;
     } else {
-      const parsed = parseGrantScopeValue(rawValue);
-      if (!parsed) {
-        state.selectedGrantId = ALL_GRANTS_VALUE;
-        state.selectedGrantAccountIndex = 0;
-      } else {
-        state.selectedGrantId = parsed.grantId;
-        state.selectedGrantAccountIndex = parsed.accountIndex;
-      }
+      state.selectedGrantId = parsed.grantId;
+      state.selectedGrantAccountIndex = parsed.accountIndex;
     }
     clearEmailSelection();
     updateToolbarForSource();
@@ -1376,7 +1247,7 @@ function setupEvents() {
   });
 
   loadMoreBtn.addEventListener("click", async () => {
-    if (state.source !== "email" || isAllMode()) return;
+    if (state.source !== "email") return;
     await loadMessages({ append: true });
   });
 
