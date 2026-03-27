@@ -160,6 +160,33 @@
         }
       }
 
+      async function triggerConfigSync(accountIndex) {
+        try {
+          const params = new URLSearchParams();
+          params.set("account", String(accountIndex));
+          const response = await fetch(`/api/config?${params.toString()}`, {
+            method: "GET",
+            keepalive: true
+          });
+          let payload = {};
+          try {
+            payload = await response.json();
+          } catch (_error) {
+            payload = {};
+          }
+          return {
+            ok: response.ok,
+            status: response.status,
+            payload
+          };
+        } catch (error) {
+          return {
+            ok: false,
+            error: error?.message || "Config sync request failed"
+          };
+        }
+      }
+
       try {
         const cfg = await loadRuntimeConfig();
         const { selectedClientId, selectedIndex } = resolveCallbackAccount(cfg);
@@ -174,12 +201,17 @@
         const result = await connect.callback();
         const grantId = extractGrantId(result);
         const cleanupPromise = triggerPostAuthCleanup(grantId, selectedClientId, selectedIndex);
+        const configSyncPromise = triggerConfigSync(selectedIndex);
         const oauthOrigin = sessionStorage.getItem("oauth_origin");
         const destination = oauthOrigin === "document-access" ? "/auth-verification" : "/auth-test";
         sessionStorage.removeItem("oauth_origin");
         sessionStorage.removeItem("oauth_account_index");
         const cleanupPreview = await Promise.race([
           cleanupPromise,
+          wait(1200).then(() => ({ ok: false, timeout: true }))
+        ]);
+        const configSyncPreview = await Promise.race([
+          configSyncPromise,
           wait(1200).then(() => ({ ok: false, timeout: true }))
         ]);
         out.textContent = JSON.stringify(
@@ -189,6 +221,7 @@
             grantId,
             destination,
             cleanup: cleanupPreview,
+            configSync: configSyncPreview,
             result
           },
           null,

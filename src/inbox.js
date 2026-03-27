@@ -847,6 +847,9 @@ async function loadGrants() {
       appendAccountParam(params, account.index);
       try {
         const payload = await fetchJson(`/api/grants?${params.toString()}`);
+        if (payload?.source !== "supabase") {
+          throw new Error("Source grants invalide: Supabase requis");
+        }
         const grants = Array.isArray(payload?.data) ? payload.data : [];
         return { accountIndex: account.index, grants, error: "" };
       } catch (error) {
