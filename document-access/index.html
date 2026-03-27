@@ -96,7 +96,8 @@
       }
 
       async function loadRuntimeConfig() {
-        const response = await fetch("/api/config");
+        // Ne declenche pas la sync auto a l'ouverture de /document-access.
+        const response = await fetch("/api/config?sync=0");
         const data = await response.json();
         if (!response.ok) {
           throw new Error(data?.error || "Impossible de charger la config runtime");
