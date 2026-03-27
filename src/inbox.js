@@ -2,7 +2,11 @@ import { NylasConnect } from "https://esm.sh/@nylas/connect";
 
 const statusEl = document.getElementById("status");
 const accountSelectEl = document.getElementById("accountSelect");
-const grantSelectEl = document.getElementById("grantSelect");
+const grantDropdownEl = document.getElementById("grantDropdown");
+const grantDropdownBtnEl = document.getElementById("grantDropdownBtn");
+const grantDropdownBtnTitleEl = document.getElementById("grantDropdownBtnTitle");
+const grantDropdownBtnMetaEl = document.getElementById("grantDropdownBtnMeta");
+const grantDropdownMenuEl = document.getElementById("grantDropdownMenu");
 const deleteGrantBtn = document.getElementById("deleteGrantBtn");
 const readFilterEl = document.getElementById("readFilter");
 const subjectSearchInputEl = document.getElementById("subjectSearchInput");
@@ -293,13 +297,22 @@ function getAddress(entry) {
   return entry.email || entry.name || "";
 }
 
+function parseAnyDate(value) {
+  if (value === undefined || value === null || value === "") return null;
+  const numeric = Number(value);
+  if (Number.isFinite(numeric)) {
+    // Supports Unix seconds and Unix milliseconds.
+    const ms = numeric > 1e11 ? numeric : numeric * 1000;
+    const dateFromNumber = new Date(ms);
+    return Number.isNaN(dateFromNumber.getTime()) ? null : dateFromNumber;
+  }
+  const dateFromString = new Date(String(value));
+  return Number.isNaN(dateFromString.getTime()) ? null : dateFromString;
+}
+
 function formatDate(value) {
-  if (!value) return "";
-  const numberValue = Number(value);
-  const date = Number.isFinite(numberValue)
-    ? new Date(numberValue * 1000)
-    : new Date(String(value));
-  if (Number.isNaN(date.getTime())) return "";
+  const date = parseAnyDate(value);
+  if (!date) return "";
   return new Intl.DateTimeFormat("fr-FR", {
     dateStyle: "short",
     timeStyle: "short"
@@ -307,14 +320,8 @@ function formatDate(value) {
 }
 
 function toUnixTimestampSeconds(value) {
-  if (value === undefined || value === null || value === "") return 0;
-  const numeric = Number(value);
-  if (Number.isFinite(numeric)) {
-    // Accept both seconds and milliseconds timestamps.
-    return numeric > 1e11 ? Math.floor(numeric / 1000) : Math.floor(numeric);
-  }
-  const date = new Date(String(value));
-  if (Number.isNaN(date.getTime())) return 0;
+  const date = parseAnyDate(value);
+  if (!date) return 0;
   return Math.floor(date.getTime() / 1000);
 }
 
@@ -325,9 +332,94 @@ function pickGrantCreatedAt(grant) {
     grant.created_at ||
     grant.createdOn ||
     grant.created_on ||
+    grant.createdTimestamp ||
+    grant.created_timestamp ||
+    grant.creationDate ||
+    grant.creation_date ||
     grant.created ||
     ""
   );
+}
+
+function closeGrantDropdown() {
+  if (!grantDropdownMenuEl || !grantDropdownBtnEl) return;
+  grantDropdownMenuEl.hidden = true;
+  grantDropdownBtnEl.setAttribute("aria-expanded", "false");
+}
+
+function openGrantDropdown() {
+  if (!grantDropdownMenuEl || !grantDropdownBtnEl || grantDropdownBtnEl.disabled) return;
+  grantDropdownMenuEl.hidden = false;
+  grantDropdownBtnEl.setAttribute("aria-expanded", "true");
+}
+
+function renderGrantDropdown() {
+  if (
+    !grantDropdownEl ||
+    !grantDropdownBtnEl ||
+    !grantDropdownBtnTitleEl ||
+    !grantDropdownBtnMetaEl ||
+    !grantDropdownMenuEl
+  ) {
+    return;
+  }
+
+  grantDropdownMenuEl.innerHTML = "";
+  const selectedScopeValue =
+    state.selectedGrantId && state.selectedGrantAccountIndex
+      ? makeGrantScopeValue(state.selectedGrantAccountIndex, state.selectedGrantId)
+      : "";
+
+  if (!state.allGrantRefs.length) {
+    grantDropdownBtnTitleEl.textContent = "Aucun grant";
+    grantDropdownBtnMetaEl.textContent = "Aucun grant charge";
+    grantDropdownBtnEl.disabled = true;
+    closeGrantDropdown();
+    const empty = document.createElement("p");
+    empty.className = "grant-empty";
+    empty.textContent = "Aucun grant disponible.";
+    grantDropdownMenuEl.append(empty);
+    return;
+  }
+
+  grantDropdownBtnEl.disabled = false;
+  const selectedRef = state.allGrantRefs.find(
+    (ref) => makeGrantScopeValue(ref.accountIndex, ref.grantId) === selectedScopeValue
+  );
+  const fallbackRef = state.allGrantRefs[0];
+  const activeRef = selectedRef || fallbackRef;
+  const createdAtLabel = formatDate(activeRef?.createdAt);
+  grantDropdownBtnTitleEl.textContent = `${activeRef?.isValid ? "🟢" : "🔴"} ${activeRef?.displayName || activeRef?.grantId || "Grant"}`;
+  grantDropdownBtnMetaEl.textContent = `Acc ${activeRef?.accountIndex || ""} • ${activeRef?.provider || "provider"}${
+    createdAtLabel ? ` • Cree le ${createdAtLabel}` : ""
+  }`;
+
+  for (const ref of state.allGrantRefs) {
+    const scopeValue = makeGrantScopeValue(ref.accountIndex, ref.grantId);
+    const isActive = scopeValue === selectedScopeValue;
+    const statusLabel = ref.isValid ? "valid" : "invalid";
+    const createdLabel = formatDate(ref.createdAt);
+
+    const item = document.createElement("button");
+    item.type = "button";
+    item.className = `grant-option${isActive ? " active" : ""}`;
+    item.dataset.grantScopeValue = scopeValue;
+    item.setAttribute("role", "option");
+    item.setAttribute("aria-selected", isActive ? "true" : "false");
+
+    const title = document.createElement("p");
+    title.className = "grant-option-title";
+    title.textContent = `${ref.isValid ? "🟢" : "🔴"} ${ref.displayName}`;
+
+    const meta = document.createElement("p");
+    meta.className = "grant-option-meta";
+    meta.textContent = `Acc ${ref.accountIndex} • ${ref.provider} • ${statusLabel}${
+      createdLabel ? ` • Cree le ${createdLabel}` : ""
+    }`;
+
+    item.append(title, meta);
+    grantDropdownMenuEl.append(item);
+  }
 }
 
 function escapeHtml(value) {
@@ -727,26 +819,14 @@ async function loadGrants() {
 
   state.allGrantRefs.sort((left, right) => right.createdAtTs - left.createdAtTs);
 
-  grantSelectEl.innerHTML = "";
-
   if (!state.allGrantRefs.length) {
     state.selectedGrantId = "";
     state.selectedGrantAccountIndex = 0;
+    renderGrantDropdown();
     setStatus("Aucun grant trouve", true);
     renderReaderPlaceholder("Aucun grant.");
     messagesListEl.innerHTML = '<p class="empty">Aucun grant.</p>';
     return;
-  }
-
-  for (const ref of state.allGrantRefs) {
-    const option = document.createElement("option");
-    option.value = makeGrantScopeValue(ref.accountIndex, ref.grantId);
-    const statusDot = ref.isValid ? "🟢" : "🔴";
-    const statusLabel = ref.isValid ? "valid" : "invalid";
-    const createdAtLabel = formatDate(ref.createdAt);
-    const createdPart = createdAtLabel ? ` - cree le ${createdAtLabel}` : "";
-    option.textContent = `${statusDot} Acc ${ref.accountIndex} - ${ref.displayName} (${ref.provider}) - ${statusLabel}${createdPart}`;
-    grantSelectEl.append(option);
   }
 
   const hasPrevious = state.allGrantRefs.some(
@@ -760,12 +840,12 @@ async function loadGrants() {
   if (!parsed) {
     state.selectedGrantId = "";
     state.selectedGrantAccountIndex = 0;
-    grantSelectEl.value = "";
+    renderGrantDropdown();
     return;
   }
   state.selectedGrantId = parsed.grantId;
   state.selectedGrantAccountIndex = parsed.accountIndex;
-  grantSelectEl.value = nextSelectionValue;
+  renderGrantDropdown();
 }
 
 async function deleteGrant() {
@@ -1111,6 +1191,22 @@ async function refreshCurrentSource() {
   }
 }
 
+async function selectGrantScope(scopeValue) {
+  const parsed = parseGrantScopeValue(scopeValue);
+  if (!parsed) {
+    state.selectedGrantId = "";
+    state.selectedGrantAccountIndex = 0;
+  } else {
+    state.selectedGrantId = parsed.grantId;
+    state.selectedGrantAccountIndex = parsed.accountIndex;
+  }
+  closeGrantDropdown();
+  renderGrantDropdown();
+  clearEmailSelection();
+  updateToolbarForSource();
+  await loadMessages({ append: false });
+}
+
 function setupEvents() {
   waInstanceSelectEl?.addEventListener("change", async () => {
     if (state.source !== "whatsapp") return;
@@ -1154,20 +1250,35 @@ function setupEvents() {
     await loadMessages({ append: false });
   });
 
-  grantSelectEl.addEventListener("change", async () => {
+  grantDropdownBtnEl?.addEventListener("click", () => {
     if (state.source !== "email") return;
-    const rawValue = grantSelectEl.value;
-    const parsed = parseGrantScopeValue(rawValue);
-    if (!parsed) {
-      state.selectedGrantId = "";
-      state.selectedGrantAccountIndex = 0;
+    if (!grantDropdownMenuEl) return;
+    if (grantDropdownMenuEl.hidden) {
+      openGrantDropdown();
     } else {
-      state.selectedGrantId = parsed.grantId;
-      state.selectedGrantAccountIndex = parsed.accountIndex;
+      closeGrantDropdown();
     }
-    clearEmailSelection();
-    updateToolbarForSource();
-    await loadMessages({ append: false });
+  });
+
+  grantDropdownMenuEl?.addEventListener("click", async (event) => {
+    if (state.source !== "email") return;
+    const option = event.target.closest("button[data-grant-scope-value]");
+    const scopeValue = option?.dataset.grantScopeValue || "";
+    if (!scopeValue) return;
+    await selectGrantScope(scopeValue);
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!grantDropdownEl || grantDropdownMenuEl?.hidden) return;
+    if (!grantDropdownEl.contains(event.target)) {
+      closeGrantDropdown();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeGrantDropdown();
+    }
   });
 
   deleteGrantBtn?.addEventListener("click", async () => {
@@ -1203,6 +1314,7 @@ function setupEvents() {
     const sourceBtn = event.target.closest('button[data-source-tab="1"]');
     if (sourceBtn && sourceBtn.dataset.source && sourceBtn.dataset.source !== state.source) {
       state.source = sourceBtn.dataset.source;
+      closeGrantDropdown();
       renderSourceTabs();
       updateToolbarForSource();
       clearEmailSelection();

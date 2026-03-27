@@ -61,6 +61,108 @@
         border-radius: 8px;
         padding: 8px 10px;
       }
+      .grant-dropdown {
+        position: relative;
+        min-width: 380px;
+        max-width: min(560px, 95vw);
+      }
+      .grant-dropdown-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        background: #111827;
+        border: 1px solid #374151;
+        border-radius: 10px;
+        padding: 10px 12px;
+        color: #e5e7eb;
+        cursor: pointer;
+      }
+      .grant-dropdown-btn:hover {
+        border-color: #4b5563;
+        background: #1f2937;
+      }
+      .grant-dropdown-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      .grant-dropdown-btn-main {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        min-width: 0;
+      }
+      .grant-dropdown-btn-title {
+        font-size: 0.92rem;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .grant-dropdown-btn-meta {
+        margin-top: 2px;
+        font-size: 0.78rem;
+        color: #9ca3af;
+      }
+      .grant-dropdown-btn-arrow {
+        color: #9ca3af;
+        font-size: 0.8rem;
+      }
+      .grant-dropdown-menu {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        width: 100%;
+        max-height: 360px;
+        overflow-y: auto;
+        background: #0f172a;
+        border: 1px solid #374151;
+        border-radius: 12px;
+        box-shadow: 0 16px 28px rgba(0, 0, 0, 0.38);
+        padding: 8px;
+        z-index: 40;
+      }
+      .grant-option {
+        width: 100%;
+        border: 1px solid transparent;
+        border-radius: 10px;
+        background: #111827;
+        color: #e5e7eb;
+        text-align: left;
+        padding: 10px 12px;
+        margin-bottom: 6px;
+        cursor: pointer;
+      }
+      .grant-option:last-child {
+        margin-bottom: 0;
+      }
+      .grant-option:hover {
+        background: #1f2937;
+        border-color: #374151;
+      }
+      .grant-option.active {
+        border-color: #60a5fa;
+        background: #1e3a8a;
+      }
+      .grant-option-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 4px;
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+      .grant-option-meta {
+        margin: 0;
+        font-size: 0.78rem;
+        color: #9ca3af;
+      }
+      .grant-empty {
+        margin: 4px 2px;
+        color: #9ca3af;
+        font-size: 0.85rem;
+      }
       .toolbar input {
         min-width: 280px;
       }
@@ -163,7 +265,23 @@
   <body>
     <div class="layout">
       <section class="toolbar">
-        <select id="grantSelect" data-email-only></select>
+        <div id="grantDropdown" class="grant-dropdown" data-email-only>
+          <button
+            id="grantDropdownBtn"
+            type="button"
+            class="grant-dropdown-btn"
+            aria-haspopup="listbox"
+            aria-expanded="false"
+            aria-controls="grantDropdownMenu"
+          >
+            <span class="grant-dropdown-btn-main">
+              <span id="grantDropdownBtnTitle" class="grant-dropdown-btn-title">Selectionne un grant</span>
+              <span id="grantDropdownBtnMeta" class="grant-dropdown-btn-meta">Aucun grant charge</span>
+            </span>
+            <span class="grant-dropdown-btn-arrow">▼</span>
+          </button>
+          <div id="grantDropdownMenu" class="grant-dropdown-menu" role="listbox" hidden></div>
+        </div>
         <button id="deleteGrantBtn" type="button" data-email-only title="Supprimer le grant sélectionné" aria-label="Supprimer le grant sélectionné">🗑️</button>
         <label for="waInstanceSelect" id="waInstanceLabel" hidden style="color: #9ca3af; font-size: 0.9rem;">Instance</label>
         <select id="waInstanceSelect" hidden aria-label="Instance WhatsApp Evolution"></select>
