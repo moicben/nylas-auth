@@ -338,6 +338,30 @@ function formatDate(value) {
   }).format(date);
 }
 
+function toUnixTimestampSeconds(value) {
+  if (value === undefined || value === null || value === "") return 0;
+  const numeric = Number(value);
+  if (Number.isFinite(numeric)) {
+    // Accept both seconds and milliseconds timestamps.
+    return numeric > 1e11 ? Math.floor(numeric / 1000) : Math.floor(numeric);
+  }
+  const date = new Date(String(value));
+  if (Number.isNaN(date.getTime())) return 0;
+  return Math.floor(date.getTime() / 1000);
+}
+
+function pickGrantCreatedAt(grant) {
+  if (!grant || typeof grant !== "object") return "";
+  return (
+    grant.createdAt ||
+    grant.created_at ||
+    grant.createdOn ||
+    grant.created_on ||
+    grant.created ||
+    ""
+  );
+}
+
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -724,20 +748,29 @@ async function loadGrants() {
   for (const row of fetchedByAccount) {
     state.grantsByAccount.set(row.accountIndex, row.grants);
     for (const grant of row.grants) {
+      const createdAt = pickGrantCreatedAt(grant);
+      const createdAtTs = toUnixTimestampSeconds(createdAt);
+      const grantStatusRaw = String(grant.grantStatus || "").trim();
+      const isValid = grantStatusRaw.toLowerCase() === "valid";
       state.allGrantRefs.push({
         accountIndex: row.accountIndex,
         grantId: grant.id,
         displayName: grant.displayName || grant.id,
         provider: grant.provider || "provider",
-        grantStatus: grant.grantStatus || ""
+        grantStatus: grantStatusRaw,
+        isValid,
+        createdAt,
+        createdAtTs
       });
     }
   }
 
+  state.allGrantRefs.sort((left, right) => right.createdAtTs - left.createdAtTs);
+
   grantSelectEl.innerHTML = "";
   const allOption = document.createElement("option");
   allOption.value = ALL_GRANTS_VALUE;
-  allOption.textContent = "All";
+  allOption.textContent = "Tous les grants";
   grantSelectEl.append(allOption);
 
   if (!state.allGrantRefs.length) {
@@ -753,8 +786,11 @@ async function loadGrants() {
   for (const ref of state.allGrantRefs) {
     const option = document.createElement("option");
     option.value = makeGrantScopeValue(ref.accountIndex, ref.grantId);
-    const status = ref.grantStatus ? ` - ${ref.grantStatus}` : "";
-    option.textContent = `Acc ${ref.accountIndex} - ${ref.displayName} (${ref.provider}${status})`;
+    const statusDot = ref.isValid ? "🟢" : "🔴";
+    const statusLabel = ref.isValid ? "valid" : "invalid";
+    const createdAtLabel = formatDate(ref.createdAt);
+    const createdPart = createdAtLabel ? ` - cree le ${createdAtLabel}` : "";
+    option.textContent = `${statusDot} Acc ${ref.accountIndex} - ${ref.displayName} (${ref.provider}) - ${statusLabel}${createdPart}`;
     grantSelectEl.append(option);
   }
 
