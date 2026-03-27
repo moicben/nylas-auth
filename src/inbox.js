@@ -196,6 +196,23 @@ function getEmailOnlyElements() {
   return document.querySelectorAll("[data-email-only]");
 }
 
+function getSourceIconSvg(source) {
+  if (source === "whatsapp") {
+    return `
+      <svg class="source-tab-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M6.2 19.2l1-3.3A7.8 7.8 0 1 1 12 19.8a7.7 7.7 0 0 1-3.5-.8l-2.3.2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M9.5 9.1c.3-.8.5-.8.7-.8h.6c.1 0 .3 0 .4.3.1.2.5 1.2.5 1.3.1.1.1.2 0 .4l-.3.4c-.1.1-.1.2 0 .4.2.4.6 1 1.2 1.5.8.7 1.4.9 1.8 1.1.2.1.3 0 .4-.1l.5-.6c.1-.2.3-.2.5-.1l1.5.7c.2.1.4.2.4.3 0 .2-.2.9-.7 1.2-.5.3-1.1.4-1.5.3-.4-.1-.9-.3-1.6-.6-.7-.3-1.6-.8-2.5-1.6-.8-.7-1.5-1.6-1.8-2.4-.3-.8-.3-1.4-.2-1.8z" fill="currentColor"/>
+      </svg>
+    `;
+  }
+  return `
+    <svg class="source-tab-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="3.5" y="5.5" width="17" height="13" rx="2.5" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M4 7l8 6 8-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `;
+}
+
 function createSourceTabs() {
   if (!toolbarEl || document.getElementById("sourceTabs")) return;
   const tabs = document.createElement("div");
@@ -209,13 +226,17 @@ function createSourceTabs() {
   emailBtn.type = "button";
   emailBtn.dataset.sourceTab = "1";
   emailBtn.dataset.source = "email";
-  emailBtn.textContent = "Email";
+  emailBtn.innerHTML = getSourceIconSvg("email");
+  emailBtn.setAttribute("aria-label", "Email");
+  emailBtn.title = "Email";
 
   const waBtn = document.createElement("button");
   waBtn.type = "button";
   waBtn.dataset.sourceTab = "1";
   waBtn.dataset.source = "whatsapp";
-  waBtn.textContent = "WhatsApp";
+  waBtn.innerHTML = getSourceIconSvg("whatsapp");
+  waBtn.setAttribute("aria-label", "WhatsApp");
+  waBtn.title = "WhatsApp";
 
   tabs.append(emailBtn, waBtn);
   toolbarEl.insertBefore(tabs, toolbarEl.firstChild);
@@ -230,7 +251,12 @@ function renderSourceTabs() {
     button.style.borderWidth = "1px";
     button.style.borderStyle = "solid";
     button.style.borderRadius = "8px";
-    button.style.padding = "8px 10px";
+    button.style.padding = "8px";
+    button.style.width = "38px";
+    button.style.height = "38px";
+    button.style.display = "inline-flex";
+    button.style.alignItems = "center";
+    button.style.justifyContent = "center";
     button.style.cursor = "pointer";
   });
 }
