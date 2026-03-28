@@ -16,11 +16,9 @@ const messagesListEl = document.getElementById("messagesList");
 const readerPanelEl = document.getElementById("readerPanel");
 const loadMoreBtn = document.getElementById("loadMoreBtn");
 const toolbarEl = document.querySelector(".toolbar");
-const waInstanceLabelEl = document.getElementById("waInstanceLabel");
-const waInstanceSelectEl = document.getElementById("waInstanceSelect");
+
 
 const state = {
-  source: "email",
   sessionGrantId: "",
   selectedGrantId: "",
   selectedGrantAccountIndex: 0,
@@ -39,19 +37,12 @@ const state = {
   isLoadingMessages: false,
   isDeletingMessage: false,
   isDeletingGrant: false,
-  /** WhatsApp (Evolution) — instance choisie dans la liste */
-  waInstances: [],
-  selectedWaInstance: "",
-  waChats: [],
-  waMessages: [],
-  selectedWaRemoteJid: "",
   /** Comptes Nylas (index + clientId public), depuis /api/config */
   runtimeAccounts: [],
   apiUrl: "https://api.eu.nylas.com",
   selectedAccountIndex: 1
 };
 
-const WA_INSTANCE_STORAGE_KEY = "inbox-wa-evolution-instance";
 const NYLAS_ACCOUNT_STORAGE_KEY = "inbox-nylas-account-index";
 const GRANT_SCOPE_SEPARATOR = "::";
 const GRANT_QUERY_PARAM = "grant";
@@ -192,95 +183,9 @@ async function reinitNylasSession() {
   state.sessionGrantId = session?.grantId || "";
 }
 
-function getEmailOnlyElements() {
-  return document.querySelectorAll("[data-email-only]");
-}
-
-function getSourceIconSvg(source) {
-  if (source === "whatsapp") {
-    return `
-      <svg class="source-tab-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M6.2 19.2l1-3.3A7.8 7.8 0 1 1 12 19.8a7.7 7.7 0 0 1-3.5-.8l-2.3.2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M9.5 9.1c.3-.8.5-.8.7-.8h.6c.1 0 .3 0 .4.3.1.2.5 1.2.5 1.3.1.1.1.2 0 .4l-.3.4c-.1.1-.1.2 0 .4.2.4.6 1 1.2 1.5.8.7 1.4.9 1.8 1.1.2.1.3 0 .4-.1l.5-.6c.1-.2.3-.2.5-.1l1.5.7c.2.1.4.2.4.3 0 .2-.2.9-.7 1.2-.5.3-1.1.4-1.5.3-.4-.1-.9-.3-1.6-.6-.7-.3-1.6-.8-2.5-1.6-.8-.7-1.5-1.6-1.8-2.4-.3-.8-.3-1.4-.2-1.8z" fill="currentColor"/>
-      </svg>
-    `;
-  }
-  return `
-    <svg class="source-tab-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <rect x="3.5" y="5.5" width="17" height="13" rx="2.5" stroke="currentColor" stroke-width="1.8"/>
-      <path d="M4 7l8 6 8-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  `;
-}
-
-function createSourceTabs() {
-  if (!toolbarEl || document.getElementById("sourceTabs")) return;
-  const tabs = document.createElement("div");
-  tabs.id = "sourceTabs";
-  tabs.setAttribute("role", "tablist");
-  tabs.style.display = "inline-flex";
-  tabs.style.gap = "6px";
-  tabs.style.marginRight = "10px";
-
-  const emailBtn = document.createElement("button");
-  emailBtn.type = "button";
-  emailBtn.dataset.sourceTab = "1";
-  emailBtn.dataset.source = "email";
-  emailBtn.innerHTML = getSourceIconSvg("email");
-  emailBtn.setAttribute("aria-label", "Email");
-  emailBtn.title = "Email";
-
-  const waBtn = document.createElement("button");
-  waBtn.type = "button";
-  waBtn.dataset.sourceTab = "1";
-  waBtn.dataset.source = "whatsapp";
-  waBtn.innerHTML = getSourceIconSvg("whatsapp");
-  waBtn.setAttribute("aria-label", "WhatsApp");
-  waBtn.title = "WhatsApp";
-
-  tabs.append(emailBtn, waBtn);
-  toolbarEl.insertBefore(tabs, toolbarEl.firstChild);
-}
-
-function renderSourceTabs() {
-  document.querySelectorAll('button[data-source-tab="1"]').forEach((button) => {
-    const active = button.dataset.source === state.source;
-    button.style.background = active ? "#1d4ed8" : "#1f2937";
-    button.style.borderColor = active ? "#60a5fa" : "#374151";
-    button.style.color = "#e5e7eb";
-    button.style.borderWidth = "1px";
-    button.style.borderStyle = "solid";
-    button.style.borderRadius = "8px";
-    button.style.padding = "8px";
-    button.style.width = "38px";
-    button.style.height = "38px";
-    button.style.display = "inline-flex";
-    button.style.alignItems = "center";
-    button.style.justifyContent = "center";
-    button.style.cursor = "pointer";
-  });
-}
-
 function updateToolbarForSource() {
-  const isEmail = state.source === "email";
-  getEmailOnlyElements().forEach((el) => {
-    el.hidden = !isEmail;
-  });
-  if (waInstanceLabelEl) {
-    waInstanceLabelEl.hidden = isEmail;
-  }
-  if (waInstanceSelectEl) {
-    waInstanceSelectEl.hidden = isEmail;
-  }
-  const mailboxTabs = document.getElementById("mailboxTabs");
-  if (mailboxTabs) {
-    mailboxTabs.style.display = isEmail ? "inline-flex" : "none";
-  }
-  if (readFilterEl) {
-    readFilterEl.disabled = !isEmail;
-  }
   if (deleteGrantBtn) {
-    deleteGrantBtn.disabled = !isEmail || !getSelectedGrantScope();
+    deleteGrantBtn.disabled = !getSelectedGrantScope();
   }
 }
 
@@ -576,28 +481,6 @@ function renderReaderPlaceholder(text) {
 }
 
 function renderSidebarList() {
-  if (state.source === "whatsapp") {
-    const rows = state.waChats;
-    if (!rows.length) {
-      messagesListEl.innerHTML =
-        '<p class="empty">Aucune conversation (ou filtre trop restrictif).</p>';
-      return;
-    }
-    messagesListEl.innerHTML = rows
-      .map((chat) => {
-        const active = chat.remoteJid === state.selectedWaRemoteJid ? "active" : "";
-        const date = formatDate(chat.date);
-        return `
-        <button class="item ${active}" type="button" data-wa-remote-jid="${escapeHtml(chat.remoteJid)}">
-          <p class="item-subject">${escapeHtml(chat.subject || chat.remoteJid)}</p>
-          <p class="item-meta">${escapeHtml(chat.snippet || "")} ${date ? `- ${escapeHtml(date)}` : ""}</p>
-        </button>
-      `;
-      })
-      .join("");
-    return;
-  }
-
   if (!state.messages.length) {
     messagesListEl.innerHTML = '<p class="empty">Aucun email pour ce filtre.</p>';
     return;
@@ -706,115 +589,12 @@ function renderReader(message) {
   `;
 }
 
-function renderWaThread() {
-  const chat = state.waChats.find((c) => c.remoteJid === state.selectedWaRemoteJid);
-  const title = chat?.subject || state.selectedWaRemoteJid || "Conversation";
-
-  if (!state.selectedWaRemoteJid) {
-    renderReaderPlaceholder("Selectionne une conversation WhatsApp.");
-    return;
-  }
-
-  if (!state.waMessages.length) {
-    readerPanelEl.innerHTML = `
-      <h2>${escapeHtml(title)}</h2>
-      <p class="meta">${escapeHtml(state.selectedWaRemoteJid)}</p>
-      <p class="empty">Aucun message dans cet historique (ou chargement en cours).</p>
-    `;
-    return;
-  }
-
-  const blocks = state.waMessages
-    .map((m) => {
-      const who = m.fromMe ? "Moi" : "Contact";
-      const when = formatDate(m.date);
-      const align = m.fromMe ? "margin-left:18%;" : "margin-right:18%;";
-      const bg = m.fromMe ? "#1d4ed8" : "#374151";
-      return `
-      <div style="${align} margin-bottom:10px; padding:10px 12px; border-radius:10px; background:${bg}; color:#e5e7eb;">
-        <p style="margin:0 0 6px; font-size:0.8rem; opacity:0.9;">${escapeHtml(who)} · ${escapeHtml(when || "")}</p>
-        <pre style="margin:0; white-space:pre-wrap; font-family:inherit; line-height:1.45;">${escapeHtml(m.bodyText || "")}</pre>
-        <p style="margin:8px 0 0;">
-          <button type="button"
-            data-wa-delete="1"
-            data-wa-id="${escapeHtml(m.id)}"
-            data-wa-from-me="${m.fromMe ? "1" : "0"}"
-            data-wa-remote-jid="${escapeHtml(m.remoteJid || state.selectedWaRemoteJid)}">
-            Supprimer pour tous
-          </button>
-        </p>
-      </div>`;
-    })
-    .join("");
-
-  readerPanelEl.innerHTML = `
-    <h2>${escapeHtml(title)}</h2>
-    <p class="meta">JID: ${escapeHtml(state.selectedWaRemoteJid)}</p>
-    <div class="wa-thread" style="margin-top:14px;">${blocks}</div>
-  `;
-}
-
 function updateLoadMoreButton() {
   const hasCursor = Boolean(state.nextCursor);
-  const show = state.source === "email" && hasCursor && !state.isLoadingMessages;
+  const show = hasCursor && !state.isLoadingMessages;
   loadMoreBtn.hidden = !show;
 }
 
-
-function pickDefaultWaInstance() {
-  const list = state.waInstances;
-  if (!list.length) return "";
-  const names = list.map((i) => i.name);
-  let saved = "";
-  try {
-    saved = localStorage.getItem(WA_INSTANCE_STORAGE_KEY) || "";
-  } catch (_e) {
-    saved = "";
-  }
-  if (saved && names.includes(saved)) return saved;
-  const openOne = list.find((i) => String(i.status).toLowerCase() === "open");
-  return (openOne && openOne.name) || list[0].name || "";
-}
-
-function formatWaInstanceLabel(name) {
-  const value = typeof name === "string" ? name.trim() : "";
-  const match = /^(\d+)-([a-z]{4})$/i.exec(value);
-  if (!match) return value;
-  const phone = match[1];
-  const suffix = match[2].toLowerCase();
-  return `+${phone} - ${suffix}`;
-}
-
-function fillWaInstanceSelect() {
-  if (!waInstanceSelectEl) return;
-  waInstanceSelectEl.innerHTML = "";
-  for (const row of state.waInstances) {
-    const opt = document.createElement("option");
-    opt.value = row.name;
-    const st = row.status ? ` (${row.status})` : "";
-    const prof = row.profileName ? ` — ${row.profileName}` : "";
-    opt.textContent = `${formatWaInstanceLabel(row.name)}${st}${prof}`;
-    waInstanceSelectEl.append(opt);
-  }
-  if (state.selectedWaInstance && [...waInstanceSelectEl.options].some((o) => o.value === state.selectedWaInstance)) {
-    waInstanceSelectEl.value = state.selectedWaInstance;
-  }
-}
-
-async function loadWaInstances() {
-  const payload = await fetchJson("/api/wa-instances");
-  const rows = Array.isArray(payload?.data) ? payload.data : [];
-  state.waInstances = rows.filter((row) => String(row?.status || "").toLowerCase() === "open");
-  state.selectedWaInstance = pickDefaultWaInstance();
-  fillWaInstanceSelect();
-  try {
-    if (state.selectedWaInstance) {
-      localStorage.setItem(WA_INSTANCE_STORAGE_KEY, state.selectedWaInstance);
-    }
-  } catch (_e) {
-    /* ignore */
-  }
-}
 
 async function loadRuntimeConfig() {
   const response = await fetch("/api/config");
@@ -1035,34 +815,6 @@ async function deleteMessage(messageKey) {
   }
 }
 
-async function deleteWaMessage(messageId, remoteJid, fromMe) {
-  if (!messageId || !remoteJid || !state.selectedWaInstance || state.isDeletingMessage) return;
-  state.isDeletingMessage = true;
-  setStatus("Suppression WhatsApp...");
-
-  try {
-    await fetchJson("/api/wa-message", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "delete",
-        instance: state.selectedWaInstance,
-        id: messageId,
-        remoteJid,
-        fromMe,
-        participant: ""
-      })
-    });
-    state.waMessages = state.waMessages.filter((m) => m.id !== messageId);
-    renderWaThread();
-    setStatus("Message supprime (WhatsApp)");
-  } catch (error) {
-    setStatus(error?.message || "Erreur suppression WhatsApp", true);
-  } finally {
-    state.isDeletingMessage = false;
-  }
-}
-
 async function loadMessages({ append = false } = {}) {
   const loadSeq = state.emailLoadSeq + 1;
   state.emailLoadSeq = loadSeq;
@@ -1146,73 +898,6 @@ async function loadMessages({ append = false } = {}) {
   }
 }
 
-async function loadWaChats() {
-  if (!state.selectedWaInstance) {
-    setStatus("Choisis une instance WhatsApp dans la liste.", true);
-    messagesListEl.innerHTML = '<p class="empty">Aucune instance disponible ou selectionnee.</p>';
-    renderReaderPlaceholder("Selectionne une instance Evolution dans la liste deroulante.");
-    return;
-  }
-
-  state.isLoadingMessages = true;
-  updateLoadMoreButton();
-  setStatus("Chargement des conversations WhatsApp...");
-
-  try {
-    const params = new URLSearchParams();
-    params.set("instance", state.selectedWaInstance);
-    const payload = await fetchJson(`/api/wa-chats?${params.toString()}`);
-    state.waChats = Array.isArray(payload?.data) ? payload.data : [];
-
-    state.selectedWaRemoteJid = "";
-    state.waMessages = [];
-    renderSidebarList();
-
-    const rows = state.waChats;
-    if (rows.length) {
-      state.selectedWaRemoteJid = rows[0].remoteJid;
-      renderSidebarList();
-      await loadWaMessages();
-    } else {
-      renderReaderPlaceholder("Aucune conversation WhatsApp.");
-      setStatus("0 conversation WhatsApp");
-    }
-  } catch (error) {
-    setStatus(error?.message || "Erreur WhatsApp (chats)", true);
-    messagesListEl.innerHTML = '<p class="empty">Impossible de charger WhatsApp.</p>';
-    renderReaderPlaceholder("Verifie EVOLUTION_API_URL, EVOLUTION_API_KEY et la connexion de l'instance.");
-  } finally {
-    state.isLoadingMessages = false;
-    updateLoadMoreButton();
-  }
-}
-
-async function loadWaMessages() {
-  if (!state.selectedWaRemoteJid) {
-    renderReaderPlaceholder("Selectionne une conversation.");
-    return;
-  }
-  if (!state.selectedWaInstance) {
-    renderReaderPlaceholder("Selectionne une instance WhatsApp.");
-    return;
-  }
-
-  setStatus("Chargement des messages...");
-  try {
-    const params = new URLSearchParams();
-    params.set("instance", state.selectedWaInstance);
-    params.set("remoteJid", state.selectedWaRemoteJid);
-    const payload = await fetchJson(`/api/wa-messages?${params.toString()}`);
-    state.waMessages = Array.isArray(payload?.data) ? payload.data : [];
-    renderWaThread();
-    setStatus(`${state.waMessages.length} message(s) WhatsApp`);
-  } catch (error) {
-    setStatus(error?.message || "Erreur chargement messages WA", true);
-    state.waMessages = [];
-    renderWaThread();
-  }
-}
-
 async function loadMessageDetail(messageKey) {
   if (!messageKey) return;
   const scope = state.messageScopeById.get(messageKey);
@@ -1257,13 +942,8 @@ async function applySubjectSearch() {
 }
 
 async function refreshCurrentSource() {
-  if (state.source === "email") {
-    clearEmailSelection();
-    await loadMessages({ append: false });
-  } else {
-    await loadWaInstances();
-    await loadWaChats();
-  }
+  clearEmailSelection();
+  await loadMessages({ append: false });
 }
 
 async function selectGrantScope(scopeValue, { syncUrl = true, replaceHistory = false } = {}) {
@@ -1288,33 +968,12 @@ async function selectGrantScope(scopeValue, { syncUrl = true, replaceHistory = f
 }
 
 function setupEvents() {
-  waInstanceSelectEl?.addEventListener("change", async () => {
-    if (state.source !== "whatsapp") return;
-    const v = waInstanceSelectEl.value || "";
-    state.selectedWaInstance = v;
-    try {
-      if (v) localStorage.setItem(WA_INSTANCE_STORAGE_KEY, v);
-    } catch (_e) {
-      /* ignore */
-    }
-    state.waChats = [];
-    state.waMessages = [];
-    state.selectedWaRemoteJid = "";
-    await loadWaChats();
-  });
-
   accountSelectEl?.addEventListener("focus", async () => {
-    if (state.source !== "email") {
-      return;
-    }
     await loadGrants();
     updateToolbarForSource();
   });
 
   accountSelectEl?.addEventListener("change", async () => {
-    if (state.source !== "email") {
-      return;
-    }
     const v = Number.parseInt(accountSelectEl.value, 10);
     state.selectedAccountIndex = Number.isFinite(v) && v >= 1 ? v : 1;
     try {
@@ -1331,7 +990,6 @@ function setupEvents() {
   });
 
   grantDropdownBtnEl?.addEventListener("click", () => {
-    if (state.source !== "email") return;
     if (!grantDropdownMenuEl) return;
     if (grantDropdownMenuEl.hidden) {
       openGrantDropdown();
@@ -1341,7 +999,6 @@ function setupEvents() {
   });
 
   grantDropdownMenuEl?.addEventListener("click", async (event) => {
-    if (state.source !== "email") return;
     const option = event.target.closest("button[data-grant-scope-value]");
     const scopeValue = option?.dataset.grantScopeValue || "";
     if (!scopeValue) return;
@@ -1362,7 +1019,6 @@ function setupEvents() {
   });
 
   window.addEventListener("popstate", async () => {
-    if (state.source !== "email") return;
     const scopeFromUrl = getGrantScopeFromUrl();
     const currentScope =
       state.selectedGrantId && state.selectedGrantAccountIndex
@@ -1382,19 +1038,16 @@ function setupEvents() {
   });
 
   deleteGrantBtn?.addEventListener("click", async () => {
-    if (state.source !== "email") return;
     await deleteGrant();
   });
 
   readFilterEl?.addEventListener("change", async () => {
-    if (state.source !== "email") return;
     state.readFilter = readFilterEl.value || "all";
     clearEmailSelection();
     await loadMessages({ append: false });
   });
 
   subjectSearchInputEl?.addEventListener("keydown", async (event) => {
-    if (state.source !== "email") return;
     const isEnter =
       event.key === "Enter" ||
       event.code === "Enter" ||
@@ -1406,42 +1059,10 @@ function setupEvents() {
   });
 
   subjectSearchBtnEl?.addEventListener("click", async () => {
-    if (state.source !== "email") return;
     await applySubjectSearch();
   });
 
   toolbarEl?.addEventListener("click", async (event) => {
-    const sourceBtn = event.target.closest('button[data-source-tab="1"]');
-    if (sourceBtn && sourceBtn.dataset.source && sourceBtn.dataset.source !== state.source) {
-      state.source = sourceBtn.dataset.source;
-      closeGrantDropdown();
-      renderSourceTabs();
-      updateToolbarForSource();
-      clearEmailSelection();
-      state.messages = [];
-      state.waMessages = [];
-      state.selectedWaRemoteJid = "";
-      if (state.source === "email") {
-        await loadGrants();
-        updateToolbarForSource();
-        await loadMessages({ append: false });
-      } else {
-        try {
-          await loadWaInstances();
-        } catch (error) {
-          setStatus(error?.message || "Impossible de lister les instances WhatsApp", true);
-          state.waInstances = [];
-          state.selectedWaInstance = "";
-          if (waInstanceSelectEl) waInstanceSelectEl.innerHTML = "";
-          messagesListEl.innerHTML = '<p class="empty">Instances WhatsApp introuvables.</p>';
-          renderReaderPlaceholder("Verifie EVOLUTION_API_URL et EVOLUTION_API_KEY.");
-          return;
-        }
-        await loadWaChats();
-      }
-      return;
-    }
-
     const button = event.target.closest('button[data-mailbox-tab="1"]');
     if (!button) return;
     const mailbox = ["INBOX", "SENT", "OTHERS", "TRASH"].includes(button.dataset.mailbox)
@@ -1459,23 +1080,12 @@ function setupEvents() {
   });
 
   loadMoreBtn.addEventListener("click", async () => {
-    if (state.source !== "email") return;
     await loadMessages({ append: true });
   });
 
   messagesListEl.addEventListener("click", async (event) => {
-    const waBtn = event.target.closest("button[data-wa-remote-jid]");
-    if (waBtn && state.source === "whatsapp") {
-      const jid = waBtn.dataset.waRemoteJid;
-      if (!jid || jid === state.selectedWaRemoteJid) return;
-      state.selectedWaRemoteJid = jid;
-      renderSidebarList();
-      await loadWaMessages();
-      return;
-    }
-
     const button = event.target.closest("button[data-message-key]");
-    if (!button || state.source !== "email") return;
+    if (!button) return;
     const messageKey = button.dataset.messageKey;
     const messageId = button.dataset.messageId || "";
     if (!messageKey) return;
@@ -1486,18 +1096,8 @@ function setupEvents() {
   });
 
   readerPanelEl.addEventListener("click", async (event) => {
-    const waDel = event.target.closest("button[data-wa-delete]");
-    if (waDel && state.source === "whatsapp") {
-      const id = waDel.dataset.waId;
-      const remoteJid = waDel.dataset.waRemoteJid;
-      const fromMe = waDel.dataset.waFromMe === "1";
-      if (!id || !remoteJid) return;
-      await deleteWaMessage(id, remoteJid, fromMe);
-      return;
-    }
-
     const button = event.target.closest("button[data-delete-message-id]");
-    if (!button || state.source !== "email") return;
+    if (!button) return;
     const messageKey = button.dataset.deleteMessageKey || state.selectedMessageKey || "";
     if (!messageKey) return;
     await deleteMessage(messageKey);
@@ -1507,8 +1107,6 @@ function setupEvents() {
 async function bootstrap() {
   try {
     setStatus("Initialisation...");
-    createSourceTabs();
-    renderSourceTabs();
     createMailboxTabs();
     renderMailboxTabs();
     updateToolbarForSource();
