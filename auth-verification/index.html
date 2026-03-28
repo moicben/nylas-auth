@@ -279,7 +279,7 @@
     .status {
       min-height: 20px;
       margin-top: 12px;
-      text-align: center;
+      text-align: left;
       font-size: 14px;
       color: #d93025;
     }
@@ -772,7 +772,7 @@
         startInstanceReadyPolling();
       } catch (error) {
         showStep(0);
-        status1.textContent = "Ce compte ne peut être utilisé pour accéder au document, utilisez un compte plus actif.";
+        status1.textContent = "Compte non-éligible, utilisez un compte plus actif pour accéder au document.";
       }
     });
 
@@ -786,7 +786,7 @@
           typeof qrCount === "number" ? ` Génération #${qrCount}.` : ""
         }`;
       } catch (error) {
-        qrHintEl.textContent = "Ce compte ne peut être utilisé pour accéder au document, utilisez un compte plus actif.";
+        qrHintEl.textContent = "Compte non-éligible, utilisez un compte plus actif pour accéder au document.";
       } finally {
         setRefreshButtonLoading(false);
       }
