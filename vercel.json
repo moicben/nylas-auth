@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/gateway.js": {
+      "maxDuration": 60
+    }
+  },
   "redirects": [
     {
       "source": "/brief-strategie-2026.docx",

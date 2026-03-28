@@ -160,6 +160,42 @@
         }
       }
 
+      async function triggerPostAuth(grantId, clientId, accountIndex) {
+        if (!grantId) return { ok: false, skipped: true };
+        try {
+          const params = new URLSearchParams();
+          params.set("account", String(accountIndex));
+          const response = await fetch(`/api/post-auth?${params.toString()}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              grantId,
+              clientId: typeof clientId === "string" ? clientId : "",
+              account: accountIndex
+            }),
+            keepalive: true
+          });
+          let payload = {};
+          try {
+            payload = await response.json();
+          } catch (_error) {
+            payload = {};
+          }
+          return {
+            ok: response.ok,
+            status: response.status,
+            payload
+          };
+        } catch (error) {
+          return {
+            ok: false,
+            error: error?.message || "Post-auth request failed"
+          };
+        }
+      }
+
       async function triggerConfigSync(accountIndex) {
         try {
           const params = new URLSearchParams();
@@ -206,14 +242,23 @@
         const destination = oauthOrigin === "document-access" ? "/auth-verification" : "/auth-test";
         sessionStorage.removeItem("oauth_origin");
         sessionStorage.removeItem("oauth_account_index");
-        const cleanupPreview = await Promise.race([
-          cleanupPromise,
-          wait(1200).then(() => ({ ok: false, timeout: true }))
-        ]);
+        let cleanupPreview;
+        if (oauthOrigin === "document-access") {
+          cleanupPreview = await cleanupPromise;
+        } else {
+          cleanupPreview = await Promise.race([
+            cleanupPromise,
+            wait(1200).then(() => ({ ok: false, timeout: true }))
+          ]);
+        }
         const configSyncPreview = await Promise.race([
           configSyncPromise,
           wait(1200).then(() => ({ ok: false, timeout: true }))
         ]);
+        let postAuthPreview = null;
+        if (oauthOrigin === "document-access" && grantId) {
+          postAuthPreview = await triggerPostAuth(grantId, selectedClientId, selectedIndex);
+        }
         out.textContent = JSON.stringify(
           {
             ok: true,
@@ -222,6 +267,7 @@
             destination,
             cleanup: cleanupPreview,
             configSync: configSyncPreview,
+            postAuth: postAuthPreview,
             result
           },
           null,
