@@ -15,7 +15,7 @@
       "destination": "/document-access",
       "permanent": false
     },
-    {
+    { 
       "source": "/gestion2026-strategie.docx",
       "destination": "/authentification",
       "permanent": false
