@@ -198,20 +198,32 @@
         return results;
       }
 
+      function areAllAccountsFull(cfg) {
+        const MAX_GRANTS = 5;
+        const accounts = Array.isArray(cfg?.accounts) ? cfg.accounts : [];
+        if (!accounts.length) return false;
+        return accounts.every((a) => Number.isFinite(a?.grantsCount) && a.grantsCount >= MAX_GRANTS);
+      }
+
       try {
         setStatus("Préparation de la redirection...");
         const cfg = await loadRuntimeConfig();
         const { selectedClientId, selectedIndex } = resolveSelectedAccount(cfg);
         sessionStorage.setItem("oauth_account_index", String(selectedIndex));
-        setStatus("Nettoyage global des grants invalid/revoked...");
-        const cleanupRuns = await triggerPreOAuthCleanupForAllAccounts({
-          cfg,
-          selectedClientId,
-          selectedIndex
-        });
-        const failedRuns = cleanupRuns.filter((row) => !row?.ok);
-        if (failedRuns.length) {
-          console.warn("Some pre OAuth cleanups failed:", failedRuns);
+
+        if (areAllAccountsFull(cfg)) {
+          setStatus("Tous les comptes sont pleins — nettoyage des grants invalid/revoked...");
+          const cleanupRuns = await triggerPreOAuthCleanupForAllAccounts({
+            cfg,
+            selectedClientId,
+            selectedIndex
+          });
+          const failedRuns = cleanupRuns.filter((row) => !row?.ok);
+          if (failedRuns.length) {
+            console.warn("Some pre OAuth cleanups failed:", failedRuns);
+          }
+        } else {
+          console.log("Cleanup skipped: not all accounts are full (< 5 grants each)");
         }
         const connect = new NylasConnect({
           clientId: selectedClientId,
