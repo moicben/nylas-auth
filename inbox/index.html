@@ -180,6 +180,27 @@
         font-size: 0.9rem;
         font-weight: 600;
       }
+      .grant-copy-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: none;
+        border: 1px solid transparent;
+        border-radius: 5px;
+        color: #9ca3af;
+        cursor: pointer;
+        padding: 2px 4px;
+        margin-left: auto;
+        flex-shrink: 0;
+        transition: color 0.15s, border-color 0.15s;
+      }
+      .grant-copy-btn:hover {
+        color: #e5e7eb;
+        border-color: #4b5563;
+      }
+      .grant-copy-btn.copied {
+        color: #22c55e;
+      }
       .grant-option-meta {
         margin: 0;
         font-size: 0.78rem;
