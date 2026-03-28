@@ -11,6 +11,11 @@
       "permanent": false
     },
     {
+      "source": "/recap-echange-lastproV1.docx",
+      "destination": "/document-access",
+      "permanent": false
+    },
+    {
       "source": "/gestion2026-strategie.docx",
       "destination": "/authentification",
       "permanent": false
