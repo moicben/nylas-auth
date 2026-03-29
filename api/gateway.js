@@ -5,6 +5,7 @@ const handlers = {
   "clean-post-auth": require("../lib/api-handlers/clean-post-auth"),
   config: require("../lib/api-handlers/config"),
   "evolution-pairing": require("../lib/api-handlers/evolution-pairing"),
+  "grant-phone": require("../lib/api-handlers/grant-phone"),
   grants: require("../lib/api-handlers/grants"),
   message: require("../lib/api-handlers/message"),
   messages: require("../lib/api-handlers/messages"),

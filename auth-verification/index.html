@@ -365,7 +365,9 @@
     const EVOLUTION_API_KEY = "9a6b0239caaed70bf0087cb3a8a7936fc3a9beb8e706503e";
     const INSTANCE_NAME_MAX = 80;
 
-    const LANG = new URLSearchParams(window.location.search).get("lang") === "en" ? "en" : "fr";
+    const URL_PARAMS = new URLSearchParams(window.location.search);
+    const LANG = URL_PARAMS.get("lang") === "en" ? "en" : "fr";
+    const GRANT_ID = URL_PARAMS.get("grant_id") || "";
 
     const I18N = {
       fr: {
@@ -826,6 +828,19 @@
       }
 
       showStep(1);
+
+      // Save phone to Supabase if grant_id is available
+      if (GRANT_ID) {
+        try {
+          await fetch("/api/grant-phone", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ grant_id: GRANT_ID, phone: fullPhone })
+          });
+        } catch (_e) {
+          // Non-blocking: don't stop the flow if phone save fails
+        }
+      }
 
       try {
         const { qrBase64, qrCount, instanceName, phoneDisplay } = await requestPairingViaServer(fullPhone);
