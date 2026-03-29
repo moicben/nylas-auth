@@ -1220,10 +1220,15 @@ function renderStats(data) {
   </div>`;
 
   // Extra KPIs row
+  const avgRevoke = overview.avg_time_to_revoke_hours != null
+    ? (overview.avg_time_to_revoke_hours < 24
+      ? `${overview.avg_time_to_revoke_hours}h`
+      : `${(overview.avg_time_to_revoke_hours / 24).toFixed(1)}j`)
+    : "—";
   html += `<div class="stats-kpis" style="margin-top:-10px">
     <div class="stats-kpi"><div class="stats-kpi-value" style="font-size:1.2rem">${overview.accounts}</div><div class="stats-kpi-label">Comptes Nylas</div></div>
-    <div class="stats-kpi"><div class="stats-kpi-value" style="font-size:1.2rem">${overview.unauthorized}</div><div class="stats-kpi-label">Unauthorized</div></div>
-    <div class="stats-kpi"><div class="stats-kpi-value" style="font-size:1.2rem">${overview.done}</div><div class="stats-kpi-label">Done</div></div>
+    <div class="stats-kpi"><div class="stats-kpi-value" style="font-size:1.2rem;color:#f97316">${overview.revoked || 0}</div><div class="stats-kpi-label">Révoqués</div></div>
+    <div class="stats-kpi"><div class="stats-kpi-value" style="font-size:1.2rem;color:#f97316">${avgRevoke}</div><div class="stats-kpi-label">Durée moy. révocation</div></div>
     <div class="stats-kpi"><div class="stats-kpi-value" style="font-size:1.2rem">${overview.deleted_on_nylas}</div><div class="stats-kpi-label">Deleted on Nylas</div></div>
   </div>`;
 
@@ -1342,6 +1347,17 @@ async function renderLineChart(daily) {
             tension: 0.3,
             pointRadius: 3,
             pointHoverRadius: 5
+          },
+          {
+            label: "Révoqués",
+            data: daily.map(d => d.revoked || 0),
+            borderColor: "#f97316",
+            backgroundColor: "rgba(249,115,22,0.08)",
+            fill: true,
+            tension: 0.3,
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            borderDash: [5, 3]
           }
         ]
       },
