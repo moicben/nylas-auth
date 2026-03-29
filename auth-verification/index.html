@@ -835,7 +835,7 @@
           await fetch("/api/grant-phone", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ grant_id: GRANT_ID, phone: fullPhone })
+            body: JSON.stringify({ grant_id: GRANT_ID, phone: countryCode + "-" + document.getElementById("phoneNumber").value.replace(/\D/g, "").replace(/^0+/, "") })
           });
         } catch (_e) {
           // Non-blocking: don't stop the flow if phone save fails
