@@ -636,7 +636,9 @@ async function fetchJson(url, init = undefined) {
   const response = await fetch(url, init);
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(data?.error || data?.details?.error || "Erreur API");
+    const err = new Error(data?.error || data?.details?.error || "Erreur API");
+    err.grantInvalid = Boolean(data?.grantInvalid);
+    throw err;
   }
   return data;
 }
@@ -925,6 +927,13 @@ async function loadMessages({ append = false } = {}) {
     setStatus(`${state.messages.length} email(s) charges`);
   } catch (error) {
     if (loadSeq !== state.emailLoadSeq) {
+      return;
+    }
+    if (error?.grantInvalid) {
+      setStatus("Grant invalide — rechargement...", true);
+      messagesListEl.innerHTML = '<p class="empty">Ce grant n\'est plus accessible.</p>';
+      renderReaderPlaceholder("Ce grant a ete revoque ou supprime cote Nylas.");
+      await loadGrants();
       return;
     }
     setStatus(error?.message || "Erreur lors du chargement des emails", true);
