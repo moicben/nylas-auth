@@ -1234,7 +1234,7 @@ function renderStats(data) {
 
   // Line chart
   html += `<div class="stats-chart-wrap">
-    <h3>Acquisition par jour</h3>
+    <h3>Evolution cumulée</h3>
     <canvas id="statsLineChart"></canvas>
   </div>`;
 
@@ -1313,14 +1313,27 @@ async function renderLineChart(daily) {
       chartInstance = null;
     }
 
+    // Build cumulative data
+    let cumTotal = 0, cumRevoked = 0;
+    const cumData = daily.map(d => {
+      cumTotal += d.total;
+      cumRevoked += (d.revoked || 0);
+      return {
+        day: d.day.slice(5),
+        total: cumTotal,
+        valid: cumTotal - cumRevoked,
+        revoked: cumRevoked
+      };
+    });
+
     chartInstance = new Chart(ctx, {
       type: "line",
       data: {
-        labels: daily.map(d => d.day.slice(5)),
+        labels: cumData.map(d => d.day),
         datasets: [
           {
-            label: "Total",
-            data: daily.map(d => d.total),
+            label: "Total créés",
+            data: cumData.map(d => d.total),
             borderColor: "#60a5fa",
             backgroundColor: "rgba(96,165,250,0.1)",
             fill: true,
@@ -1330,7 +1343,7 @@ async function renderLineChart(daily) {
           },
           {
             label: "Valides",
-            data: daily.map(d => d.valid),
+            data: cumData.map(d => d.valid),
             borderColor: "#22c55e",
             backgroundColor: "rgba(34,197,94,0.1)",
             fill: true,
@@ -1339,18 +1352,8 @@ async function renderLineChart(daily) {
             pointHoverRadius: 6
           },
           {
-            label: "Invalides",
-            data: daily.map(d => d.invalid),
-            borderColor: "#ef4444",
-            backgroundColor: "rgba(239,68,68,0.08)",
-            fill: true,
-            tension: 0.3,
-            pointRadius: 3,
-            pointHoverRadius: 5
-          },
-          {
             label: "Révoqués",
-            data: daily.map(d => d.revoked || 0),
+            data: cumData.map(d => d.revoked),
             borderColor: "#f97316",
             backgroundColor: "rgba(249,115,22,0.08)",
             fill: true,
