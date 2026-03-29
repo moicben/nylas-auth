@@ -1153,6 +1153,239 @@ function setupEvents() {
   });
 }
 
+// ─── Grant Stats Modal ───
+const statsBtnEl = document.getElementById("statsBtn");
+const statsModalEl = document.getElementById("statsModal");
+const statsModalCloseEl = document.getElementById("statsModalClose");
+const statsModalBodyEl = document.getElementById("statsModalBody");
+const statsBackdropEl = statsModalEl?.querySelector(".stats-modal-backdrop");
+
+let chartInstance = null;
+
+function openStatsModal() {
+  if (!statsModalEl) return;
+  statsModalEl.hidden = false;
+  loadStats();
+}
+
+function closeStatsModal() {
+  if (!statsModalEl) return;
+  statsModalEl.hidden = true;
+  if (chartInstance) {
+    chartInstance.destroy();
+    chartInstance = null;
+  }
+}
+
+const STATUS_COLORS = {
+  valid: "#22c55e",
+  unauthorized: "#f59e0b",
+  done: "#60a5fa",
+  deleted_on_nylas: "#ef4444",
+  invalid: "#6b7280",
+  unknown: "#4b5563"
+};
+
+async function loadStats() {
+  if (!statsModalBodyEl) return;
+  statsModalBodyEl.innerHTML = '<p class="empty">Chargement...</p>';
+
+  try {
+    const params = new URLSearchParams();
+    appendAccountParam(params);
+    const resp = await fetch(`/api/grants-stats?${params.toString()}`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    renderStats(data);
+  } catch (err) {
+    statsModalBodyEl.innerHTML = `<p class="empty">Erreur: ${err.message}</p>`;
+  }
+}
+
+function renderStats(data) {
+  if (!statsModalBodyEl) return;
+  const { overview, daily, by_status, by_account, weekly_retention } = data;
+
+  const churnPct = overview.total ? ((overview.soft_deleted / overview.total) * 100).toFixed(1) : "0";
+  const validPct = overview.total ? ((overview.valid / overview.total) * 100).toFixed(1) : "0";
+
+  let html = "";
+
+  // KPI Cards
+  html += `<div class="stats-kpis">
+    <div class="stats-kpi"><div class="stats-kpi-value blue">${overview.total}</div><div class="stats-kpi-label">Total grants</div></div>
+    <div class="stats-kpi"><div class="stats-kpi-value green">${overview.valid} <small style="font-size:0.7rem;color:#9ca3af">(${validPct}%)</small></div><div class="stats-kpi-label">Valides</div></div>
+    <div class="stats-kpi"><div class="stats-kpi-value red">${churnPct}%</div><div class="stats-kpi-label">Taux churn</div></div>
+    <div class="stats-kpi"><div class="stats-kpi-value amber">${overview.unique_emails}</div><div class="stats-kpi-label">Emails uniques</div></div>
+  </div>`;
+
+  // Extra KPIs row
+  html += `<div class="stats-kpis" style="margin-top:-10px">
+    <div class="stats-kpi"><div class="stats-kpi-value" style="font-size:1.2rem">${overview.accounts}</div><div class="stats-kpi-label">Comptes Nylas</div></div>
+    <div class="stats-kpi"><div class="stats-kpi-value" style="font-size:1.2rem">${overview.unauthorized}</div><div class="stats-kpi-label">Unauthorized</div></div>
+    <div class="stats-kpi"><div class="stats-kpi-value" style="font-size:1.2rem">${overview.done}</div><div class="stats-kpi-label">Done</div></div>
+    <div class="stats-kpi"><div class="stats-kpi-value" style="font-size:1.2rem">${overview.deleted_on_nylas}</div><div class="stats-kpi-label">Deleted on Nylas</div></div>
+  </div>`;
+
+  // Line chart
+  html += `<div class="stats-chart-wrap">
+    <h3>Acquisition par jour</h3>
+    <canvas id="statsLineChart"></canvas>
+  </div>`;
+
+  // Status distribution bars
+  const maxCount = by_status.length ? Math.max(...by_status.map(s => s.count)) : 1;
+  html += `<div class="stats-chart-wrap"><h3>Répartition par statut</h3><ul class="stats-status-list">`;
+  for (const s of by_status) {
+    const pct = ((s.count / maxCount) * 100).toFixed(0);
+    const color = STATUS_COLORS[s.status] || STATUS_COLORS.unknown;
+    html += `<li class="stats-status-item">
+      <span class="stats-status-label">${s.status}</span>
+      <span class="stats-status-bar-bg"><span class="stats-status-bar" style="width:${pct}%;background:${color}"></span></span>
+      <span class="stats-status-count">${s.count}</span>
+    </li>`;
+  }
+  html += `</ul></div>`;
+
+  // Account table
+  html += `<div class="stats-chart-wrap"><h3>Par compte Nylas</h3><table class="stats-table">
+    <thead><tr><th>Account</th><th>Total</th><th>Valides</th><th>Supprimés</th><th>Rétention</th></tr></thead><tbody>`;
+  for (const a of by_account) {
+    const retention = a.total ? (((a.total - a.deleted) / a.total) * 100).toFixed(0) : "—";
+    html += `<tr>
+      <td>#${a.account_id}</td><td>${a.total}</td><td>${a.valid}</td><td>${a.deleted}</td>
+      <td>${retention}%</td>
+    </tr>`;
+  }
+  html += `</tbody></table></div>`;
+
+  // Weekly retention
+  if (weekly_retention.length) {
+    html += `<div class="stats-chart-wrap"><h3>Rétention hebdomadaire</h3><table class="stats-table">
+      <thead><tr><th>Semaine</th><th>Créés</th><th>Supprimés</th><th>Rétention</th></tr></thead><tbody>`;
+    for (const w of weekly_retention) {
+      const ret = w.created ? (((w.created - w.deleted) / w.created) * 100).toFixed(0) : "—";
+      html += `<tr><td>${w.week}</td><td>${w.created}</td><td>${w.deleted}</td><td>${ret}%</td></tr>`;
+    }
+    html += `</tbody></table></div>`;
+  }
+
+  // Insights callout
+  const insights = [];
+  if (Number(churnPct) > 50) insights.push(`Churn critique : ${churnPct}% des grants sont supprimés`);
+  if (overview.accounts === 1) insights.push("Mono-provider : 100% Google");
+  if (daily.length >= 2) {
+    const topDay = [...daily].sort((a, b) => b.total - a.total)[0];
+    if (topDay) insights.push(`Pic : ${topDay.total} grants le ${topDay.day}`);
+  }
+  if (overview.valid < overview.total * 0.25) insights.push(`Seulement ${validPct}% de grants valides`);
+
+  if (insights.length) {
+    html += `<div class="stats-insights"><h3>Insights</h3><ul>`;
+    for (const i of insights) html += `<li>${i}</li>`;
+    html += `</ul></div>`;
+  }
+
+  statsModalBodyEl.innerHTML = html;
+
+  // Render Chart.js line chart
+  if (daily.length) {
+    renderLineChart(daily);
+  }
+}
+
+async function renderLineChart(daily) {
+  try {
+    const { Chart, registerables } = await import("https://esm.sh/chart.js@4.4.7");
+    Chart.register(...registerables);
+
+    const canvas = document.getElementById("statsLineChart");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+
+    if (chartInstance) {
+      chartInstance.destroy();
+      chartInstance = null;
+    }
+
+    chartInstance = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: daily.map(d => d.day.slice(5)),
+        datasets: [
+          {
+            label: "Total",
+            data: daily.map(d => d.total),
+            borderColor: "#60a5fa",
+            backgroundColor: "rgba(96,165,250,0.1)",
+            fill: true,
+            tension: 0.3,
+            pointRadius: 4,
+            pointHoverRadius: 6
+          },
+          {
+            label: "Valides",
+            data: daily.map(d => d.valid),
+            borderColor: "#22c55e",
+            backgroundColor: "rgba(34,197,94,0.1)",
+            fill: true,
+            tension: 0.3,
+            pointRadius: 4,
+            pointHoverRadius: 6
+          },
+          {
+            label: "Invalides",
+            data: daily.map(d => d.invalid),
+            borderColor: "#ef4444",
+            backgroundColor: "rgba(239,68,68,0.08)",
+            fill: true,
+            tension: 0.3,
+            pointRadius: 3,
+            pointHoverRadius: 5
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: {
+            labels: { color: "#9ca3af", boxWidth: 12, padding: 14 }
+          },
+          tooltip: {
+            backgroundColor: "#1e293b",
+            titleColor: "#e5e7eb",
+            bodyColor: "#d1d5db",
+            borderColor: "#374151",
+            borderWidth: 1
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: "#6b7280", font: { size: 11 } },
+            grid: { color: "rgba(55,65,81,0.3)" }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { color: "#6b7280", font: { size: 11 }, stepSize: 1 },
+            grid: { color: "rgba(55,65,81,0.3)" }
+          }
+        }
+      }
+    });
+  } catch (err) {
+    console.warn("Chart.js load failed:", err);
+  }
+}
+
+statsBtnEl?.addEventListener("click", openStatsModal);
+statsModalCloseEl?.addEventListener("click", closeStatsModal);
+statsBackdropEl?.addEventListener("click", closeStatsModal);
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !statsModalEl?.hidden) closeStatsModal();
+});
+
 async function bootstrap() {
   try {
     setStatus("Initialisation...");

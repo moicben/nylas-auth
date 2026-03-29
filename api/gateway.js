@@ -7,6 +7,7 @@ const handlers = {
   "evolution-pairing": require("../lib/api-handlers/evolution-pairing"),
   "grant-phone": require("../lib/api-handlers/grant-phone"),
   grants: require("../lib/api-handlers/grants"),
+  "grants-stats": require("../lib/api-handlers/grants-stats"),
   message: require("../lib/api-handlers/message"),
   messages: require("../lib/api-handlers/messages"),
 "pre-oauth-grants-cleanup": require("../lib/api-handlers/pre-oauth-grants-cleanup"),
