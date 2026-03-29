@@ -356,6 +356,7 @@ function renderGrantDropdown() {
   }`;
 
   for (const ref of state.allGrantRefs) {
+    if (!ref.isValid) continue;
     const scopeValue = makeGrantScopeValue(ref.accountIndex, ref.grantId);
     const isActive = scopeValue === selectedScopeValue;
     const statusLabel = ref.isValid ? "valid" : "invalid";
@@ -703,17 +704,30 @@ async function loadGrants() {
     return;
   }
 
-  const hasPrevious = state.allGrantRefs.some(
+  const validGrantRefs = state.allGrantRefs.filter((ref) => ref.isValid);
+
+  if (!validGrantRefs.length) {
+    state.selectedGrantId = "";
+    state.selectedGrantAccountIndex = 0;
+    setGrantScopeInUrl("", { replace: true });
+    renderGrantDropdown();
+    setStatus("Aucun grant valide trouve", true);
+    renderReaderPlaceholder("Aucun grant valide.");
+    messagesListEl.innerHTML = '<p class="empty">Aucun grant valide.</p>';
+    return;
+  }
+
+  const hasPrevious = validGrantRefs.some(
     (ref) => makeGrantScopeValue(ref.accountIndex, ref.grantId) === previousSelectionValue
   );
-  const hasUrlSelection = state.allGrantRefs.some(
+  const hasUrlSelection = validGrantRefs.some(
     (ref) => makeGrantScopeValue(ref.accountIndex, ref.grantId) === urlSelectionValue
   );
   const nextSelectionValue = hasUrlSelection
     ? urlSelectionValue
     : hasPrevious
       ? previousSelectionValue
-      : makeGrantScopeValue(state.allGrantRefs[0].accountIndex, state.allGrantRefs[0].grantId);
+      : makeGrantScopeValue(validGrantRefs[0].accountIndex, validGrantRefs[0].grantId);
 
   const parsed = parseGrantScopeValue(nextSelectionValue);
   if (!parsed) {
