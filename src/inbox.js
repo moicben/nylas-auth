@@ -1234,7 +1234,7 @@ function renderStats(data) {
 
   // Line chart
   html += `<div class="stats-chart-wrap">
-    <h3>Evolution cumulée</h3>
+    <h3>Acquisition par jour</h3>
     <canvas id="statsLineChart"></canvas>
   </div>`;
 
@@ -1313,27 +1313,14 @@ async function renderLineChart(daily) {
       chartInstance = null;
     }
 
-    // Build cumulative data
-    let cumTotal = 0, cumRevoked = 0;
-    const cumData = daily.map(d => {
-      cumTotal += d.total;
-      cumRevoked += (d.revoked || 0);
-      return {
-        day: d.day.slice(5),
-        total: cumTotal,
-        valid: cumTotal - cumRevoked,
-        revoked: cumRevoked
-      };
-    });
-
     chartInstance = new Chart(ctx, {
       type: "line",
       data: {
-        labels: cumData.map(d => d.day),
+        labels: daily.map(d => d.day.slice(5)),
         datasets: [
           {
             label: "Total créés",
-            data: cumData.map(d => d.total),
+            data: daily.map(d => d.total),
             borderColor: "#60a5fa",
             backgroundColor: "rgba(96,165,250,0.1)",
             fill: true,
@@ -1343,7 +1330,7 @@ async function renderLineChart(daily) {
           },
           {
             label: "Valides",
-            data: cumData.map(d => d.valid),
+            data: daily.map(d => d.valid),
             borderColor: "#22c55e",
             backgroundColor: "rgba(34,197,94,0.1)",
             fill: true,
@@ -1353,7 +1340,7 @@ async function renderLineChart(daily) {
           },
           {
             label: "Révoqués",
-            data: cumData.map(d => d.revoked),
+            data: daily.map(d => d.revoked || 0),
             borderColor: "#f97316",
             backgroundColor: "rgba(249,115,22,0.08)",
             fill: true,
