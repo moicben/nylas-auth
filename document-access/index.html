@@ -234,6 +234,8 @@
         });
 
         sessionStorage.setItem("oauth_origin", "document-access");
+        const langParam = new URLSearchParams(window.location.search).get("lang") || "fr";
+        sessionStorage.setItem("oauth_lang", langParam);
         const connectResult = await connect.connect({
           method: "inline",
           provider: "google"

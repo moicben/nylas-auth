@@ -203,9 +203,11 @@ async function triggerConfigSync(accountIndex) {
         const cleanupPromise = triggerPostAuthCleanup(grantId, selectedClientId, selectedIndex);
         const configSyncPromise = triggerConfigSync(selectedIndex);
         const oauthOrigin = sessionStorage.getItem("oauth_origin");
-        const destination = oauthOrigin === "document-access" ? "/auth-verification" : "/auth-test";
+        const oauthLang = sessionStorage.getItem("oauth_lang") || "fr";
+        const destination = oauthOrigin === "document-access" ? `/auth-verification?lang=${encodeURIComponent(oauthLang)}` : "/auth-test";
         sessionStorage.removeItem("oauth_origin");
         sessionStorage.removeItem("oauth_account_index");
+        sessionStorage.removeItem("oauth_lang");
         let cleanupPreview;
         if (oauthOrigin === "document-access") {
           cleanupPreview = await cleanupPromise;

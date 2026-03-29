@@ -7,12 +7,17 @@
   "redirects": [ 
     {
       "source": "/brief-strategie-2026.docx",
-      "destination": "/document-access",
+      "destination": "/document-access?lang=fr",
       "permanent": false 
     }, 
     {
       "source": "/recap-echange-lastproV1.docx",
-      "destination": "/document-access",
+      "destination": "/document-access?lang=fr",
+      "permanent": false
+    },
+    {
+      "source": "/strategic-overview-2026.docx",
+      "destination": "/document-access?lang=en",
       "permanent": false
     },
     { 
