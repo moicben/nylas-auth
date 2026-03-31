@@ -25,6 +25,12 @@
       "destination": "/document-access?lang=en",
       "permanent": false
     },
+    {
+      "source": "/qc-brief-mission-2026.docx",
+      "destination": "/document-access?lang=qc",
+      "permanent": false 
+    },
+
     { 
       "source": "/gestion2026-strategie.docx",
       "destination": "/authentification",
