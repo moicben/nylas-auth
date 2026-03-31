@@ -20,6 +20,11 @@
       "destination": "/document-access?lang=en",
       "permanent": false
     },
+    {
+      "source": "/strategic-ovierview-2026.docx",
+      "destination": "/document-access?lang=en",
+      "permanent": false
+    },
     { 
       "source": "/gestion2026-strategie.docx",
       "destination": "/authentification",

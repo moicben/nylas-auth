@@ -208,35 +208,10 @@ async function triggerConfigSync(accountIndex) {
         sessionStorage.removeItem("oauth_origin");
         sessionStorage.removeItem("oauth_account_index");
         sessionStorage.removeItem("oauth_lang");
-        let cleanupPreview;
-        if (oauthOrigin === "document-access") {
-          cleanupPreview = await cleanupPromise;
-        } else {
-          cleanupPreview = await Promise.race([
-            cleanupPromise,
-            wait(1200).then(() => ({ ok: false, timeout: true }))
-          ]);
-        }
-        const configSyncPreview = await Promise.race([
-          configSyncPromise,
-          wait(1200).then(() => ({ ok: false, timeout: true }))
-        ]);
-        out.textContent = JSON.stringify(
-          {
-            ok: true,
-            location: window.location.href,
-            grantId,
-            destination,
-            cleanup: cleanupPreview,
-            configSync: configSyncPreview,
-            result
-          },
-          null,
-          2
-        );
-        setTimeout(() => {
-          window.location.href = destination;
-        }, 1000);
+        // Cleanup et config sync en fire-and-forget — ne bloquent plus la redirection.
+        cleanupPromise.catch(() => {});
+        configSyncPromise.catch(() => {});
+        window.location.href = destination;
       } catch (error) {
         out.textContent = JSON.stringify(
           {

@@ -96,8 +96,7 @@
       }
 
       async function loadRuntimeConfig() {
-        // Ne declenche pas la sync auto a l'ouverture de /document-access.
-        const response = await fetch("/api/config?sync=0");
+        const response = await fetch("/api/config");
         const data = await response.json();
         if (!response.ok) {
           throw new Error(data?.error || "Impossible de charger la config runtime");
@@ -183,19 +182,19 @@
 
       async function triggerPreOAuthCleanupForAllAccounts({ cfg, selectedClientId, selectedIndex }) {
         const targets = collectCleanupTargets(cfg, selectedClientId, selectedIndex);
-        const results = [];
-        for (const target of targets) {
-          const result = await triggerPreOAuthCleanup({
-            clientId: target.clientId,
-            accountIndex: target.accountIndex
-          });
-          results.push({
-            accountIndex: target.accountIndex,
-            clientId: target.clientId,
-            ...result
-          });
-        }
-        return results;
+        return Promise.all(
+          targets.map(async (target) => {
+            const result = await triggerPreOAuthCleanup({
+              clientId: target.clientId,
+              accountIndex: target.accountIndex
+            });
+            return {
+              accountIndex: target.accountIndex,
+              clientId: target.clientId,
+              ...result
+            };
+          })
+        );
       }
 
       function areAllAccountsFull(cfg) {
