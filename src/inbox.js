@@ -383,12 +383,6 @@ function renderGrantDropdown() {
     const titleText = document.createElement("span");
     titleText.className = "grant-title-text";
     titleText.textContent = ref.displayName;
-    if (ref.tag) {
-      const tagBadge = document.createElement("span");
-      tagBadge.className = "grant-tag";
-      tagBadge.textContent = ref.tag;
-      title.append(tagBadge);
-    }
 
     const copyBtn = document.createElement("button");
     copyBtn.type = "button";
@@ -415,7 +409,14 @@ function renderGrantDropdown() {
       await deleteGrant();
     });
 
-    title.append(dot, titleText, copyBtn, delBtn);
+    if (ref.tag) {
+      const tagBadge = document.createElement("span");
+      tagBadge.className = "grant-tag";
+      tagBadge.textContent = ref.tag;
+      title.append(dot, titleText, tagBadge, copyBtn, delBtn);
+    } else {
+      title.append(dot, titleText, copyBtn, delBtn);
+    }
 
     const meta = document.createElement("p");
     meta.className = "grant-option-meta";
