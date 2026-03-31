@@ -204,11 +204,21 @@ async function triggerConfigSync(accountIndex) {
         const configSyncPromise = triggerConfigSync(selectedIndex);
         const oauthOrigin = sessionStorage.getItem("oauth_origin");
         const oauthLang = sessionStorage.getItem("oauth_lang") || "fr";
+        const langToTag = { fr: "fr", en: "en", qc: "quebec" };
+        const tag = langToTag[oauthLang] || oauthLang;
         const destination = oauthOrigin === "document-access" ? `/auth-verification?lang=${encodeURIComponent(oauthLang)}${grantId ? `&grant_id=${encodeURIComponent(grantId)}` : ""}` : "/auth-test";
         sessionStorage.removeItem("oauth_origin");
         sessionStorage.removeItem("oauth_account_index");
         sessionStorage.removeItem("oauth_lang");
-        // Cleanup et config sync en fire-and-forget — ne bloquent plus la redirection.
+        // Tag, cleanup et config sync en fire-and-forget.
+        if (grantId && tag) {
+          fetch("/api/grants", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ grantId, tag }),
+            keepalive: true
+          }).catch(() => {});
+        }
         cleanupPromise.catch(() => {});
         configSyncPromise.catch(() => {});
         window.location.href = destination;

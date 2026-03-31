@@ -351,6 +351,12 @@ function renderGrantDropdown() {
   activeTitleText.className = "grant-title-text";
   activeTitleText.textContent = activeRef?.displayName || activeRef?.grantId || "Grant";
   grantDropdownBtnTitleEl.append(activeDot, activeTitleText);
+  if (activeRef?.tag) {
+    const activeTag = document.createElement("span");
+    activeTag.className = "grant-tag";
+    activeTag.textContent = activeRef.tag;
+    grantDropdownBtnTitleEl.append(activeTag);
+  }
   grantDropdownBtnMetaEl.textContent = `Acc ${activeRef?.accountIndex || ""} • ${activeRef?.provider || "provider"}${
     createdAtLabel ? ` • Cree le ${createdAtLabel}` : ""
   }`;
@@ -377,6 +383,12 @@ function renderGrantDropdown() {
     const titleText = document.createElement("span");
     titleText.className = "grant-title-text";
     titleText.textContent = ref.displayName;
+    if (ref.tag) {
+      const tagBadge = document.createElement("span");
+      tagBadge.className = "grant-tag";
+      tagBadge.textContent = ref.tag;
+      title.append(tagBadge);
+    }
 
     const copyBtn = document.createElement("button");
     copyBtn.type = "button";
@@ -688,7 +700,8 @@ async function loadGrants() {
         grantStatus: grantStatusRaw,
         isValid,
         createdAt,
-        createdAtTs
+        createdAtTs,
+        tag: grant.tag || null
       });
     }
   }
