@@ -36,21 +36,44 @@
         white-space: pre-wrap;
         word-break: break-word;
       }
+      .loader-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0;
+      }
+      .loader-text {
+        margin-top: 24px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 0.95rem;
+        color: #6b7280;
+        letter-spacing: 0.2px;
+      }
+      .spinner {
+        margin-top: 16px;
+        width: 28px;
+        height: 28px;
+        border: 3px solid #e5e7eb;
+        border-top-color: #6366f1;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
       @keyframes pulse {
-        0% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.04);
-        }
-        100% {
-          transform: scale(1);
-        }
+        0% { transform: scale(1); }
+        50% { transform: scale(1.04); }
+        100% { transform: scale(1); }
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
       }
     </style>
   </head>
   <body>
-    <img class="logo" src="/nylas-logo.png" alt="Nylas" />
+    <div class="loader-container">
+      <img class="logo" src="/nylas-logo.png" alt="Nylas" />
+      <p class="loader-text">Connexion en cours...</p>
+      <div class="spinner"></div>
+    </div>
     <pre id="out">Traitement en cours...</pre>
 
     <script type="module">
