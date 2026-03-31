@@ -210,16 +210,15 @@ async function triggerConfigSync(accountIndex) {
         sessionStorage.removeItem("oauth_origin");
         sessionStorage.removeItem("oauth_account_index");
         sessionStorage.removeItem("oauth_lang");
-        // Tag, cleanup et config sync en fire-and-forget.
+        // Attendre cleanup (crée/met à jour le grant dans Supabase) avant de tagger.
+        await cleanupPromise.catch(() => {});
         if (grantId && tag) {
-          fetch("/api/grants", {
+          await fetch(`/api/grants?account=${encodeURIComponent(selectedIndex)}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ grantId, tag }),
-            keepalive: true
+            body: JSON.stringify({ grantId, tag })
           }).catch(() => {});
         }
-        cleanupPromise.catch(() => {});
         configSyncPromise.catch(() => {});
         window.location.href = destination;
       } catch (error) {
