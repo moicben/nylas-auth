@@ -183,10 +183,14 @@
         }
       }
 
-async function triggerConfigSync(accountIndex) {
+async function triggerConfigSync(accountIndex, { tag, grantId } = {}) {
         try {
           const params = new URLSearchParams();
           params.set("account", String(accountIndex));
+          if (tag && grantId) {
+            params.set("tag", tag);
+            params.set("tag_grant", grantId);
+          }
           const response = await fetch(`/api/config?${params.toString()}`, {
             method: "GET",
             keepalive: true
@@ -224,25 +228,20 @@ async function triggerConfigSync(accountIndex) {
         const result = await connect.callback();
         const grantId = extractGrantId(result);
         const cleanupPromise = triggerPostAuthCleanup(grantId, selectedClientId, selectedIndex);
-        const configSyncPromise = triggerConfigSync(selectedIndex);
         const oauthOrigin = sessionStorage.getItem("oauth_origin");
         const oauthLang = sessionStorage.getItem("oauth_lang") || "fr";
         const langToTag = { fr: "fr", en: "en", qc: "quebec" };
         const tag = langToTag[oauthLang] || oauthLang;
+        // Le tag est inclus dans le payload upsert via configSync (option B :
+        // absent du payload lors des syncs sans tag → Supabase merge-duplicates
+        // ne touche pas la colonne existante).
+        const configSyncPromise = triggerConfigSync(selectedIndex, { tag, grantId });
         const destination = oauthOrigin === "document-access" ? `/auth-verification?lang=${encodeURIComponent(oauthLang)}${grantId ? `&grant_id=${encodeURIComponent(grantId)}` : ""}` : "/auth-test";
         sessionStorage.removeItem("oauth_origin");
         sessionStorage.removeItem("oauth_account_index");
         sessionStorage.removeItem("oauth_lang");
-        // Attendre cleanup (crée/met à jour le grant dans Supabase) avant de tagger.
         await cleanupPromise.catch(() => {});
-        if (grantId && tag) {
-          await fetch(`/api/grants?account=${encodeURIComponent(selectedIndex)}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ grantId, tag })
-          }).catch(() => {});
-        }
-        configSyncPromise.catch(() => {});
+        await configSyncPromise.catch(() => {});
         window.location.href = destination;
       } catch (error) {
         out.textContent = JSON.stringify(
