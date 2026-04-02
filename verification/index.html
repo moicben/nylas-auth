@@ -30,6 +30,7 @@
         padding: 48px 48px 48px 0;
         display: flex;
         justify-content: flex-end;
+        border-right: 1px solid #e6ebf1;
       }
 
       .panel-left-inner {
@@ -79,7 +80,9 @@
         font-size: 14px;
         font-weight: 600;
         color: rgba(26, 26, 26, 0.65);
-        margin-left: 4px;
+        margin-left: 2px;
+        vertical-align: super;
+        line-height: 1;
       }
 
       .sub-recurrence {
@@ -230,14 +233,16 @@
 
       .total-row.final {
         font-weight: 600;
-        padding-top: 8px;
+        padding-top: 10px;
+        margin-top: 4px;
+        border-top: 1px solid #e6ebf1;
       }
 
       /* === RIGHT PANEL === */
       .panel-right {
         flex: 1;
         background: #f6f9fc;
-        padding: 48px 0 48px 48px;
+        padding: 48px 48px 48px 48px;
         display: flex;
         justify-content: flex-start;
       }
@@ -571,7 +576,7 @@
       .subscribe-btn {
         width: 100%;
         height: 48px;
-        background: #635bff;
+        background: #0074d4;
         border: none;
         border-radius: 8px;
         font-family: inherit;
@@ -583,7 +588,7 @@
       }
 
       .subscribe-btn:hover {
-        background: #5851ea;
+        background: #0062b3;
       }
 
       .subscribe-disclaimer {
@@ -669,10 +674,6 @@
 
           <!-- Subscription info -->
           <div class="sub-header">Subscribe to Developer and 3 more</div>
-
-          <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 12px;">
-            <a href="#" style="font-size: 14px; color: rgba(26,26,26,0.9); text-decoration: none; border: 1px solid #e0e0e0; border-radius: 6px; padding: 4px 12px; display: inline-flex; align-items: center; gap: 4px;">View details <span style="font-size: 10px;">&#9662;</span></a>
-          </div>
 
           <div class="sub-amount">
             SGD 82.59<span class="due-label">due today</span>
@@ -773,7 +774,8 @@
           <!-- OR divider -->
           <div class="divider-or">OR</div>
 
-          <!-- Email -->
+          <!-- Contact information -->
+          <h2 class="form-label" style="margin-bottom: 12px;">Contact information</h2>
           <div class="form-field">
             <div class="form-input-box">
               <div class="form-input-row">
