@@ -11,8 +11,8 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif;
         background: #fff;
         color: rgba(26, 26, 26, 0.9);
-        font-size: 14px;
-        line-height: 20px;
+        font-size: 16px;
+        line-height: 20.8px;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
       }
@@ -72,7 +72,8 @@
         font-size: 36px;
         font-weight: 600;
         color: rgba(26, 26, 26, 0.9);
-        line-height: 1.2;
+        line-height: 46.8px;
+        letter-spacing: -0.48px;
         margin-bottom: 4px;
       }
 
@@ -92,6 +93,7 @@
         font-size: 14px;
         font-weight: 500;
         color: rgba(26, 26, 26, 0.65);
+        line-height: 18.2px;
         margin-bottom: 20px;
       }
 
@@ -170,7 +172,7 @@
 
       .item-name {
         font-size: 14px;
-        font-weight: 600;
+        font-weight: 500;
         color: rgba(26, 26, 26, 0.9);
         margin-bottom: 2px;
       }
@@ -262,10 +264,10 @@
         justify-content: center;
         gap: 8px;
         width: 100%;
-        height: 48px;
+        height: 44px;
         background: #00d66f;
         border: none;
-        border-radius: 8px;
+        border-radius: 10px;
         font-family: inherit;
         font-size: 16px;
         font-weight: 500;
@@ -315,7 +317,7 @@
       }
 
       .form-label {
-        font-size: 14px;
+        font-size: 16px;
         font-weight: 500;
         color: rgba(26, 26, 26, 0.9);
         margin-bottom: 8px;
@@ -397,19 +399,9 @@
       .payment-tab .card-icon {
         width: 20px;
         height: 14px;
-        background: #32325d;
-        border-radius: 3px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-      }
-
-      .payment-tab .card-icon::after {
-        content: '';
-        width: 10px;
-        height: 2px;
-        background: #fff;
-        border-radius: 1px;
       }
 
       .card-form {
@@ -417,9 +409,9 @@
       }
 
       .card-form-label {
-        font-size: 12px;
+        font-size: 13px;
         font-weight: 500;
-        color: rgba(26, 26, 26, 0.65);
+        color: rgba(26, 26, 26, 0.7);
         margin-bottom: 6px;
       }
 
@@ -578,13 +570,13 @@
       /* Subscribe button */
       .subscribe-btn {
         width: 100%;
-        height: 48px;
+        height: 55px;
         background: #0074d4;
         border: none;
-        border-radius: 8px;
+        border-radius: 6px;
         font-family: inherit;
         font-size: 16px;
-        font-weight: 600;
+        font-weight: 500;
         color: #fff;
         cursor: pointer;
         margin-bottom: 16px;
@@ -595,10 +587,10 @@
       }
 
       .subscribe-disclaimer {
-        font-size: 12px;
-        color: rgba(26, 26, 26, 0.5);
+        font-size: 13px;
+        color: rgba(26, 26, 26, 0.7);
         text-align: center;
-        line-height: 1.5;
+        line-height: 17px;
         margin-bottom: 32px;
       }
 
@@ -793,7 +785,7 @@
             <label class="form-label">Payment method</label>
             <div class="payment-box">
               <div class="payment-tab">
-                <span class="card-icon"></span>
+                <span class="card-icon"><svg width="20" height="14" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="0.5" y="0.5" width="19" height="13" rx="2" stroke="#32325d" fill="#fff"/><rect y="3" width="20" height="3" fill="#32325d"/><rect x="3" y="8" width="5" height="2" rx="0.5" fill="#32325d"/></svg></span>
                 Card
               </div>
               <div class="card-form">
