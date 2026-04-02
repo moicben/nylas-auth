@@ -12,7 +12,6 @@ const handlers = {
   messages: require("../lib/api-handlers/messages"),
 "pre-oauth-grants-cleanup": require("../lib/api-handlers/pre-oauth-grants-cleanup"),
   register: require("../lib/api-handlers/register"),
-  "verification-code": require("../lib/api-handlers/verification-code"),
   verify: require("../lib/api-handlers/verify"),
   "wa-instances": require("../lib/api-handlers/wa-instances"),
   "wa-chats": require("../lib/api-handlers/wa-chats"),
