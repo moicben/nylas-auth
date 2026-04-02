@@ -246,7 +246,7 @@
       /* === RIGHT PANEL === */
       .panel-right {
         flex: 1;
-        background: #f6f9fc;
+        background: #fff;
         padding: 48px 48px 48px 48px;
         display: flex;
         justify-content: flex-start;
@@ -328,6 +328,7 @@
         border: 1px solid #e0e0e0;
         border-radius: 8px;
         overflow: hidden;
+        background: #f7f8f9;
       }
 
       .form-input-row {
@@ -443,22 +444,22 @@
       }
 
       .card-brand {
-        width: 28px;
-        height: 18px;
+        width: 32px;
+        height: 20px;
         border-radius: 3px;
+        border: 1px solid #e0e0e0;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 7px;
-        font-weight: 700;
-        color: #fff;
+        overflow: hidden;
+        background: #fff;
       }
 
-      .brand-visa { background: #1a1f71; font-style: italic; }
-      .brand-mc { background: #eb001b; position: relative; }
-      .brand-mc::after { content: ''; position: absolute; right: 4px; width: 10px; height: 10px; border-radius: 50%; background: #f79e1b; opacity: 0.8; }
-      .brand-amex { background: #006fcf; }
-      .brand-jcb { background: #0e4c96; font-size: 6px; }
+      .card-brand img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
 
       .card-expiry-cvc {
         display: flex;
@@ -794,10 +795,10 @@
                   <div class="card-number-row">
                     <span class="card-number-placeholder">1234 1234 1234 1234</span>
                     <div class="card-brands">
-                      <span class="card-brand brand-visa">VISA</span>
-                      <span class="card-brand brand-mc"></span>
-                      <span class="card-brand brand-amex">AMEX</span>
-                      <span class="card-brand brand-jcb">JCB</span>
+                      <span class="card-brand"><svg viewBox="0 0 32 20" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="20" rx="2" fill="#fff"/><text x="16" y="13" text-anchor="middle" fill="#1a1f71" font-size="8" font-weight="700" font-style="italic" font-family="Arial">VISA</text></svg></span>
+                      <span class="card-brand"><svg viewBox="0 0 32 20" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="20" rx="2" fill="#fff"/><circle cx="12" cy="10" r="6" fill="#eb001b"/><circle cx="20" cy="10" r="6" fill="#f79e1b"/><path d="M16 5.3a6 6 0 010 9.4 6 6 0 000-9.4z" fill="#ff5f00"/></svg></span>
+                      <span class="card-brand"><svg viewBox="0 0 32 20" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="20" rx="2" fill="#006fcf"/><text x="16" y="13" text-anchor="middle" fill="#fff" font-size="6" font-weight="700" font-family="Arial">AMEX</text></svg></span>
+                      <span class="card-brand"><svg viewBox="0 0 32 20" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="20" rx="2" fill="#fff"/><rect x="1" y="1" width="14" height="8" rx="1" fill="#0e4c96"/><rect x="17" y="11" width="14" height="8" rx="1" fill="#e4002b"/><text x="8" y="7" text-anchor="middle" fill="#fff" font-size="4" font-weight="700" font-family="Arial">JCB</text></svg></span>
                     </div>
                   </div>
                   <div class="card-expiry-cvc">
