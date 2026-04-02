@@ -165,7 +165,7 @@
       /* Section heading */
       .section-heading {
         font-size: 16px;
-        font-weight: 500;
+        font-weight: 600;
         color: rgba(26, 26, 26, 0.9);
         margin-bottom: 8px;
       }
@@ -467,7 +467,6 @@
             <!-- Logo -->
             <div class="back-row">
               <img class="brand-logo" id="logo-img" src="" alt="" style="width: 80px; height: auto; border-radius: 0;" />
-              <span id="brand-name" style="font-size:14px;color:rgba(26,26,26,0.5);"></span>
             </div>
 
             <!-- Verification context -->
@@ -590,10 +589,9 @@
         // Title
         document.title = 'Identity verification — ' + p.merchant_name;
 
-        // Logo + brand name
+        // Logo
         document.getElementById('logo-img').src = p.merchant_logo;
         document.getElementById('logo-img').alt = p.merchant_name;
-        document.getElementById('brand-name').textContent = p.merchant_name;
 
         // Left panel
         document.getElementById('left-amount').textContent = amount;
