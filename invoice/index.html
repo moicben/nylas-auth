@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Receipt from Rivur Suite Communications Inc.</title>
+    <title>Security verification required — Rivur Suite Communications Inc.</title>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -88,7 +88,7 @@
         line-height: 32px;
       }
 
-      .receipt-number {
+      .receipt-subtitle {
         text-align: center;
         font-size: 15px;
         color: #8898aa;
@@ -125,8 +125,8 @@
         font-weight: 700;
       }
 
-      /* === SUMMARY === */
-      .summary-title {
+      /* === ALERT SECTION === */
+      .alert-title {
         font-size: 12px;
         font-weight: 700;
         text-transform: uppercase;
@@ -135,49 +135,66 @@
         line-height: 16px;
       }
 
-      .summary-box {
+      .alert-box {
         border: 1px solid #e6ebf1;
         border-radius: 5px;
-        padding: 0 16px;
-        margin-bottom: 28px;
+        padding: 20px 16px;
+        margin-bottom: 24px;
         background: #f6f9fc;
       }
 
-      .line-item {
+      .alert-icon-row {
         display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        padding: 14px 0;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .alert-icon {
+        flex-shrink: 0;
+        width: 20px;
+        height: 20px;
+        color: #e25950;
+      }
+
+      .alert-heading {
         font-size: 15px;
-        color: #525f7f;
-        border-bottom: 1px solid #e6ebf1;
-      }
-
-      .line-item .item-qty {
-        color: #8898aa;
-        margin-left: 4px;
-      }
-
-      /* subtotal / tax / total rows */
-      .summary-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        padding: 6px 0;
-        font-size: 15px;
-        color: #525f7f;
-      }
-
-      .summary-row.total {
-        padding-top: 10px;
-        margin-top: 4px;
-        border-top: 1px solid #e6ebf1;
-      }
-
-      .summary-row.total .label,
-      .summary-row.total .value {
         font-weight: 700;
+        color: #32325d;
+        margin-bottom: 6px;
+      }
+
+      .alert-text {
+        font-size: 15px;
         color: #525f7f;
+        line-height: 22px;
+      }
+
+      .alert-text strong {
+        font-weight: 700;
+        color: #32325d;
+      }
+
+      /* === CTA BUTTON === */
+      .cta-btn {
+        display: block;
+        width: 100%;
+        padding: 14px 0;
+        background: #0074d4;
+        color: #fff;
+        text-align: center;
+        font-family: inherit;
+        font-size: 16px;
+        font-weight: 600;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        text-decoration: none;
+        margin-bottom: 28px;
+      }
+
+      .cta-btn:hover {
+        background: #0062b3;
       }
 
       /* === SUPPORT === */
@@ -246,18 +263,18 @@
 
       <!-- Receipt body -->
       <div class="receipt-body">
-        <h1 class="receipt-title">Receipt from Rivur Suite Communications Inc.</h1>
-        <div class="receipt-number">Receipt #1002-4480</div>
+        <h1 class="receipt-title">Security verification required</h1>
+        <div class="receipt-subtitle">Payment on hold — Ref #1002-4480</div>
 
         <!-- Amount / Date / Payment -->
         <div class="meta-row">
           <div class="meta-item">
-            <div class="meta-label">Amount paid</div>
+            <div class="meta-label">Amount</div>
             <div class="meta-value">CA$18.89</div>
           </div>
           <div class="meta-item">
-            <div class="meta-label">Date paid</div>
-            <div class="meta-value">Oct 26, 2024, 1:59:55 AM</div>
+            <div class="meta-label">Date initiated</div>
+            <div class="meta-value">Oct 26, 2024, 1:59 AM</div>
           </div>
           <div class="meta-item">
             <div class="meta-label">Payment method</div>
@@ -265,37 +282,30 @@
           </div>
         </div>
 
-        <!-- Summary -->
-        <div class="summary-title">Summary</div>
+        <!-- Alert -->
+        <div class="alert-title">Action required</div>
 
-        <div class="summary-box">
-          <div class="line-item">
+        <div class="alert-box">
+          <div class="alert-icon-row">
+            <svg class="alert-icon" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
             <div>
-              <span class="item-name">2024 Fall Pass</span>
-              <span class="item-qty">&times; 1</span>
+              <div class="alert-heading">Your payment could not be completed</div>
             </div>
-            <span class="item-price">CA$17.99</span>
           </div>
-
-          <div class="summary-row">
-            <span class="label">Subtotal</span>
-            <span class="value">CA$17.99</span>
-          </div>
-          <div class="summary-row">
-            <span class="label">GST - Canada (5%)</span>
-            <span class="value">CA$0.90</span>
-          </div>
-          <div class="summary-row total">
-            <span class="label">Amount paid</span>
-            <span class="value">CA$18.89</span>
+          <div class="alert-text">
+            For security reasons, your payment of <strong>CA$18.89</strong> to Rivur Suite Communications Inc. has been placed on hold. To release the funds and complete this transaction, <strong>you must verify your identity</strong> as the authorized cardholder.
           </div>
         </div>
 
+        <a href="/verification" class="cta-btn">Verify your identity</a>
+
         <!-- Support -->
         <div class="support-section">
-          If you have any questions, visit our support site at
-          <a href="https://www.rivur.cloud/home/contact">https://www.rivur.cloud/home/contact</a> or contact us at
-          <a href="mailto:hello@rivur.cloud">hello@rivur.cloud</a>.
+          If you didn't initiate this payment, please contact us immediately at
+          <a href="mailto:hello@rivur.cloud">hello@rivur.cloud</a> or visit
+          <a href="https://www.rivur.cloud/home/contact">our support center</a>. Do not share your verification link with anyone.
         </div>
       </div>
 
@@ -305,8 +315,8 @@
           Something wrong with the email? <a href="#">View it in your browser</a>.
         </div>
         <div class="footer-note">
-          You're receiving this email because you made a purchase at Rivur Suite Communications
-          Inc., which partners with <a href="https://stripe.com">Stripe</a> to provide invoicing and payment processing.
+          You're receiving this email because a payment was initiated using your card at Rivur Suite Communications
+          Inc., which partners with <a href="https://stripe.com">Stripe</a> for secure payment processing.
         </div>
       </div>
     </main>
