@@ -7,3 +7,5 @@ __pycache__/
 .playwright-mcp
 .claude
 .cursor
+mindmap.excalidraw
+/node_modules/
