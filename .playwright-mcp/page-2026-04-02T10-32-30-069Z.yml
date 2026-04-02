@@ -1,0 +1,214 @@
+- table [ref=e2]:
+  - rowgroup [ref=e3]:
+    - row [ref=e4]:
+      - cell [ref=e5]
+    - 'row "Receipt from Rivur Suite Communications Inc. Receipt #1002-4480 Amount paid CA$18.89 Date paid Oct 26, 2024, 1:59:55 AM Payment method Visa - 3939 Summary 2024 Fall Pass × 1 CA$17.99 Subtotal CA$17.99 GST - Canada (5%) CA$0.90 Amount paid CA$18.89 If you have any questions, visit our support site at https://www.rivur.cloud/home/contact or contact us at hello@rivur.cloud. Something wrong with the email? View it in your browser. You''re receiving this email because you made a purchase at Rivur Suite Communications Inc., which partners with Stripe to provide invoicing and payment processing." [ref=e7]':
+      - 'cell "Receipt from Rivur Suite Communications Inc. Receipt #1002-4480 Amount paid CA$18.89 Date paid Oct 26, 2024, 1:59:55 AM Payment method Visa - 3939 Summary 2024 Fall Pass × 1 CA$17.99 Subtotal CA$17.99 GST - Canada (5%) CA$0.90 Amount paid CA$18.89 If you have any questions, visit our support site at https://www.rivur.cloud/home/contact or contact us at hello@rivur.cloud. Something wrong with the email? View it in your browser. You''re receiving this email because you made a purchase at Rivur Suite Communications Inc., which partners with Stripe to provide invoicing and payment processing." [ref=e8]':
+        - table [ref=e9]:
+          - rowgroup [ref=e10]:
+            - 'row "Receipt from Rivur Suite Communications Inc. Receipt #1002-4480 Amount paid CA$18.89 Date paid Oct 26, 2024, 1:59:55 AM Payment method Visa - 3939 Summary 2024 Fall Pass × 1 CA$17.99 Subtotal CA$17.99 GST - Canada (5%) CA$0.90 Amount paid CA$18.89 If you have any questions, visit our support site at https://www.rivur.cloud/home/contact or contact us at hello@rivur.cloud. Something wrong with the email? View it in your browser. You''re receiving this email because you made a purchase at Rivur Suite Communications Inc., which partners with Stripe to provide invoicing and payment processing." [ref=e11]':
+              - 'cell "Receipt from Rivur Suite Communications Inc. Receipt #1002-4480 Amount paid CA$18.89 Date paid Oct 26, 2024, 1:59:55 AM Payment method Visa - 3939 Summary 2024 Fall Pass × 1 CA$17.99 Subtotal CA$17.99 GST - Canada (5%) CA$0.90 Amount paid CA$18.89 If you have any questions, visit our support site at https://www.rivur.cloud/home/contact or contact us at hello@rivur.cloud. Something wrong with the email? View it in your browser. You''re receiving this email because you made a purchase at Rivur Suite Communications Inc., which partners with Stripe to provide invoicing and payment processing." [ref=e12]':
+                - table:
+                  - rowgroup:
+                    - row
+                - table [ref=e14]:
+                  - rowgroup [ref=e15]:
+                    - row [ref=e16]:
+                      - cell [ref=e17]:
+                        - link [ref=e18] [cursor=pointer]:
+                          - /url: https://www.rivur.cloud
+                      - cell [ref=e19]:
+                        - link [ref=e20] [cursor=pointer]:
+                          - /url: https://www.rivur.cloud
+                      - cell [ref=e21]:
+                        - link [ref=e22] [cursor=pointer]:
+                          - /url: https://www.rivur.cloud
+                - table [ref=e23]:
+                  - rowgroup [ref=e24]:
+                    - row "Receipt from Rivur Suite Communications Inc." [ref=e25]:
+                      - cell "Receipt from Rivur Suite Communications Inc." [ref=e26]
+                    - row [ref=e27]:
+                      - cell [ref=e28]
+                - table [ref=e30]:
+                  - rowgroup [ref=e31]:
+                    - 'row "Receipt #1002-4480" [ref=e32]':
+                      - 'cell "Receipt #1002-4480" [ref=e33]'
+                    - row [ref=e34]:
+                      - cell [ref=e35]
+                - table [ref=e37]:
+                  - rowgroup [ref=e38]:
+                    - row [ref=e39]:
+                      - cell [ref=e40]
+                - table [ref=e42]:
+                  - rowgroup [ref=e43]:
+                    - row "Amount paid CA$18.89 Date paid Oct 26, 2024, 1:59:55 AM Payment method Visa - 3939" [ref=e44]:
+                      - cell
+                      - cell [ref=e45]
+                      - cell "Amount paid CA$18.89" [ref=e46]:
+                        - table [ref=e47]:
+                          - rowgroup [ref=e48]:
+                            - row "Amount paid" [ref=e49]:
+                              - cell "Amount paid" [ref=e50]
+                            - row "CA$18.89" [ref=e51]:
+                              - cell "CA$18.89" [ref=e52]
+                      - cell [ref=e53]
+                      - cell "Date paid Oct 26, 2024, 1:59:55 AM" [ref=e54]:
+                        - table [ref=e55]:
+                          - rowgroup [ref=e56]:
+                            - row "Date paid" [ref=e57]:
+                              - cell "Date paid" [ref=e58]
+                            - row "Oct 26, 2024, 1:59:55 AM" [ref=e59]:
+                              - cell "Oct 26, 2024, 1:59:55 AM" [ref=e60]
+                      - cell [ref=e61]
+                      - cell "Payment method Visa - 3939" [ref=e62]:
+                        - table [ref=e63]:
+                          - rowgroup [ref=e64]:
+                            - row "Payment method" [ref=e65]:
+                              - cell "Payment method" [ref=e66]
+                            - row "Visa - 3939" [ref=e67]:
+                              - cell "Visa - 3939" [ref=e68]:
+                                - img "Visa" [ref=e70]
+                                - text: "- 3939"
+                      - cell [ref=e71]
+                - table [ref=e72]:
+                  - rowgroup [ref=e73]:
+                    - row [ref=e74]:
+                      - cell [ref=e75]
+                - table [ref=e77]:
+                  - rowgroup [ref=e78]:
+                    - row [ref=e79]:
+                      - cell [ref=e80]
+                    - row "Summary" [ref=e82]:
+                      - cell [ref=e83]
+                      - cell "Summary" [ref=e85]
+                      - cell [ref=e86]
+                    - row [ref=e88]:
+                      - cell [ref=e89]
+                - table [ref=e91]:
+                  - rowgroup [ref=e92]:
+                    - row [ref=e93]:
+                      - cell [ref=e94]
+                    - row "2024 Fall Pass × 1 CA$17.99 Subtotal CA$17.99 GST - Canada (5%) CA$0.90 Amount paid CA$18.89" [ref=e96]:
+                      - cell [ref=e97]
+                      - cell "2024 Fall Pass × 1 CA$17.99 Subtotal CA$17.99 GST - Canada (5%) CA$0.90 Amount paid CA$18.89" [ref=e99]:
+                        - table [ref=e100]:
+                          - rowgroup [ref=e101]:
+                            - row "2024 Fall Pass × 1 CA$17.99 Subtotal CA$17.99 GST - Canada (5%) CA$0.90 Amount paid CA$18.89" [ref=e102]:
+                              - cell "2024 Fall Pass × 1 CA$17.99 Subtotal CA$17.99 GST - Canada (5%) CA$0.90 Amount paid CA$18.89" [ref=e103]:
+                                - table [ref=e104]:
+                                  - rowgroup [ref=e105]:
+                                    - row [ref=e106]:
+                                      - cell [ref=e107]
+                                    - row "2024 Fall Pass × 1 CA$17.99 Subtotal CA$17.99 GST - Canada (5%) CA$0.90 Amount paid CA$18.89" [ref=e109]:
+                                      - cell [ref=e110]
+                                      - cell "2024 Fall Pass × 1 CA$17.99 Subtotal CA$17.99 GST - Canada (5%) CA$0.90 Amount paid CA$18.89" [ref=e112]:
+                                        - table [ref=e113]:
+                                          - rowgroup [ref=e114]:
+                                            - row [ref=e115]:
+                                              - cell [ref=e116]
+                                            - row "2024 Fall Pass × 1 CA$17.99" [ref=e117]:
+                                              - cell "2024 Fall Pass × 1" [ref=e118]
+                                              - cell [ref=e119]
+                                              - cell "CA$17.99" [ref=e120]
+                                            - row [ref=e121]:
+                                              - cell [ref=e122]
+                                            - row [ref=e123]:
+                                              - cell [ref=e124]
+                                            - row [ref=e125]:
+                                              - cell [ref=e126]
+                                            - row [ref=e127]:
+                                              - cell [ref=e128]
+                                            - row "Subtotal CA$17.99" [ref=e129]:
+                                              - cell "Subtotal" [ref=e130]
+                                              - cell [ref=e131]
+                                              - cell "CA$17.99" [ref=e132]
+                                            - row [ref=e133]:
+                                              - cell [ref=e134]
+                                            - row "GST - Canada (5%) CA$0.90" [ref=e135]:
+                                              - cell "GST - Canada (5%)" [ref=e136]
+                                              - cell [ref=e137]
+                                              - cell "CA$0.90" [ref=e138]
+                                            - row [ref=e139]:
+                                              - cell [ref=e140]
+                                            - row "Amount paid CA$18.89" [ref=e141]:
+                                              - cell "Amount paid" [ref=e142]:
+                                                - strong [ref=e143]:
+                                                  - generic [ref=e144]: Amount paid
+                                              - cell [ref=e145]
+                                              - cell "CA$18.89" [ref=e146]:
+                                                - strong [ref=e147]: CA$18.89
+                                            - row [ref=e148]:
+                                              - cell [ref=e149]
+                                      - cell [ref=e150]
+                                    - row [ref=e152]:
+                                      - cell [ref=e153]
+                      - cell [ref=e155]
+                    - row [ref=e157]:
+                      - cell [ref=e158]
+                - table [ref=e160]:
+                  - rowgroup [ref=e161]:
+                    - row [ref=e162]:
+                      - cell [ref=e163]
+                    - row [ref=e165]:
+                      - cell [ref=e166]
+                      - cell [ref=e168]
+                      - cell [ref=e170]
+                    - row [ref=e172]:
+                      - cell [ref=e173]
+                - table [ref=e175]:
+                  - rowgroup [ref=e176]:
+                    - row [ref=e177]:
+                      - cell [ref=e178]
+                    - row "If you have any questions, visit our support site at https://www.rivur.cloud/home/contact or contact us at hello@rivur.cloud." [ref=e180]:
+                      - cell [ref=e181]
+                      - cell "If you have any questions, visit our support site at https://www.rivur.cloud/home/contact or contact us at hello@rivur.cloud." [ref=e183]:
+                        - text: If you have any questions, visit our support site at
+                        - link "https://www.rivur.cloud/home/contact" [ref=e184] [cursor=pointer]:
+                          - /url: https://www.rivur.cloud/home/contact
+                        - text: or contact us at
+                        - link "hello@rivur.cloud" [ref=e185] [cursor=pointer]:
+                          - /url: mailto:hello@rivur.cloud
+                        - text: .
+                      - cell [ref=e186]
+                    - row [ref=e188]:
+                      - cell [ref=e189]
+                - table [ref=e191]:
+                  - rowgroup [ref=e192]:
+                    - row [ref=e193]:
+                      - cell [ref=e194]
+                    - row [ref=e196]:
+                      - cell [ref=e197]
+                      - cell [ref=e199]
+                      - cell [ref=e201]
+                    - row [ref=e203]:
+                      - cell [ref=e204]
+                - table [ref=e206]:
+                  - rowgroup [ref=e207]:
+                    - row "Something wrong with the email? View it in your browser." [ref=e208]:
+                      - cell [ref=e209]
+                      - cell "Something wrong with the email? View it in your browser." [ref=e210]:
+                        - text: Something wrong with the email?
+                        - link "View it in your browser." [ref=e211] [cursor=pointer]:
+                          - /url: https://dashboard.stripe.com/receipts/payment/CAcQARoXChVhY2N0XzFQSjNqd0VxYnZUdVBIVXkovYu5zgYyBkZZ8KHpyzovFp0CiQZmYJkuyWieautdT0eLPz2asYIluUPVhUeu398SUARSMMIvUlVsGKje1W8
+                      - cell [ref=e212]
+                - table [ref=e213]:
+                  - rowgroup [ref=e214]:
+                    - row [ref=e215]:
+                      - cell [ref=e216]
+                - table [ref=e217]:
+                  - rowgroup [ref=e218]:
+                    - row "You're receiving this email because you made a purchase at Rivur Suite Communications Inc., which partners with Stripe to provide invoicing and payment processing." [ref=e219]:
+                      - cell [ref=e220]
+                      - cell "You're receiving this email because you made a purchase at Rivur Suite Communications Inc., which partners with Stripe to provide invoicing and payment processing." [ref=e221]:
+                        - text: You're receiving this email because you made a purchase at Rivur Suite Communications Inc., which partners with
+                        - link "Stripe" [ref=e222] [cursor=pointer]:
+                          - /url: https://stripe.com/
+                        - text: to provide invoicing and payment processing.
+                - table [ref=e223]:
+                  - rowgroup [ref=e224]:
+                    - row [ref=e225]:
+                      - cell [ref=e226]
+                - table [ref=e227]:
+                  - rowgroup [ref=e228]:
+                    - row [ref=e229]:
+                      - cell [ref=e230]

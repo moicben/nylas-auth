@@ -1,0 +1,49 @@
+- main [ref=e2]:
+  - generic [ref=e8]:
+    - img "Rivur Suite Communications" [ref=e9]
+    - heading "Security verification required" [level=1] [ref=e10]
+    - generic [ref=e11]: "Payment on hold — Ref #1002-4480"
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - generic [ref=e14]: Amount
+        - generic [ref=e15]: CA$18.89
+      - generic [ref=e16]:
+        - generic [ref=e17]: Date initiated
+        - generic [ref=e18]: Oct 26, 2024, 1:59 AM
+      - generic [ref=e19]:
+        - generic [ref=e20]: Payment method
+        - generic [ref=e21]:
+          - strong [ref=e22]: VISA
+          - text: "- 3939"
+    - generic [ref=e23]: Action required
+    - generic [ref=e24]:
+      - generic [ref=e25]:
+        - img [ref=e26]
+        - generic [ref=e29]: Your payment could not be completed
+      - generic [ref=e30]:
+        - text: For security reasons, your payment of
+        - strong [ref=e31]: CA$18.89
+        - text: to Rivur Suite Communications Inc. has been placed on hold. To release the funds and complete this transaction,
+        - strong [ref=e32]: you must verify your identity
+        - text: as the authorized cardholder.
+    - link "Verify your identity" [ref=e33] [cursor=pointer]:
+      - /url: /verification
+    - generic [ref=e34]:
+      - text: If you didn't initiate this payment, please contact us immediately at
+      - link "hello@rivur.cloud" [ref=e35] [cursor=pointer]:
+        - /url: mailto:hello@rivur.cloud
+      - text: or visit
+      - link "our support center" [ref=e36] [cursor=pointer]:
+        - /url: https://www.rivur.cloud/home/contact
+      - text: . Do not share your verification link with anyone.
+  - generic [ref=e37]:
+    - generic [ref=e38]:
+      - text: Something wrong with the email?
+      - link "View it in your browser" [ref=e39] [cursor=pointer]:
+        - /url: "#"
+      - text: .
+    - generic [ref=e40]:
+      - text: You're receiving this email because a payment was initiated using your card at Rivur Suite Communications Inc., which partners with
+      - link "Stripe" [ref=e41] [cursor=pointer]:
+        - /url: https://stripe.com
+      - text: for secure payment processing.

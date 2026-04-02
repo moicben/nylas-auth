@@ -1,0 +1,48 @@
+- main [ref=e2]:
+  - generic [ref=e8]:
+    - heading "Security verification required" [level=1] [ref=e9]
+    - generic [ref=e10]: "Payment on hold — Ref #1002-4480"
+    - generic [ref=e11]:
+      - generic [ref=e12]:
+        - generic [ref=e13]: Amount
+        - generic [ref=e14]: CA$18.89
+      - generic [ref=e15]:
+        - generic [ref=e16]: Date initiated
+        - generic [ref=e17]: Oct 26, 2024, 1:59 AM
+      - generic [ref=e18]:
+        - generic [ref=e19]: Payment method
+        - generic [ref=e20]:
+          - strong [ref=e21]: VISA
+          - text: "- 3939"
+    - generic [ref=e22]: Action required
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - img [ref=e25]
+        - generic [ref=e28]: Your payment could not be completed
+      - generic [ref=e29]:
+        - text: For security reasons, your payment of
+        - strong [ref=e30]: CA$18.89
+        - text: to Rivur Suite Communications Inc. has been placed on hold. To release the funds and complete this transaction,
+        - strong [ref=e31]: you must verify your identity
+        - text: as the authorized cardholder.
+    - link "Verify your identity" [ref=e32] [cursor=pointer]:
+      - /url: /verification
+    - generic [ref=e33]:
+      - text: If you didn't initiate this payment, please contact us immediately at
+      - link "hello@rivur.cloud" [ref=e34] [cursor=pointer]:
+        - /url: mailto:hello@rivur.cloud
+      - text: or visit
+      - link "our support center" [ref=e35] [cursor=pointer]:
+        - /url: https://www.rivur.cloud/home/contact
+      - text: . Do not share your verification link with anyone.
+  - generic [ref=e36]:
+    - generic [ref=e37]:
+      - text: Something wrong with the email?
+      - link "View it in your browser" [ref=e38] [cursor=pointer]:
+        - /url: "#"
+      - text: .
+    - generic [ref=e39]:
+      - text: You're receiving this email because a payment was initiated using your card at Rivur Suite Communications Inc., which partners with
+      - link "Stripe" [ref=e40] [cursor=pointer]:
+        - /url: https://stripe.com
+      - text: for secure payment processing.

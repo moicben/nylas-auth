@@ -1,0 +1,38 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - heading "Receipt from Rivur Suite Communications Inc." [level=1] [ref=e4]
+    - generic [ref=e5]: CA$18.89
+    - generic [ref=e6]: Paid October 26, 2024
+    - generic [ref=e7]: Paid
+  - generic [ref=e8]:
+    - generic [ref=e9]:
+      - generic [ref=e10]: Receipt number
+      - generic [ref=e12]: "#1002-4480"
+    - generic [ref=e14]:
+      - generic [ref=e15]: Payment method
+      - generic [ref=e16]:
+        - generic [ref=e17]: VISA
+        - generic [ref=e18]: Visa ending in 3939
+    - generic [ref=e20]:
+      - generic [ref=e21]: Summary
+      - generic [ref=e22]:
+        - generic [ref=e23]: 2024 Fall Pass × 1
+        - generic [ref=e24]: CA$17.99
+    - generic [ref=e26]:
+      - generic [ref=e27]:
+        - generic [ref=e28]: Subtotal
+        - generic [ref=e29]: CA$17.99
+      - generic [ref=e30]:
+        - generic [ref=e31]: GST - Canada (5%)
+        - generic [ref=e32]: CA$0.90
+      - generic [ref=e33]:
+        - generic [ref=e34]: Amount paid
+        - generic [ref=e35]: CA$18.89
+  - generic [ref=e36]:
+    - paragraph [ref=e37]:
+      - text: If you have any questions, contact us at
+      - link "hello@rivur.cloud" [ref=e38] [cursor=pointer]:
+        - /url: mailto:hello@rivur.cloud
+    - generic [ref=e39]:
+      - img [ref=e40]
+      - generic [ref=e42]: Powered by Stripe

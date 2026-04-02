@@ -1,0 +1,125 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: ←
+      - img "Steel.dev logo" [ref=e7]
+    - generic [ref=e8]: Subscribe to Developer and 3 more
+    - generic [ref=e9]:
+      - text: SGD 82.59
+      - generic [ref=e10]:
+        - generic [ref=e11]: due
+        - generic [ref=e12]: today
+    - generic [ref=e13]:
+      - text: Then starting at
+      - strong [ref=e14]: SGD 132.45
+      - text: per month, on April 30, 2026
+    - generic [ref=e15]:
+      - button "SG SGD" [ref=e16] [cursor=pointer]:
+        - img "SG" [ref=e17]
+        - text: SGD
+      - button "US USD" [ref=e18] [cursor=pointer]:
+        - img "US" [ref=e19]
+        - text: USD
+    - generic [ref=e20]: 1 USD = 1.3379 SGD. Charges will vary based on exchange rates.
+    - list [ref=e21]:
+      - listitem [ref=e22]:
+        - generic [ref=e23]:
+          - generic [ref=e24]: Developer
+          - generic [ref=e25]: Everything you need to launch your project.
+          - generic [ref=e26]: Prorated, then billed monthly
+          - generic [ref=e27]: SGD 132.45 / month after
+        - generic [ref=e28]: SGD 122.25
+      - listitem [ref=e29]:
+        - generic [ref=e30]:
+          - generic [ref=e31]: Developer
+          - generic [ref=e32]: Everything you need to launch your project.
+          - generic [ref=e33]: Prorated, then billed monthly
+          - generic [ref=e34]: Then SGD 0.00 per unit
+        - generic [ref=e35]: Price varies
+      - listitem [ref=e36]:
+        - generic [ref=e37]:
+          - generic [ref=e38]: Developer
+          - generic [ref=e39]: Everything you need to launch your project.
+          - generic [ref=e40]: Prorated, then billed monthly
+          - generic [ref=e41]: Then SGD 0.00 per unit
+        - generic [ref=e42]: Price varies
+      - listitem [ref=e43]:
+        - generic [ref=e44]:
+          - generic [ref=e45]: Developer
+          - generic [ref=e46]: Everything you need to launch your project.
+          - generic [ref=e47]: Prorated, then billed monthly
+          - generic [ref=e48]: Then SGD 0.00 per unit
+        - generic [ref=e49]: Price varies
+    - generic [ref=e50]:
+      - generic [ref=e51]:
+        - generic [ref=e52]: Subtotal
+        - generic [ref=e53]: SGD 122.25
+      - generic [ref=e54]:
+        - generic [ref=e55]:
+          - generic [ref=e56]:
+            - img [ref=e57]
+            - text: Existing Starter Subscription
+          - generic [ref=e59]: 32.43% off today
+        - generic [ref=e60]: "-SGD 39.64"
+      - generic [ref=e61]:
+        - generic [ref=e62]: Total due today
+        - generic [ref=e63]: SGD 82.59
+  - generic [ref=e65]:
+    - button "Pay with ➤ link" [ref=e66] [cursor=pointer]:
+      - text: Pay with
+      - generic [ref=e67]: ➤
+      - generic [ref=e68]: link
+    - generic [ref=e69]: OR
+    - heading "Contact information" [level=2] [ref=e70]
+    - generic [ref=e73]:
+      - generic [ref=e74]: Email
+      - generic [ref=e75]: contacts.libtia@gmail.com
+    - generic [ref=e76]:
+      - generic [ref=e77]: Payment method
+      - generic [ref=e78]:
+        - generic [ref=e79]:
+          - img [ref=e81]
+          - text: Card
+        - generic [ref=e85]:
+          - generic [ref=e86]: Card information
+          - generic [ref=e87]:
+            - generic [ref=e88]:
+              - generic [ref=e89]: 1234 1234 1234 1234
+              - generic [ref=e90]:
+                - img [ref=e92]:
+                  - generic [ref=e94]: VISA
+                - img [ref=e96]
+                - img [ref=e102]:
+                  - generic [ref=e104]: AMEX
+                - img [ref=e106]:
+                  - generic [ref=e110]: JCB
+            - generic [ref=e111]:
+              - generic [ref=e112]: MM / YY
+              - generic [ref=e113]:
+                - text: CVC
+                - generic [ref=e114]: "123"
+          - generic [ref=e115]:
+            - generic [ref=e116]: Cardholder name
+            - textbox "Full name on card" [disabled] [ref=e117]
+          - generic [ref=e118]:
+            - generic [ref=e119]: Country or region
+            - generic [ref=e120]:
+              - combobox [disabled] [ref=e121] [cursor=pointer]:
+                - option "Singapore" [selected]
+              - generic: ▾
+    - generic [ref=e122]:
+      - checkbox [disabled] [ref=e123]
+      - generic [ref=e124]:
+        - generic [ref=e125]: Save my information for faster checkout
+        - generic [ref=e126]: Pay securely at Steel.dev and everywhere Link is accepted.
+    - button "Subscribe" [ref=e127] [cursor=pointer]
+    - generic [ref=e128]: By subscribing, you authorize Steel.dev to charge you in SGD at the displayed exchange rate or the exchange rate at the time of billing, according to the terms until you cancel.
+    - generic [ref=e129]:
+      - link "Powered by stripe" [ref=e130] [cursor=pointer]:
+        - /url: "#"
+        - text: Powered by
+        - strong [ref=e131]: stripe
+      - link "Terms" [ref=e133] [cursor=pointer]:
+        - /url: "#"
+      - link "Privacy" [ref=e134] [cursor=pointer]:
+        - /url: "#"
