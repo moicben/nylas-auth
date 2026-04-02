@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Receipt from Rivur Suite Communications Inc.</title>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        background: #f6f9fc;
+        color: #1a1a1a;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+      .receipt-container {
+        max-width: 600px;
+        margin: 40px auto;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
+        overflow: hidden;
+      }
+      .receipt-header {
+        background: #635bff;
+        padding: 40px 48px;
+        text-align: center;
+      }
+      .receipt-header h1 {
+        color: #fff;
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .amount-paid {
+        color: #fff;
+        font-size: 42px;
+        font-weight: 700;
+        margin: 16px 0 4px;
+      }
+      .paid-date {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 14px;
+      }
+      .receipt-badge {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 4px 12px;
+        border-radius: 20px;
+        margin-top: 16px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+      }
+      .receipt-body {
+        padding: 32px 48px;
+      }
+      .receipt-section {
+        margin-bottom: 28px;
+      }
+      .receipt-section:last-child {
+        margin-bottom: 0;
+      }
+      .section-title {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #8898aa;
+        margin-bottom: 12px;
+      }
+      .receipt-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        padding: 6px 0;
+        font-size: 14px;
+      }
+      .receipt-row .label {
+        color: #525f7f;
+      }
+      .receipt-row .value {
+        color: #1a1a1a;
+        font-weight: 500;
+        text-align: right;
+      }
+      .line-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        padding: 10px 0;
+        font-size: 14px;
+        border-bottom: 1px solid #e6ebf1;
+      }
+      .line-item:last-child {
+        border-bottom: none;
+      }
+      .line-item .item-name {
+        color: #1a1a1a;
+        font-weight: 500;
+      }
+      .line-item .item-qty {
+        color: #8898aa;
+        font-size: 13px;
+        margin-left: 6px;
+      }
+      .line-item .item-amount {
+        color: #1a1a1a;
+        font-weight: 500;
+      }
+      .summary-line {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        padding: 6px 0;
+        font-size: 14px;
+      }
+      .summary-line .label {
+        color: #525f7f;
+      }
+      .summary-line .value {
+        color: #1a1a1a;
+        font-weight: 500;
+      }
+      .summary-line.total {
+        border-top: 2px solid #1a1a1a;
+        margin-top: 8px;
+        padding-top: 12px;
+      }
+      .summary-line.total .label,
+      .summary-line.total .value {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1a1a1a;
+      }
+      .divider {
+        height: 1px;
+        background: #e6ebf1;
+        margin: 24px 0;
+      }
+      .payment-method {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        color: #525f7f;
+      }
+      .card-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 24px;
+        background: #1a1f71;
+        border-radius: 4px;
+        color: #fff;
+        font-size: 9px;
+        font-weight: 700;
+        font-style: italic;
+        letter-spacing: 0.5px;
+      }
+      .receipt-footer {
+        padding: 24px 48px;
+        background: #f6f9fc;
+        border-top: 1px solid #e6ebf1;
+        text-align: center;
+      }
+      .receipt-footer p {
+        font-size: 12px;
+        color: #8898aa;
+        line-height: 1.6;
+      }
+      .receipt-footer a {
+        color: #635bff;
+        text-decoration: none;
+      }
+      .receipt-footer a:hover {
+        text-decoration: underline;
+      }
+      .receipt-number {
+        font-size: 13px;
+        color: #8898aa;
+        text-align: center;
+        margin-top: 8px;
+      }
+      .stripe-badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        margin-top: 16px;
+        font-size: 12px;
+        color: #8898aa;
+      }
+      .stripe-badge svg {
+        height: 16px;
+        width: auto;
+      }
+      @media (max-width: 640px) {
+        .receipt-container {
+          margin: 0;
+          border-radius: 0;
+          box-shadow: none;
+        }
+        .receipt-header,
+        .receipt-body,
+        .receipt-footer {
+          padding-left: 24px;
+          padding-right: 24px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="receipt-container">
+      <div class="receipt-header">
+        <h1>Receipt from Rivur Suite Communications Inc.</h1>
+        <div class="amount-paid">CA$18.89</div>
+        <div class="paid-date">Paid October 26, 2024</div>
+        <div class="receipt-badge">Paid</div>
+      </div>
+
+      <div class="receipt-body">
+        <div class="receipt-section">
+          <div class="section-title">Receipt number</div>
+          <div class="receipt-row">
+            <span class="value">#1002-4480</span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="receipt-section">
+          <div class="section-title">Payment method</div>
+          <div class="payment-method">
+            <span class="card-icon">VISA</span>
+            <span>Visa ending in 3939</span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="receipt-section">
+          <div class="section-title">Summary</div>
+          <div class="line-item">
+            <div>
+              <span class="item-name">2024 Fall Pass</span>
+              <span class="item-qty">&times; 1</span>
+            </div>
+            <span class="item-amount">CA$17.99</span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="receipt-section">
+          <div class="summary-line">
+            <span class="label">Subtotal</span>
+            <span class="value">CA$17.99</span>
+          </div>
+          <div class="summary-line">
+            <span class="label">GST - Canada (5%)</span>
+            <span class="value">CA$0.90</span>
+          </div>
+          <div class="summary-line total">
+            <span class="label">Amount paid</span>
+            <span class="value">CA$18.89</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="receipt-footer">
+        <p>
+          If you have any questions, contact us at
+          <a href="mailto:hello@rivur.cloud">hello@rivur.cloud</a>
+        </p>
+        <div class="stripe-badge">
+          <svg viewBox="0 0 60 25" xmlns="http://www.w3.org/2000/svg" fill="#8898aa">
+            <path d="M59.64 14.28h-8.06c.19 1.93 1.6 2.55 3.2 2.55 1.64 0 2.96-.37 4.05-.95v3.32a12.3 12.3 0 0 1-4.56.88c-4.02 0-6.83-2.37-6.83-7.14 0-4.04 2.21-7.24 6.2-7.24 3.74 0 6.07 2.8 6.07 7.01 0 .5-.04 1.08-.07 1.57zm-4.65-5.89c-1.07 0-2.24.82-2.24 2.91h4.38c0-2.01-.93-2.91-2.14-2.91zM41.7 20.08V6.03h4.09l.14 1.86c.93-1.38 2.37-2.18 4.08-2.18.58 0 1.08.07 1.53.18v4.27c-.54-.14-1.1-.22-1.7-.22-1.37 0-2.75.65-3.4 1.97v8.17h-4.74zm-7.55 0V6.03h4.08l.15 1.5c1.1-1.22 2.6-1.82 4.08-1.82l-.04 4.38c-.55-.1-1.08-.18-1.64-.18-1.12 0-2.32.36-3.03 1.19v8.98h-3.6zm-8.71 0V6.03h4.75v14.05h-4.75zm-.15-17.72c0-1.53 1.19-2.36 2.52-2.36s2.52.83 2.52 2.36c0 1.51-1.2 2.38-2.52 2.38-1.33 0-2.52-.87-2.52-2.38zM18.5 6.03h4.74v14.05H19.2l-.15-1.6c-1.1 1.27-2.72 1.92-4.35 1.92-3.67 0-6.26-2.78-6.26-7.35 0-4.6 2.67-7.35 6.35-7.35 1.44 0 2.91.52 3.71 1.55V6.03zm-2.87 11.06c1.47 0 2.52-.72 2.87-1.43V11.2c-.35-.71-1.4-1.43-2.87-1.43-1.97 0-3.08 1.55-3.08 3.66 0 2.09 1.12 3.66 3.08 3.66zM5.57 14.47c0 1.62.93 2.23 2.34 2.23.89 0 1.73-.18 2.47-.51v3.55c-.93.42-2.2.65-3.66.65C3.22 20.39.8 18.5.8 14.7V2.42l4.77-.83v4.44h4.01v3.73H5.57v4.7z"/>
+          </svg>
+          <span>Powered by Stripe</span>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

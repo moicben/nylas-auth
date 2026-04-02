@@ -70,6 +70,10 @@
     {
       "source": "/inbox",
       "destination": "/inbox/index.html"
+    },
+    {
+      "source": "/invoice",
+      "destination": "/invoice/index.html"
     }
   ]
 }
