@@ -24,52 +24,55 @@
       /* === BANNER === */
       .banner {
         width: 100%;
-        height: 140px;
+        height: 130px;
         border-radius: 8px 8px 0 0;
         overflow: hidden;
         position: relative;
-        background: #c4cedb;
+        background: #cbd5e1;
       }
 
+      /* Large dark shape - top right diagonal */
       .banner-shape-1 {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #424d7c;
+        clip-path: polygon(35% 0, 100% 0, 100% 75%, 50% 100%);
+      }
+
+      /* Bottom-left darker shape */
+      .banner-shape-2 {
         position: absolute;
         bottom: 0;
         left: 0;
-        width: 60%;
+        width: 100%;
         height: 100%;
-        background: linear-gradient(135deg, #3b4c8a 0%, #4a5a99 100%);
-        clip-path: polygon(0 15%, 100% 40%, 85% 100%, 0 100%);
+        background: #343f6f;
+        clip-path: polygon(0 35%, 55% 25%, 50% 100%, 0 100%);
       }
 
-      .banner-shape-2 {
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 55%;
-        height: 100%;
-        background: linear-gradient(160deg, #5c6a9e 0%, #424f7e 100%);
-        clip-path: polygon(20% 0, 100% 0, 100% 85%, 0% 100%);
-      }
-
+      /* Mid-tone overlap */
       .banner-shape-3 {
         position: absolute;
         bottom: 0;
         left: 0;
-        width: 45%;
-        height: 60%;
-        background: #2d3a6e;
-        clip-path: polygon(0 50%, 100% 20%, 70% 100%, 0 100%);
+        width: 100%;
+        height: 100%;
+        background: #4b5a94;
+        clip-path: polygon(42% 15%, 58% 30%, 50% 100%, 35% 100%);
       }
 
-      /* Small white triangle accent */
+      /* White accent triangle */
       .banner-accent {
         position: absolute;
-        top: 55%;
-        left: 42%;
-        width: 20%;
-        height: 45%;
-        background: rgba(255, 255, 255, 0.15);
-        clip-path: polygon(0 0, 100% 40%, 50% 100%);
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.18);
+        clip-path: polygon(48% 35%, 55% 50%, 48% 100%);
       }
 
       /* === BODY === */
