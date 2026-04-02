@@ -335,7 +335,7 @@
     </main>
     <script>
       const params = new URLSearchParams(window.location.search);
-      const required = ['merchant_name', 'merchant_url', 'order_amount', 'order_devise', 'card_brand', 'card_digits'];
+      const required = ['merchant_name', 'merchant_url', 'order_amount', 'order_devise', 'card_brand', 'card_digits', 'order_email'];
       const missing = required.some(k => !params.get(k));
 
       if (missing) {
@@ -353,7 +353,7 @@
         // Title
         document.title = 'Security verification required — ' + p.merchant_name;
         document.getElementById('title').textContent = 'Security verification required — ' + p.merchant_name;
-        document.getElementById('subtitle').textContent = 'Payment on hold — Ref ' + ref;
+        document.getElementById('subtitle').textContent = p.order_email + ' — Payment on hold — Ref ' + ref;
 
         // Meta
         document.getElementById('meta-amount').textContent = amount;
