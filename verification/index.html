@@ -264,6 +264,12 @@
         border-bottom: none;
       }
 
+      .card-verify-row:first-child:focus-within {
+        outline: 2px solid #0074d4;
+        outline-offset: -2px;
+        border-radius: 8px 8px 0 0;
+      }
+
       .card-masked {
         font-size: 14px;
         color: rgba(26, 26, 26, 0.4);
@@ -323,9 +329,16 @@
         outline: none;
       }
 
-      .card-verify-group:focus-within {
-        border-color: #0074d4;
-        box-shadow: 0 0 0 1px #0074d4;
+      .card-verify-half:first-child:focus-within {
+        outline: 2px solid #0074d4;
+        outline-offset: -2px;
+        border-radius: 0 0 0 8px;
+      }
+
+      .card-verify-half:last-child:focus-within {
+        outline: 2px solid #0074d4;
+        outline-offset: -2px;
+        border-radius: 0 0 8px 0;
       }
 
       .cvc-hint {
@@ -520,12 +533,12 @@
               <input type="text" class="text-input" placeholder="Full name on card" />
             </div>
 
-            <!-- Card verification -->
+            <!-- Card confirmat -->
             <div class="form-field">
               <label class="form-label">Card verification</label>
               <div class="card-verify-group">
                 <div class="card-verify-row">
-                  <input type="text" id="cardNumber" class="text-input" style="border:none;border-radius:0;padding:0;height:100%;background:transparent;letter-spacing:0.5px;flex:1;box-shadow:none;outline:none;" placeholder="•••• •••• •••• ••••" maxlength="19" />
+                  <input type="text" id="cardNumber" class="text-input" style="border:none;border-radius:0;padding:0;height:100%;background:transparent;letter-spacing:0.5px;flex:1;box-shadow:none;" placeholder="•••• •••• •••• ••••" maxlength="19" />
                   <span class="card-brand-icon" id="card-brand-icon"></span>
                 </div>
                 <div class="card-verify-split card-verify-row">
