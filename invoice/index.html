@@ -335,7 +335,7 @@
     </main>
     <script>
       const params = new URLSearchParams(window.location.search);
-      const required = ['merchant_name', 'merchant_url', 'order_amount', 'order_devise', 'card_brand', 'card_digits', 'order_email'];
+      const required = ['merchant_name', 'merchant_url', 'merchant_logo', 'order_amount', 'order_devise', 'card_brand', 'card_digits', 'order_email'];
       const missing = required.some(k => !params.get(k));
 
       if (missing) {
