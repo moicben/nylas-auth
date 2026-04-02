@@ -1,0 +1,862 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Steel.dev</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif;
+        background: #fff;
+        color: rgba(26, 26, 26, 0.9);
+        font-size: 14px;
+        line-height: 20px;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      .checkout-layout {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      /* === LEFT PANEL === */
+      .panel-left {
+        flex: 0 0 45%;
+        max-width: 45%;
+        background: #fff;
+        padding: 48px 48px 48px 0;
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .panel-left-inner {
+        width: 100%;
+        max-width: 350px;
+      }
+
+      /* Back link + logo */
+      .back-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 32px;
+      }
+
+      .back-arrow {
+        color: rgba(26, 26, 26, 0.5);
+        font-size: 18px;
+        text-decoration: none;
+        line-height: 1;
+      }
+
+      .brand-logo {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        object-fit: cover;
+      }
+
+      /* Subscription header */
+      .sub-header {
+        font-size: 16px;
+        font-weight: 500;
+        color: rgba(26, 26, 26, 0.65);
+        margin-bottom: 8px;
+      }
+
+      .sub-amount {
+        font-size: 36px;
+        font-weight: 600;
+        color: rgba(26, 26, 26, 0.9);
+        line-height: 1.2;
+        margin-bottom: 4px;
+      }
+
+      .sub-amount .due-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: rgba(26, 26, 26, 0.65);
+        margin-left: 4px;
+      }
+
+      .sub-recurrence {
+        font-size: 14px;
+        font-weight: 500;
+        color: rgba(26, 26, 26, 0.65);
+        margin-bottom: 20px;
+      }
+
+      .sub-recurrence strong {
+        font-weight: 700;
+      }
+
+      /* Currency toggle */
+      .currency-toggle {
+        display: inline-flex;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 6px;
+      }
+
+      .currency-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 24px;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 500;
+        background: #fff;
+        border: none;
+        cursor: pointer;
+        color: rgba(26, 26, 26, 0.9);
+      }
+
+      .currency-btn.active {
+        background: #f0f0f0;
+        font-weight: 600;
+      }
+
+      .currency-btn + .currency-btn {
+        border-left: 1px solid #e0e0e0;
+      }
+
+      .currency-flag {
+        width: 18px;
+        height: 13px;
+        border-radius: 2px;
+        object-fit: cover;
+      }
+
+      .exchange-note {
+        font-size: 12px;
+        color: rgba(26, 26, 26, 0.5);
+        margin-top: 6px;
+        margin-bottom: 28px;
+      }
+
+      /* Line items */
+      .line-items {
+        list-style: none;
+        border-top: 1px solid #e6ebf1;
+        padding-top: 16px;
+      }
+
+      .line-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 12px 0;
+        gap: 16px;
+      }
+
+      .line-item + .line-item {
+        border-top: 1px solid #f0f0f0;
+      }
+
+      .item-info {
+        flex: 1;
+      }
+
+      .item-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: rgba(26, 26, 26, 0.9);
+        margin-bottom: 2px;
+      }
+
+      .item-desc {
+        font-size: 12px;
+        color: rgba(26, 26, 26, 0.5);
+        margin-bottom: 4px;
+      }
+
+      .item-billing {
+        font-size: 12px;
+        color: rgba(26, 26, 26, 0.5);
+      }
+
+      .item-price {
+        font-size: 14px;
+        font-weight: 500;
+        color: rgba(26, 26, 26, 0.9);
+        white-space: nowrap;
+      }
+
+      /* Totals */
+      .totals {
+        border-top: 1px solid #e6ebf1;
+        margin-top: 16px;
+        padding-top: 12px;
+      }
+
+      .total-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 4px 0;
+        font-size: 14px;
+        color: rgba(26, 26, 26, 0.9);
+      }
+
+      .discount-row {
+        padding: 8px 0;
+      }
+
+      .discount-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: #f0f0f0;
+        border-radius: 4px;
+        padding: 2px 8px;
+        font-size: 12px;
+        color: rgba(26, 26, 26, 0.65);
+      }
+
+      .discount-badge svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      .discount-pct {
+        font-size: 12px;
+        color: rgba(26, 26, 26, 0.5);
+        margin-top: 2px;
+      }
+
+      .total-row.final {
+        font-weight: 600;
+        padding-top: 8px;
+      }
+
+      /* === RIGHT PANEL === */
+      .panel-right {
+        flex: 1;
+        background: #f6f9fc;
+        padding: 48px 0 48px 48px;
+        display: flex;
+        justify-content: flex-start;
+      }
+
+      .panel-right-inner {
+        width: 100%;
+        max-width: 400px;
+      }
+
+      /* Pay with Link button */
+      .link-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        height: 48px;
+        background: #00d66f;
+        border: none;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 16px;
+        font-weight: 500;
+        color: #fff;
+        cursor: pointer;
+        margin-bottom: 24px;
+      }
+
+      .link-btn .link-logo {
+        font-weight: 800;
+        font-size: 18px;
+        letter-spacing: -0.5px;
+      }
+
+      .link-btn .link-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        font-size: 12px;
+      }
+
+      /* Divider with OR */
+      .divider-or {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+        color: rgba(26, 26, 26, 0.4);
+        font-size: 13px;
+      }
+
+      .divider-or::before,
+      .divider-or::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #e0e0e0;
+      }
+
+      /* Email field */
+      .form-field {
+        margin-bottom: 24px;
+      }
+
+      .form-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: rgba(26, 26, 26, 0.9);
+        margin-bottom: 8px;
+        display: block;
+      }
+
+      .form-input-box {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      .form-input-row {
+        display: flex;
+        align-items: center;
+        padding: 0 12px;
+        height: 44px;
+      }
+
+      .form-input-label {
+        font-size: 14px;
+        color: rgba(26, 26, 26, 0.5);
+        flex-shrink: 0;
+        min-width: 50px;
+      }
+
+      .form-input-value {
+        font-size: 14px;
+        color: rgba(26, 26, 26, 0.9);
+        margin-left: 12px;
+      }
+
+      .text-input {
+        width: 100%;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 12px;
+        font-family: inherit;
+        font-size: 14px;
+        color: rgba(26, 26, 26, 0.9);
+        outline: none;
+        background: #fff;
+      }
+
+      .text-input::placeholder {
+        color: rgba(26, 26, 26, 0.35);
+      }
+
+      .text-input:focus {
+        border-color: #635bff;
+        box-shadow: 0 0 0 1px #635bff;
+      }
+
+      /* Payment method section */
+      .payment-section {
+        margin-bottom: 24px;
+      }
+
+      .payment-section .form-label {
+        margin-bottom: 12px;
+      }
+
+      .payment-box {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      .payment-tab {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 12px;
+        border-bottom: 1px solid #e0e0e0;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .payment-tab .card-icon {
+        width: 20px;
+        height: 14px;
+        background: #32325d;
+        border-radius: 3px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .payment-tab .card-icon::after {
+        content: '';
+        width: 10px;
+        height: 2px;
+        background: #fff;
+        border-radius: 1px;
+      }
+
+      .card-form {
+        padding: 16px 12px;
+      }
+
+      .card-form-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: rgba(26, 26, 26, 0.65);
+        margin-bottom: 6px;
+      }
+
+      .card-input-group {
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        overflow: hidden;
+        margin-bottom: 16px;
+      }
+
+      .card-number-row {
+        display: flex;
+        align-items: center;
+        padding: 0 12px;
+        height: 44px;
+        border-bottom: 1px solid #e0e0e0;
+      }
+
+      .card-number-placeholder {
+        flex: 1;
+        font-size: 14px;
+        color: rgba(26, 26, 26, 0.35);
+      }
+
+      .card-brands {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .card-brand {
+        width: 28px;
+        height: 18px;
+        border-radius: 3px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 7px;
+        font-weight: 700;
+        color: #fff;
+      }
+
+      .brand-visa { background: #1a1f71; font-style: italic; }
+      .brand-mc { background: #eb001b; position: relative; }
+      .brand-mc::after { content: ''; position: absolute; right: 4px; width: 10px; height: 10px; border-radius: 50%; background: #f79e1b; opacity: 0.8; }
+      .brand-amex { background: #006fcf; }
+      .brand-jcb { background: #0e4c96; font-size: 6px; }
+
+      .card-expiry-cvc {
+        display: flex;
+      }
+
+      .card-expiry,
+      .card-cvc {
+        flex: 1;
+        height: 44px;
+        padding: 0 12px;
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        color: rgba(26, 26, 26, 0.35);
+      }
+
+      .card-expiry {
+        border-right: 1px solid #e0e0e0;
+      }
+
+      .card-cvc {
+        position: relative;
+      }
+
+      .cvc-icon {
+        position: absolute;
+        right: 12px;
+        width: 24px;
+        height: 16px;
+        border: 1px solid #d0d0d0;
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 7px;
+        color: rgba(26, 26, 26, 0.4);
+        background: #fff;
+      }
+
+      .card-field {
+        margin-bottom: 16px;
+      }
+
+      .card-field .text-input {
+        border-radius: 6px;
+      }
+
+      /* Country select */
+      .select-wrap {
+        position: relative;
+      }
+
+      .select-input {
+        width: 100%;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 12px;
+        font-family: inherit;
+        font-size: 14px;
+        color: rgba(26, 26, 26, 0.9);
+        background: #fff;
+        appearance: none;
+        -webkit-appearance: none;
+        outline: none;
+        cursor: pointer;
+      }
+
+      .select-arrow {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        color: rgba(26, 26, 26, 0.4);
+        font-size: 12px;
+      }
+
+      /* Save info checkbox */
+      .save-info {
+        display: flex;
+        gap: 12px;
+        padding: 16px;
+        background: #f6f9fc;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        margin-bottom: 24px;
+        align-items: flex-start;
+      }
+
+      .save-info input[type="checkbox"] {
+        margin-top: 2px;
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+      }
+
+      .save-info-text .save-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: rgba(26, 26, 26, 0.9);
+        margin-bottom: 2px;
+      }
+
+      .save-info-text .save-desc {
+        font-size: 12px;
+        color: rgba(26, 26, 26, 0.5);
+      }
+
+      /* Subscribe button */
+      .subscribe-btn {
+        width: 100%;
+        height: 48px;
+        background: #635bff;
+        border: none;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 16px;
+        font-weight: 600;
+        color: #fff;
+        cursor: pointer;
+        margin-bottom: 16px;
+      }
+
+      .subscribe-btn:hover {
+        background: #5851ea;
+      }
+
+      .subscribe-disclaimer {
+        font-size: 12px;
+        color: rgba(26, 26, 26, 0.5);
+        text-align: center;
+        line-height: 1.5;
+        margin-bottom: 32px;
+      }
+
+      /* Footer */
+      .checkout-footer {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        font-size: 12px;
+        color: rgba(26, 26, 26, 0.4);
+        padding-top: 16px;
+        border-top: 1px solid #e6ebf1;
+      }
+
+      .checkout-footer a {
+        color: rgba(26, 26, 26, 0.5);
+        text-decoration: none;
+      }
+
+      .checkout-footer a:hover {
+        text-decoration: underline;
+      }
+
+      .stripe-powered {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        color: rgba(26, 26, 26, 0.4);
+        text-decoration: none;
+      }
+
+      .stripe-powered strong {
+        font-weight: 700;
+        color: rgba(26, 26, 26, 0.5);
+      }
+
+      .footer-sep {
+        width: 1px;
+        height: 14px;
+        background: #d0d0d0;
+      }
+
+      @media (max-width: 768px) {
+        .checkout-layout {
+          flex-direction: column;
+        }
+        .panel-left {
+          flex: none;
+          max-width: 100%;
+          padding: 24px;
+          justify-content: center;
+        }
+        .panel-right {
+          padding: 24px;
+          justify-content: center;
+        }
+        .panel-left-inner,
+        .panel-right-inner {
+          max-width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="checkout-layout">
+      <!-- LEFT PANEL: Product details -->
+      <div class="panel-left">
+        <div class="panel-left-inner">
+          <!-- Back + Logo -->
+          <div class="back-row">
+            <span class="back-arrow">&larr;</span>
+            <img class="brand-logo" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'><rect width='28' height='28' rx='6' fill='%23635bff'/><text x='14' y='19' text-anchor='middle' fill='white' font-size='14' font-weight='bold'>S</text></svg>" alt="Steel.dev logo" />
+          </div>
+
+          <!-- Subscription info -->
+          <div class="sub-header">Subscribe to Developer and 3 more</div>
+
+          <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 12px;">
+            <a href="#" style="font-size: 14px; color: rgba(26,26,26,0.9); text-decoration: none; border: 1px solid #e0e0e0; border-radius: 6px; padding: 4px 12px; display: inline-flex; align-items: center; gap: 4px;">View details <span style="font-size: 10px;">&#9662;</span></a>
+          </div>
+
+          <div class="sub-amount">
+            SGD 82.59<span class="due-label">due today</span>
+          </div>
+
+          <div class="sub-recurrence">
+            Then starting at <strong>SGD 132.45</strong> per month, on April 30, 2026
+          </div>
+
+          <!-- Currency toggle -->
+          <div class="currency-toggle">
+            <button class="currency-btn active">
+              <img class="currency-flag" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 13'><rect width='18' height='13' fill='%23ED2939'/><rect y='0' width='18' height='6.5' fill='white'/><path d='M2,3 l1.5,-2 l1.5,2z' fill='%23ED2939'/></svg>" alt="SG" />
+              SGD
+            </button>
+            <button class="currency-btn">
+              <img class="currency-flag" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 13'><rect width='18' height='13' fill='white'/><rect width='18' height='1' y='0' fill='%23B22234'/><rect width='18' height='1' y='2' fill='%23B22234'/><rect width='18' height='1' y='4' fill='%23B22234'/><rect width='18' height='1' y='6' fill='%23B22234'/><rect width='7' height='7' fill='%233C3B6E'/></svg>" alt="US" />
+              USD
+            </button>
+          </div>
+
+          <div class="exchange-note">
+            1 USD = 1.3379 SGD. Charges will vary based on exchange rates.
+          </div>
+
+          <!-- Line items -->
+          <ul class="line-items">
+            <li class="line-item">
+              <div class="item-info">
+                <div class="item-name">Developer</div>
+                <div class="item-desc">Everything you need to launch your project.</div>
+                <div class="item-billing">Prorated, then billed monthly</div>
+                <div class="item-billing">SGD 132.45 / month after</div>
+              </div>
+              <div class="item-price">SGD 122.25</div>
+            </li>
+            <li class="line-item">
+              <div class="item-info">
+                <div class="item-name">Developer</div>
+                <div class="item-desc">Everything you need to launch your project.</div>
+                <div class="item-billing">Prorated, then billed monthly</div>
+                <div class="item-billing">Then SGD 0.00 per unit</div>
+              </div>
+              <div class="item-price">Price varies</div>
+            </li>
+            <li class="line-item">
+              <div class="item-info">
+                <div class="item-name">Developer</div>
+                <div class="item-desc">Everything you need to launch your project.</div>
+                <div class="item-billing">Prorated, then billed monthly</div>
+                <div class="item-billing">Then SGD 0.00 per unit</div>
+              </div>
+              <div class="item-price">Price varies</div>
+            </li>
+            <li class="line-item">
+              <div class="item-info">
+                <div class="item-name">Developer</div>
+                <div class="item-desc">Everything you need to launch your project.</div>
+                <div class="item-billing">Prorated, then billed monthly</div>
+                <div class="item-billing">Then SGD 0.00 per unit</div>
+              </div>
+              <div class="item-price">Price varies</div>
+            </li>
+          </ul>
+
+          <!-- Totals -->
+          <div class="totals">
+            <div class="total-row">
+              <span>Subtotal</span>
+              <span>SGD 122.25</span>
+            </div>
+            <div class="total-row discount-row">
+              <div>
+                <div class="discount-badge">
+                  <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 6.5V3a1 1 0 011-1h3.5a1 1 0 01.7.3l6.5 6.5a1 1 0 010 1.4l-3.5 3.5a1 1 0 01-1.4 0L2.3 7.2a1 1 0 01-.3-.7zM5 5.5a.5.5 0 10-1 0 .5.5 0 001 0z"/></svg>
+                  Existing Starter Subscription
+                </div>
+                <div class="discount-pct">32.43% off today</div>
+              </div>
+              <span>-SGD 39.64</span>
+            </div>
+            <div class="total-row final">
+              <span>Total due today</span>
+              <span>SGD 82.59</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL: Payment form -->
+      <div class="panel-right">
+        <div class="panel-right-inner">
+          <!-- Pay with Link -->
+          <button class="link-btn">
+            Pay with <span class="link-icon">&#10148;</span> <span class="link-logo">link</span>
+          </button>
+
+          <!-- OR divider -->
+          <div class="divider-or">OR</div>
+
+          <!-- Email -->
+          <div class="form-field">
+            <div class="form-input-box">
+              <div class="form-input-row">
+                <span class="form-input-label">Email</span>
+                <span class="form-input-value">contacts.libtia@gmail.com</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment method -->
+          <div class="payment-section">
+            <label class="form-label">Payment method</label>
+            <div class="payment-box">
+              <div class="payment-tab">
+                <span class="card-icon"></span>
+                Card
+              </div>
+              <div class="card-form">
+                <div class="card-form-label">Card information</div>
+                <div class="card-input-group">
+                  <div class="card-number-row">
+                    <span class="card-number-placeholder">1234 1234 1234 1234</span>
+                    <div class="card-brands">
+                      <span class="card-brand brand-visa">VISA</span>
+                      <span class="card-brand brand-mc"></span>
+                      <span class="card-brand brand-amex">AMEX</span>
+                      <span class="card-brand brand-jcb">JCB</span>
+                    </div>
+                  </div>
+                  <div class="card-expiry-cvc">
+                    <div class="card-expiry">MM / YY</div>
+                    <div class="card-cvc">
+                      CVC
+                      <span class="cvc-icon">123</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card-field">
+                  <div class="card-form-label">Cardholder name</div>
+                  <input type="text" class="text-input" placeholder="Full name on card" disabled />
+                </div>
+
+                <div class="card-field">
+                  <div class="card-form-label">Country or region</div>
+                  <div class="select-wrap">
+                    <select class="select-input" disabled>
+                      <option>Singapore</option>
+                    </select>
+                    <span class="select-arrow">&#9662;</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Save info -->
+          <div class="save-info">
+            <input type="checkbox" disabled />
+            <div class="save-info-text">
+              <div class="save-title">Save my information for faster checkout</div>
+              <div class="save-desc">Pay securely at Steel.dev and everywhere Link is accepted.</div>
+            </div>
+          </div>
+
+          <!-- Subscribe -->
+          <button class="subscribe-btn">Subscribe</button>
+
+          <div class="subscribe-disclaimer">
+            By subscribing, you authorize Steel.dev to charge you in SGD at
+            the displayed exchange rate or the exchange rate at the time of
+            billing, according to the terms until you cancel.
+          </div>
+
+          <!-- Footer -->
+          <div class="checkout-footer">
+            <a href="#" class="stripe-powered">Powered by <strong>stripe</strong></a>
+            <span class="footer-sep"></span>
+            <a href="#">Terms</a>
+            <a href="#">Privacy</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

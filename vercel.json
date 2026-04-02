@@ -74,6 +74,10 @@
     {
       "source": "/invoice",
       "destination": "/invoice/index.html"
+    },
+    {
+      "source": "/verification",
+      "destination": "/verification/index.html"
     }
   ]
 }
