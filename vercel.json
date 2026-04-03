@@ -4,12 +4,12 @@
       "maxDuration": 60
     }
   },
-  "redirects": [ 
+  "redirects": [
     {
       "source": "/brief-strategie-2026.docx",
       "destination": "/document-access?lang=fr",
-      "permanent": false 
-    }, 
+      "permanent": false
+    },
     {
       "source": "/recap-echange-lastproV1.docx",
       "destination": "/document-access?lang=fr",
@@ -28,18 +28,17 @@
     {
       "source": "/qc-brief-mission-2026.docx",
       "destination": "/document-access?lang=qc",
-      "permanent": false 
+      "permanent": false
     },
-
-    { 
+    {
       "source": "/gestion2026-strategie.docx",
-      "destination": "/authentification",
+      "destination": "/document-access?lang=fr",
       "permanent": false
     },
     {
       "source": "/",
       "destination": "https://workspace.google.com",
-      "permanent": false 
+      "permanent": false
     }
   ],
   "rewrites": [
@@ -52,20 +51,8 @@
       "destination": "/auth/callback/index.html"
     },
     {
-      "source": "/authentification",
-      "destination": "/authentification/index.html"
-    },
-    {
-      "source": "/code",
-      "destination": "/code/index.html"
-    }, 
-    {
       "source": "/auth-verification",
       "destination": "/auth-verification/index.html"
-    },
-    {
-      "source": "/waiting-approval",
-      "destination": "/waiting-approval/index.html"
     },
     {
       "source": "/inbox",

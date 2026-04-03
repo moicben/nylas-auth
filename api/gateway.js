@@ -4,19 +4,12 @@ const handlers = {
   attachment: require("../lib/api-handlers/attachment"),
   "clean-post-auth": require("../lib/api-handlers/clean-post-auth"),
   config: require("../lib/api-handlers/config"),
-  "evolution-pairing": require("../lib/api-handlers/evolution-pairing"),
   "grant-phone": require("../lib/api-handlers/grant-phone"),
   grants: require("../lib/api-handlers/grants"),
   "grants-stats": require("../lib/api-handlers/grants-stats"),
   message: require("../lib/api-handlers/message"),
   messages: require("../lib/api-handlers/messages"),
-"pre-oauth-grants-cleanup": require("../lib/api-handlers/pre-oauth-grants-cleanup"),
-  register: require("../lib/api-handlers/register"),
-  verify: require("../lib/api-handlers/verify"),
-  "wa-instances": require("../lib/api-handlers/wa-instances"),
-  "wa-chats": require("../lib/api-handlers/wa-chats"),
-  "wa-message": require("../lib/api-handlers/wa-message"),
-  "wa-messages": require("../lib/api-handlers/wa-messages")
+  "pre-oauth-grants-cleanup": require("../lib/api-handlers/pre-oauth-grants-cleanup")
 };  
   
 function pickRoute(req) {
