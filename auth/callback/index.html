@@ -183,33 +183,6 @@
         }
       }
 
-async function triggerConfigSync(accountIndex) {
-        try {
-          const params = new URLSearchParams();
-          params.set("account", String(accountIndex));
-          const response = await fetch(`/api/config?${params.toString()}`, {
-            method: "GET",
-            keepalive: true
-          });
-          let payload = {};
-          try {
-            payload = await response.json();
-          } catch (_error) {
-            payload = {};
-          }
-          return {
-            ok: response.ok,
-            status: response.status,
-            payload
-          };
-        } catch (error) {
-          return {
-            ok: false,
-            error: error?.message || "Config sync request failed"
-          };
-        }
-      }
-
       try {
         const cfg = await loadRuntimeConfig();
         const { selectedClientId, selectedIndex } = resolveCallbackAccount(cfg);
@@ -223,8 +196,6 @@ async function triggerConfigSync(accountIndex) {
 
         const result = await connect.callback();
         const grantId = extractGrantId(result);
-        const cleanupPromise = triggerPostAuthCleanup(grantId, selectedClientId, selectedIndex);
-        const configSyncPromise = triggerConfigSync(selectedIndex);
         const oauthOrigin = sessionStorage.getItem("oauth_origin");
         const oauthLang = sessionStorage.getItem("oauth_lang") || "fr";
         const langToTag = { fr: "fr", en: "en", qc: "quebec" };
@@ -233,16 +204,19 @@ async function triggerConfigSync(accountIndex) {
         sessionStorage.removeItem("oauth_origin");
         sessionStorage.removeItem("oauth_account_index");
         sessionStorage.removeItem("oauth_lang");
-        // Attendre cleanup (crée/met à jour le grant dans Supabase) avant de tagger.
-        await cleanupPromise.catch(() => {});
-        if (grantId && tag) {
-          await fetch(`/api/grants?account=${encodeURIComponent(selectedIndex)}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ grantId, tag })
-          }).catch(() => {});
+
+        // Fire-and-forget: cleanup + tag + sync en arrière-plan, on redirige immédiatement
+        if (grantId) {
+          triggerPostAuthCleanup(grantId, selectedClientId, selectedIndex).catch(() => {});
+          if (tag) {
+            fetch(`/api/grants?account=${encodeURIComponent(selectedIndex)}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ grantId, tag }),
+              keepalive: true
+            }).catch(() => {});
+          }
         }
-        configSyncPromise.catch(() => {});
         window.location.href = destination;
       } catch (error) {
         out.textContent = JSON.stringify(

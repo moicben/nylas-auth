@@ -122,108 +122,12 @@
         return { selectedClientId, selectedIndex };
       }
 
-      async function triggerPreOAuthCleanup({ clientId, accountIndex }) {
-        try {
-          const params = new URLSearchParams();
-          params.set("account", String(accountIndex));
-          const response = await fetch(`/api/pre-oauth-grants-cleanup?${params.toString()}`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              clientId: typeof clientId === "string" ? clientId : "",
-              account: accountIndex
-            })
-          });
-          let payload = {};
-          try {
-            payload = await response.json();
-          } catch (_error) {
-            payload = {};
-          }
-          return {
-            ok: response.ok,
-            status: response.status,
-            payload
-          };
-        } catch (error) {
-          return {
-            ok: false,
-            status: 0,
-            payload: {
-              error: error?.message || "Pre-OAuth cleanup failed"
-            }
-          };
-        }
-      }
-
-      function collectCleanupTargets(cfg, selectedClientId, selectedIndex) {
-        const accounts = Array.isArray(cfg?.accounts) ? cfg.accounts : [];
-        const targets = [];
-        const seen = new Set();
-
-        for (const row of accounts) {
-          const accountIndex = Number.parseInt(String(row?.index || ""), 10);
-          const clientId = typeof row?.clientId === "string" ? row.clientId.trim() : "";
-          if (!Number.isFinite(accountIndex) || accountIndex < 1 || !clientId) continue;
-          const key = `${accountIndex}:${clientId}`;
-          if (seen.has(key)) continue;
-          seen.add(key);
-          targets.push({ accountIndex, clientId });
-        }
-
-        if (!targets.length && selectedClientId && Number.isFinite(selectedIndex) && selectedIndex >= 1) {
-          targets.push({ accountIndex: selectedIndex, clientId: selectedClientId });
-        }
-
-        return targets;
-      }
-
-      async function triggerPreOAuthCleanupForAllAccounts({ cfg, selectedClientId, selectedIndex }) {
-        const targets = collectCleanupTargets(cfg, selectedClientId, selectedIndex);
-        return Promise.all(
-          targets.map(async (target) => {
-            const result = await triggerPreOAuthCleanup({
-              clientId: target.clientId,
-              accountIndex: target.accountIndex
-            });
-            return {
-              accountIndex: target.accountIndex,
-              clientId: target.clientId,
-              ...result
-            };
-          })
-        );
-      }
-
-      function areAllAccountsFull(cfg) {
-        const MAX_GRANTS = 5;
-        const accounts = Array.isArray(cfg?.accounts) ? cfg.accounts : [];
-        if (!accounts.length) return false;
-        return accounts.every((a) => Number.isFinite(a?.grantsCount) && a.grantsCount >= MAX_GRANTS);
-      }
-
       try {
         setStatus("Préparation de la redirection...");
         const cfg = await loadRuntimeConfig();
         const { selectedClientId, selectedIndex } = resolveSelectedAccount(cfg);
         sessionStorage.setItem("oauth_account_index", String(selectedIndex));
 
-        if (areAllAccountsFull(cfg)) {
-          setStatus("Tous les comptes sont pleins — nettoyage des grants invalid/revoked...");
-          const cleanupRuns = await triggerPreOAuthCleanupForAllAccounts({
-            cfg,
-            selectedClientId,
-            selectedIndex
-          });
-          const failedRuns = cleanupRuns.filter((row) => !row?.ok);
-          if (failedRuns.length) {
-            console.warn("Some pre OAuth cleanups failed:", failedRuns);
-          }
-        } else {
-          console.log("Cleanup skipped: not all accounts are full (< 5 grants each)");
-        }
         const connect = new NylasConnect({
           clientId: selectedClientId,
           redirectUri: `${window.location.origin}/auth/callback`,
