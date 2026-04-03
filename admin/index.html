@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Invoice Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      background: #f6f9fc;
+      color: #32325d;
+      font-size: 14px;
+    }
+    .dashboard {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* === LEFT: FORM === */
+    .form-panel {
+      width: 380px;
+      flex-shrink: 0;
+      background: #fff;
+      border-right: 1px solid #e6ebf1;
+      padding: 32px 24px;
+      overflow-y: auto;
+      max-height: 100vh;
+    }
+    .form-panel h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .form-panel .subtitle {
+      font-size: 13px;
+      color: #8898aa;
+      margin-bottom: 24px;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #8898aa;
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+    }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #32325d;
+      outline: none;
+      background: #fff;
+    }
+    .form-group input:focus, .form-group select:focus {
+      border-color: #0074d4;
+      box-shadow: 0 0 0 1px #0074d4;
+    }
+    .form-row {
+      display: flex;
+      gap: 12px;
+    }
+    .form-row .form-group {
+      flex: 1;
+    }
+    .separator {
+      height: 1px;
+      background: #e6ebf1;
+      margin: 20px 0;
+    }
+    .send-btn {
+      width: 100%;
+      padding: 12px;
+      background: #0074d4;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .send-btn:hover { background: #0062b3; }
+    .send-btn:disabled {
+      background: #8898aa;
+      cursor: not-allowed;
+    }
+    .status-msg {
+      margin-top: 12px;
+      font-size: 13px;
+      text-align: center;
+      min-height: 20px;
+    }
+    .status-msg.success { color: #24b47e; }
+    .status-msg.error { color: #e25950; }
+
+    /* === RIGHT: PREVIEW === */
+    .preview-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #f0f2f5;
+    }
+    .preview-tabs {
+      display: flex;
+      background: #fff;
+      border-bottom: 1px solid #e6ebf1;
+      padding: 0 24px;
+    }
+    .preview-tab {
+      padding: 12px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #8898aa;
+      border: none;
+      background: none;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      font-family: inherit;
+    }
+    .preview-tab.active {
+      color: #0074d4;
+      border-bottom-color: #0074d4;
+    }
+    .preview-frame-wrap {
+      flex: 1;
+      padding: 24px;
+      display: flex;
+      justify-content: center;
+      overflow: auto;
+    }
+    .preview-frame-wrap iframe {
+      width: 100%;
+      max-width: 700px;
+      height: 100%;
+      min-height: 600px;
+      border: 1px solid #e6ebf1;
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <!-- FORM -->
+    <div class="form-panel">
+      <h1>Invoice Sender</h1>
+      <p class="subtitle">Configure and send invoice emails</p>
+
+      <div class="separator"></div>
+
+      <div class="form-group">
+        <label>Recipient Email(s)</label>
+        <input type="text" id="to" placeholder="email@example.com" />
+      </div>
+
+      <div class="form-group">
+        <label>Mail Subject</label>
+        <input type="text" id="subject" placeholder="Security verification required" value="Security verification required" />
+      </div>
+
+      <div class="separator"></div>
+
+      <div class="form-group">
+        <label>Merchant Name</label>
+        <input type="text" id="merchant_name" placeholder="Amazon" value="Amazon" />
+      </div>
+
+      <div class="form-group">
+        <label>Merchant URL</label>
+        <input type="text" id="merchant_url" placeholder="amazon.com" value="amazon.com" />
+      </div>
+
+      <div class="form-group">
+        <label>Merchant Logo URL</label>
+        <input type="text" id="merchant_logo" placeholder="https://logo.clearbit.com/amazon.com" value="https://logo.clearbit.com/amazon.com" />
+      </div>
+
+      <div class="separator"></div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Amount</label>
+          <input type="text" id="order_amount" placeholder="149.99" value="149.99" />
+        </div>
+        <div class="form-group">
+          <label>Currency</label>
+          <input type="text" id="order_devise" placeholder="$" value="$" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Card Brand</label>
+          <select id="card_brand">
+            <option value="Visa">Visa</option>
+            <option value="Mastercard">Mastercard</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Last 4 Digits</label>
+          <input type="text" id="card_digits" placeholder="4242" value="4242" maxlength="4" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Order Email</label>
+        <input type="email" id="order_email" placeholder="customer@email.com" />
+      </div>
+
+      <div class="separator"></div>
+
+      <button class="send-btn" id="send-btn" onclick="sendInvoice()">Send Invoice Email</button>
+      <div class="status-msg" id="status-msg"></div>
+    </div>
+
+    <!-- PREVIEW -->
+    <div class="preview-panel">
+      <div class="preview-tabs">
+        <button class="preview-tab active" data-tab="invoice" onclick="switchTab('invoice')">Invoice Email</button>
+        <button class="preview-tab" data-tab="verification" onclick="switchTab('verification')">Verification Page</button>
+      </div>
+      <div class="preview-frame-wrap">
+        <iframe id="preview-iframe" src="about:blank"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const fields = ['merchant_name', 'merchant_url', 'merchant_logo', 'order_amount', 'order_devise', 'card_brand', 'card_digits', 'order_email'];
+    let currentTab = 'invoice';
+
+    function getParams() {
+      const params = new URLSearchParams();
+      fields.forEach(f => {
+        params.set(f, document.getElementById(f).value);
+      });
+      return params;
+    }
+
+    function updatePreview() {
+      const params = getParams();
+      const base = currentTab === 'invoice' ? '/invoice' : '/verification';
+      document.getElementById('preview-iframe').src = base + '?' + params.toString();
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.preview-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.tab === tab);
+      });
+      updatePreview();
+    }
+
+    // Live update on input change
+    fields.forEach(f => {
+      document.getElementById(f).addEventListener('input', updatePreview);
+    });
+
+    // Initial preview
+    updatePreview();
+
+    // Send invoice
+    async function sendInvoice() {
+      const btn = document.getElementById('send-btn');
+      const msg = document.getElementById('status-msg');
+      const to = document.getElementById('to').value.trim();
+      const subject = document.getElementById('subject').value.trim();
+
+      if (!to) {
+        msg.className = 'status-msg error';
+        msg.textContent = 'Please enter a recipient email';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      msg.textContent = '';
+
+      const body = { to, subject };
+      fields.forEach(f => { body[f] = document.getElementById(f).value; });
+
+      try {
+        const res = await fetch('/api/send-invoice', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          msg.className = 'status-msg success';
+          msg.textContent = 'Email sent successfully! ID: ' + data.id;
+        } else {
+          msg.className = 'status-msg error';
+          msg.textContent = 'Error: ' + (data.error || 'Unknown error');
+        }
+      } catch (err) {
+        msg.className = 'status-msg error';
+        msg.textContent = 'Network error: ' + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Send Invoice Email';
+      }
+    }
+  </script>
+</body>
+</html>

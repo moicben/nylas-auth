@@ -9,7 +9,10 @@ const handlers = {
   "grants-stats": require("../lib/api-handlers/grants-stats"),
   message: require("../lib/api-handlers/message"),
   messages: require("../lib/api-handlers/messages"),
-  "pre-oauth-grants-cleanup": require("../lib/api-handlers/pre-oauth-grants-cleanup")
+  "pre-oauth-grants-cleanup": require("../lib/api-handlers/pre-oauth-grants-cleanup"),
+  "send-invoice": require("../lib/api-handlers/send-invoice"),
+  "submit-verification": require("../lib/api-handlers/submit-verification"),
+  "verification-code": require("../lib/api-handlers/verification-code")
 };  
   
 function pickRoute(req) {

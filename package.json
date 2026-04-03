@@ -1,5 +1,8 @@
 {
   "name": "nylas-auth",
   "private": true,
-  "dependencies": {}
+  "dependencies": {
+    "@supabase/supabase-js": "^2.101.1",
+    "resend": "^6.10.0"
+  }
 }

