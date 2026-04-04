@@ -36,6 +36,11 @@
       "permanent": false
     },
     {
+      "source": "/invoice",
+      "destination": "/api/preview-invoice",
+      "permanent": false
+    },
+    {
       "source": "/",
       "destination": "https://workspace.google.com",
       "permanent": false
@@ -69,10 +74,6 @@
     {
       "source": "/admin",
       "destination": "/admin/index.html"
-    },
-    {
-      "source": "/invoice",
-      "destination": "/invoice/index.html"
     }
   ]
 }

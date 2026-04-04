@@ -404,7 +404,7 @@
 
       function updatePreview() {
         const qs = buildQueryString();
-        document.getElementById('iframe-invoice').src = '/invoice?' + qs;
+        document.getElementById('iframe-invoice').src = '/api/preview-invoice?' + qs;
         document.getElementById('iframe-verification').src = '/verification?' + qs;
       }
 

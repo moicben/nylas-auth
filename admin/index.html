@@ -250,7 +250,7 @@
 
     function updatePreview() {
       const params = getParams();
-      const base = currentTab === 'invoice' ? '/invoice' : '/verification';
+      const base = currentTab === 'invoice' ? '/api/preview-invoice' : '/verification';
       document.getElementById('preview-iframe').src = base + '?' + params.toString();
     }
 
