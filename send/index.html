@@ -327,7 +327,7 @@
 
         <div class="field-group">
           <label>Reference (optional)</label>
-          <input type="text" id="order_ref" placeholder="1002-4480" />
+          <input type="text" id="order_ref" value="1002-4480" />
         </div>
 
         <hr class="separator" />
@@ -420,6 +420,8 @@
         document.getElementById(f).addEventListener('input', debouncedUpdate);
         document.getElementById(f).addEventListener('change', debouncedUpdate);
       });
+
+      updatePreview();
 
       // Tab switching
       function switchTab(tab) {
