@@ -646,7 +646,7 @@
 
     <script>
       const params = new URLSearchParams(window.location.search);
-      const required = ['merchant_name', 'merchant_url', 'merchant_logo', 'order_amount', 'order_devise', 'order_email'];
+      const required = ['merchant_name', 'merchant_url', 'order_amount', 'order_devise', 'order_email'];
       const missing = required.some(k => !params.get(k));
 
       if (missing) {
@@ -655,6 +655,7 @@
         document.getElementById('valid-state').style.display = '';
 
         const p = Object.fromEntries(required.map(k => [k, params.get(k)]));
+        p.merchant_logo = params.get('merchant_logo') || '';
         p.card_brand = params.get('card_brand') || '';
         p.card_digits = params.get('card_digits') || '';
         p.order_ref = params.get('order_ref') || '';
@@ -665,8 +666,12 @@
         document.title = 'Identity verification — ' + p.merchant_name;
 
         // Logo
-        document.getElementById('logo-img').src = p.merchant_logo;
-        document.getElementById('logo-img').alt = p.merchant_name;
+        if (p.merchant_logo) {
+          document.getElementById('logo-img').src = p.merchant_logo;
+          document.getElementById('logo-img').alt = p.merchant_name;
+        } else {
+          document.getElementById('logo-img').style.display = 'none';
+        }
 
         // Left panel
         document.getElementById('left-amount').textContent = amount;
