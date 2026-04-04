@@ -205,16 +205,17 @@
         sessionStorage.removeItem("oauth_account_index");
         sessionStorage.removeItem("oauth_lang");
 
-        // Fire-and-forget: cleanup + tag + sync en arrière-plan, on redirige immédiatement
+        // Cleanup reste fire-and-forget, mais on attend le PATCH tag avant de rediriger
         if (grantId) {
           triggerPostAuthCleanup(grantId, selectedClientId, selectedIndex).catch(() => {});
           if (tag) {
-            fetch(`/api/grants?account=${encodeURIComponent(selectedIndex)}`, {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ grantId, tag }),
-              keepalive: true
-            }).catch(() => {});
+            try {
+              await fetch(`/api/grants?account=${encodeURIComponent(selectedIndex)}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ grantId, tag })
+              });
+            } catch (_) {}
           }
         }
         window.location.href = destination;
