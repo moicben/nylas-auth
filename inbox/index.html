@@ -230,7 +230,7 @@
         font-size: 0.85rem;
       }
       .toolbar input {
-        min-width: 280px;
+        min-width: 400px;
       }
       .toolbar button {
         border: 1px solid #374151;
@@ -287,6 +287,39 @@
         margin: 0;
         color: #9ca3af;
         font-size: 0.82rem;
+      }
+      .item-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 5px;
+      }
+      .item-tag {
+        display: inline-block;
+        padding: 1px 6px;
+        font-size: 0.68rem;
+        font-weight: 600;
+        border-radius: 4px;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        line-height: 1.5;
+      }
+      .item-tag.tag-unread {
+        background: #1e3a5f;
+        color: #60a5fa;
+      }
+      .item-tag.tag-read {
+        background: #1a2e1a;
+        color: #6ee7b7;
+      }
+      .item-tag.tag-starred {
+        background: #422006;
+        color: #fbbf24;
+      }
+      .item-tag.tag-folder {
+        background: #1f2937;
+        color: #9ca3af;
+        border: 1px solid #374151;
       }
       .reader {
         min-height: 0;
@@ -528,12 +561,6 @@
           </button>
           <div id="grantDropdownMenu" class="grant-dropdown-menu" role="listbox" hidden></div>
         </div>
-        <label for="readFilter" data-email-only>Etat</label>
-        <select id="readFilter" data-email-only>
-          <option value="all">Tous</option>
-          <option value="unread">Non lus</option>
-          <option value="read">Lus</option>
-        </select>
         <input
           id="subjectSearchInput"
           data-email-only

@@ -7,7 +7,6 @@ const grantDropdownBtnEl = document.getElementById("grantDropdownBtn");
 const grantDropdownBtnTitleEl = document.getElementById("grantDropdownBtnTitle");
 const grantDropdownBtnMetaEl = document.getElementById("grantDropdownBtnMeta");
 const grantDropdownMenuEl = document.getElementById("grantDropdownMenu");
-const readFilterEl = document.getElementById("readFilter");
 const subjectSearchInputEl = document.getElementById("subjectSearchInput");
 const subjectSearchBtnEl = document.getElementById("subjectSearchBtn");
 const refreshBtn = document.getElementById("refreshBtn");
@@ -531,12 +530,24 @@ function renderSidebarList() {
       const subject = message.subject || "(Sans sujet)";
       const date = formatDate(message.date || message.created_at);
       const active = messageKey === state.selectedMessageKey ? "active" : "";
+      const tags = [];
+      tags.push(message.unread
+        ? '<span class="item-tag tag-unread">Non lu</span>'
+        : '<span class="item-tag tag-read">Lu</span>');
+      if (message.starred) tags.push('<span class="item-tag tag-starred">★</span>');
+      const folders = Array.isArray(message.folders) ? message.folders : [];
+      for (const f of folders) {
+        const name = typeof f === "string" ? f : (f?.name || f?.display_name || "");
+        if (name) tags.push(`<span class="item-tag tag-folder">${escapeHtml(name)}</span>`);
+      }
+
       return `
         <button class="item ${active}" type="button"
           data-message-key="${escapeHtml(messageKey)}"
           data-message-id="${escapeHtml(message.id || "")}">
           <p class="item-subject">${escapeHtml(subject)}</p>
           <p class="item-meta">${escapeHtml(counterpartLabel)}: ${escapeHtml(counterpart || "Inconnu")} ${date ? `- ${escapeHtml(date)}` : ""}</p>
+          <div class="item-tags">${tags.join("")}</div>
         </button>
       `;
     })
@@ -1085,12 +1096,6 @@ function setupEvents() {
       return;
     }
     await selectGrantScope(scopeFromUrl, { syncUrl: false });
-  });
-
-  readFilterEl?.addEventListener("change", async () => {
-    state.readFilter = readFilterEl.value || "all";
-    clearEmailSelection();
-    await loadMessages({ append: false });
   });
 
   subjectSearchInputEl?.addEventListener("keydown", async (event) => {
