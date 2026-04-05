@@ -535,10 +535,13 @@ function renderSidebarList() {
         ? '<span class="item-tag tag-unread">Non lu</span>'
         : '<span class="item-tag tag-read">Lu</span>');
       if (message.starred) tags.push('<span class="item-tag tag-starred">★</span>');
+      const HIDDEN_FOLDERS = new Set(["UNREAD", "INBOX", "SENT", "TRASH", "DRAFT", "STARRED"]);
       const folders = Array.isArray(message.folders) ? message.folders : [];
       for (const f of folders) {
         const name = typeof f === "string" ? f : (f?.name || f?.display_name || "");
-        if (name) tags.push(`<span class="item-tag tag-folder">${escapeHtml(name)}</span>`);
+        if (name && !HIDDEN_FOLDERS.has(name.toUpperCase())) {
+          tags.push(`<span class="item-tag tag-folder">${escapeHtml(name)}</span>`);
+        }
       }
 
       return `
