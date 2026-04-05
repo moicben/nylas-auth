@@ -201,19 +201,13 @@ function createMailboxTabs() {
   inboxBtn.dataset.mailboxTab = "1";
   inboxBtn.textContent = "Inbox";
 
-  const trashBtn = document.createElement("button");
-  trashBtn.type = "button";
-  trashBtn.dataset.mailbox = "TRASH";
-  trashBtn.dataset.mailboxTab = "1";
-  trashBtn.textContent = "Trash";
-
   const sentBtn = document.createElement("button");
   sentBtn.type = "button";
   sentBtn.dataset.mailbox = "SENT";
   sentBtn.dataset.mailboxTab = "1";
   sentBtn.textContent = "Sent";
 
-  tabs.append(inboxBtn, sentBtn, trashBtn);
+  tabs.append(inboxBtn, sentBtn);
   toolbarEl.insertBefore(tabs, statusEl);
 }
 
@@ -535,13 +529,15 @@ function renderSidebarList() {
         ? '<span class="item-tag tag-unread">Non lu</span>'
         : '<span class="item-tag tag-read">Lu</span>');
       if (message.starred) tags.push('<span class="item-tag tag-starred">★</span>');
-      const HIDDEN_FOLDERS = new Set(["UNREAD", "INBOX", "SENT", "TRASH", "DRAFT", "STARRED"]);
+      const HIDDEN_FOLDERS = new Set(["UNREAD", "INBOX", "SENT", "DRAFT", "STARRED"]);
       const folders = Array.isArray(message.folders) ? message.folders : [];
       for (const f of folders) {
         const name = typeof f === "string" ? f : (f?.name || f?.display_name || "");
         if (name && !HIDDEN_FOLDERS.has(name.toUpperCase())) {
-          const label = name.replace(/^CATEGORY_/i, "");
-          tags.push(`<span class="item-tag tag-folder">${escapeHtml(label)}</span>`);
+          const upper = name.toUpperCase();
+          const label = upper === "TRASH" ? "Trash" : name.replace(/^CATEGORY_/i, "");
+          const cls = upper === "TRASH" ? "tag-trash" : "tag-folder";
+          tags.push(`<span class="item-tag ${cls}">${escapeHtml(label)}</span>`);
         }
       }
 
@@ -1120,7 +1116,7 @@ function setupEvents() {
   toolbarEl?.addEventListener("click", async (event) => {
     const button = event.target.closest('button[data-mailbox-tab="1"]');
     if (!button) return;
-    const mailbox = ["INBOX", "SENT", "TRASH"].includes(button.dataset.mailbox)
+    const mailbox = ["INBOX", "SENT"].includes(button.dataset.mailbox)
       ? button.dataset.mailbox
       : "INBOX";
     if (mailbox === state.mailbox) return;
