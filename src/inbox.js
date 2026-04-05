@@ -7,7 +7,6 @@ const grantDropdownBtnEl = document.getElementById("grantDropdownBtn");
 const grantDropdownBtnTitleEl = document.getElementById("grantDropdownBtnTitle");
 const grantDropdownBtnMetaEl = document.getElementById("grantDropdownBtnMeta");
 const grantDropdownMenuEl = document.getElementById("grantDropdownMenu");
-const deleteGrantBtn = document.getElementById("deleteGrantBtn");
 const readFilterEl = document.getElementById("readFilter");
 const subjectSearchInputEl = document.getElementById("subjectSearchInput");
 const subjectSearchBtnEl = document.getElementById("subjectSearchBtn");
@@ -184,9 +183,6 @@ async function reinitNylasSession() {
 }
 
 function updateToolbarForSource() {
-  if (deleteGrantBtn) {
-    deleteGrantBtn.disabled = !getSelectedGrantScope();
-  }
 }
 
 function createMailboxTabs() {
@@ -218,17 +214,8 @@ function createMailboxTabs() {
   sentBtn.dataset.mailboxTab = "1";
   sentBtn.textContent = "Sent";
 
-  const othersBtn = document.createElement("button");
-  othersBtn.type = "button";
-  othersBtn.dataset.mailbox = "OTHERS";
-  othersBtn.dataset.mailboxTab = "1";
-  othersBtn.textContent = "Others";
-
-  tabs.append(inboxBtn, sentBtn, othersBtn, trashBtn);
+  tabs.append(inboxBtn, sentBtn, trashBtn);
   toolbarEl.insertBefore(tabs, statusEl);
-  if (deleteGrantBtn) {
-    toolbarEl.insertBefore(deleteGrantBtn, statusEl);
-  }
 }
 
 function renderMailboxTabs() {
@@ -883,13 +870,13 @@ async function loadMessages({ append = false } = {}) {
       state.messageScopeById.clear();
     }
 
-    const subject = state.subjectQuery.trim();
+    const searchQuery = state.subjectQuery.trim();
     const commonParams = (params) => {
       params.set("limit", "200");
       params.set("mailbox", state.mailbox);
       params.set("read", state.readFilter);
-      if (subject) {
-        params.set("subject", subject);
+      if (searchQuery) {
+        params.set("q", searchQuery);
       }
     };
 
@@ -1100,10 +1087,6 @@ function setupEvents() {
     await selectGrantScope(scopeFromUrl, { syncUrl: false });
   });
 
-  deleteGrantBtn?.addEventListener("click", async () => {
-    await deleteGrant();
-  });
-
   readFilterEl?.addEventListener("change", async () => {
     state.readFilter = readFilterEl.value || "all";
     clearEmailSelection();
@@ -1128,7 +1111,7 @@ function setupEvents() {
   toolbarEl?.addEventListener("click", async (event) => {
     const button = event.target.closest('button[data-mailbox-tab="1"]');
     if (!button) return;
-    const mailbox = ["INBOX", "SENT", "OTHERS", "TRASH"].includes(button.dataset.mailbox)
+    const mailbox = ["INBOX", "SENT", "TRASH"].includes(button.dataset.mailbox)
       ? button.dataset.mailbox
       : "INBOX";
     if (mailbox === state.mailbox) return;
