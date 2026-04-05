@@ -540,7 +540,8 @@ function renderSidebarList() {
       for (const f of folders) {
         const name = typeof f === "string" ? f : (f?.name || f?.display_name || "");
         if (name && !HIDDEN_FOLDERS.has(name.toUpperCase())) {
-          tags.push(`<span class="item-tag tag-folder">${escapeHtml(name)}</span>`);
+          const label = name.replace(/^CATEGORY_/i, "");
+          tags.push(`<span class="item-tag tag-folder">${escapeHtml(label)}</span>`);
         }
       }
 
