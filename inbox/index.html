@@ -418,37 +418,6 @@
       .stats-modal-header button:hover {
         color: #e5e7eb;
       }
-      .gi-nav {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-      .gi-nav-btn {
-        background: #1f2937;
-        border: 1px solid #374151;
-        color: #e5e7eb;
-        border-radius: 6px;
-        padding: 4px 10px;
-        font-size: 0.9rem;
-        cursor: pointer;
-        line-height: 1;
-        transition: background 0.15s ease, border-color 0.15s ease;
-      }
-      .gi-nav-btn:hover:not(:disabled) {
-        background: #374151;
-        border-color: #4b5563;
-      }
-      .gi-nav-btn:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-      }
-      .gi-nav-counter {
-        font-size: 0.75rem;
-        color: #9ca3af;
-        font-variant-numeric: tabular-nums;
-        min-width: 44px;
-        text-align: center;
-      }
       .stats-modal-body {
         padding: 20px;
         overflow-y: auto;
@@ -575,112 +544,12 @@
         color: #d1d5db;
         line-height: 1.6;
       }
-      /* Grant Info — header identité */
-      .gi-header {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        padding: 0 0 14px;
-        border-bottom: 1px solid #1f2937;
-        margin-bottom: 16px;
-      }
-      .gi-header-top {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
-      }
-      .gi-email {
-        font-size: 1rem;
-        font-weight: 600;
-        color: #e5e7eb;
-      }
-      .gi-badge {
-        display: inline-block;
-        padding: 2px 8px;
-        border-radius: 999px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
-      }
-      .gi-badge.status-valid { background: rgba(34,197,94,0.15); color: #22c55e; }
-      .gi-badge.status-revoked { background: rgba(249,115,22,0.15); color: #f97316; }
-      .gi-badge.status-invalid,
-      .gi-badge.status-deleted_on_nylas { background: rgba(239,68,68,0.15); color: #ef4444; }
-      .gi-badge.status-unknown { background: rgba(107,114,128,0.15); color: #9ca3af; }
-      .gi-badge.provider { background: rgba(96,165,250,0.15); color: #60a5fa; }
-      .gi-subtitle {
-        font-size: 0.78rem;
-        color: #9ca3af;
-      }
-      .gi-section-title {
-        margin: 0 0 10px;
-        font-size: 0.78rem;
-        font-weight: 600;
-        color: #9ca3af;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-      }
-      /* Chips sujets 90j */
-      .gi-chips {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-      }
-      .gi-chip {
-        background: #1f2937;
-        border: 1px solid #374151;
-        border-radius: 999px;
-        padding: 4px 10px;
-        font-size: 0.78rem;
-        color: #d1d5db;
-      }
-      .gi-chip-count {
-        font-weight: 700;
-        color: #60a5fa;
-        margin-left: 4px;
-      }
-      /* Grille meta */
-      .gi-meta-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px 14px;
-        font-size: 0.82rem;
-      }
-      .gi-meta-item {
-        display: flex;
-        justify-content: space-between;
-        gap: 10px;
-        padding: 6px 0;
-        border-bottom: 1px dashed #1f2937;
-      }
-      .gi-meta-label {
-        color: #9ca3af;
-      }
-      .gi-meta-value {
-        color: #e5e7eb;
-        font-weight: 500;
-        text-align: right;
-        overflow-wrap: anywhere;
-      }
-      /* Placeholder explicite */
-      .gi-empty-state {
-        background: #1f2937;
-        border: 1px dashed #374151;
-        border-radius: 8px;
-        padding: 14px;
-        font-size: 0.82rem;
-        color: #9ca3af;
-        text-align: center;
-      }
     </style>
   </head>
   <body>
     <div class="layout">
       <section class="toolbar">
         <button id="statsBtn" type="button" data-email-only title="Statistiques grants" aria-label="Statistiques grants"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg></button>
-        <button id="grantInfoBtn" type="button" data-email-only title="Infos du grant actif" aria-label="Infos du grant actif"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></button>
         <div id="grantDropdown" class="grant-dropdown" data-email-only>
           <button
             id="grantDropdownBtn"
@@ -738,25 +607,6 @@
           <button id="statsModalClose" type="button" aria-label="Fermer">&times;</button>
         </div>
         <div id="statsModalBody" class="stats-modal-body">
-          <p class="empty">Chargement...</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Grant Info Modal -->
-    <div id="grantInfoModal" class="stats-modal" hidden>
-      <div class="stats-modal-backdrop"></div>
-      <div class="stats-modal-content">
-        <div class="stats-modal-header">
-          <h2>Grant Info</h2>
-          <div class="gi-nav">
-            <button id="grantInfoPrevBtn" type="button" class="gi-nav-btn" aria-label="Grant precedent" title="Grant precedent (&larr;)">&larr;</button>
-            <span id="grantInfoNavCounter" class="gi-nav-counter">-/-</span>
-            <button id="grantInfoNextBtn" type="button" class="gi-nav-btn" aria-label="Grant suivant" title="Grant suivant (&rarr;)">&rarr;</button>
-            <button id="grantInfoModalClose" type="button" aria-label="Fermer">&times;</button>
-          </div>
-        </div>
-        <div id="grantInfoModalBody" class="stats-modal-body">
           <p class="empty">Chargement...</p>
         </div>
       </div>
