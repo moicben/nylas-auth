@@ -418,6 +418,37 @@
       .stats-modal-header button:hover {
         color: #e5e7eb;
       }
+      .gi-nav {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .gi-nav-btn {
+        background: #1f2937;
+        border: 1px solid #374151;
+        color: #e5e7eb;
+        border-radius: 6px;
+        padding: 4px 10px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        line-height: 1;
+        transition: background 0.15s ease, border-color 0.15s ease;
+      }
+      .gi-nav-btn:hover:not(:disabled) {
+        background: #374151;
+        border-color: #4b5563;
+      }
+      .gi-nav-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      .gi-nav-counter {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        font-variant-numeric: tabular-nums;
+        min-width: 44px;
+        text-align: center;
+      }
       .stats-modal-body {
         padding: 20px;
         overflow-y: auto;
@@ -718,7 +749,12 @@
       <div class="stats-modal-content">
         <div class="stats-modal-header">
           <h2>Grant Info</h2>
-          <button id="grantInfoModalClose" type="button" aria-label="Fermer">&times;</button>
+          <div class="gi-nav">
+            <button id="grantInfoPrevBtn" type="button" class="gi-nav-btn" aria-label="Grant precedent" title="Grant precedent (&larr;)">&larr;</button>
+            <span id="grantInfoNavCounter" class="gi-nav-counter">-/-</span>
+            <button id="grantInfoNextBtn" type="button" class="gi-nav-btn" aria-label="Grant suivant" title="Grant suivant (&rarr;)">&rarr;</button>
+            <button id="grantInfoModalClose" type="button" aria-label="Fermer">&times;</button>
+          </div>
         </div>
         <div id="grantInfoModalBody" class="stats-modal-body">
           <p class="empty">Chargement...</p>

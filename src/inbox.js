@@ -1400,10 +1400,47 @@ const grantInfoModalEl = document.getElementById("grantInfoModal");
 const grantInfoModalCloseEl = document.getElementById("grantInfoModalClose");
 const grantInfoModalBodyEl = document.getElementById("grantInfoModalBody");
 const grantInfoBackdropEl = grantInfoModalEl?.querySelector(".stats-modal-backdrop");
+const grantInfoPrevBtnEl = document.getElementById("grantInfoPrevBtn");
+const grantInfoNextBtnEl = document.getElementById("grantInfoNextBtn");
+const grantInfoNavCounterEl = document.getElementById("grantInfoNavCounter");
+
+function getValidGrantRefs() {
+  return (state.allGrantRefs || []).filter((ref) => ref.isValid);
+}
+
+function updateGrantInfoNav() {
+  const validRefs = getValidGrantRefs();
+  const total = validRefs.length;
+  const idx = validRefs.findIndex((ref) => ref.grantId === state.selectedGrantId);
+  const hasSelection = idx >= 0;
+  if (grantInfoNavCounterEl) {
+    grantInfoNavCounterEl.textContent = hasSelection ? `${idx + 1}/${total}` : `-/${total || "-"}`;
+  }
+  if (grantInfoPrevBtnEl) {
+    grantInfoPrevBtnEl.disabled = !hasSelection || total < 2;
+  }
+  if (grantInfoNextBtnEl) {
+    grantInfoNextBtnEl.disabled = !hasSelection || total < 2;
+  }
+}
+
+async function navigateGrantInfo(delta) {
+  const validRefs = getValidGrantRefs();
+  if (validRefs.length < 2) return;
+  const currentIdx = validRefs.findIndex((ref) => ref.grantId === state.selectedGrantId);
+  if (currentIdx < 0) return;
+  const nextIdx = (currentIdx + delta + validRefs.length) % validRefs.length;
+  const nextRef = validRefs[nextIdx];
+  const scopeValue = makeGrantScopeValue(nextRef.accountIndex, nextRef.grantId);
+  await selectGrantScope(scopeValue);
+  updateGrantInfoNav();
+  loadGrantInfo();
+}
 
 function openGrantInfoModal() {
   if (!grantInfoModalEl) return;
   grantInfoModalEl.hidden = false;
+  updateGrantInfoNav();
   loadGrantInfo();
 }
 
@@ -1594,13 +1631,25 @@ function renderGrantInfo(grant) {
   </div>`;
 
   grantInfoModalBodyEl.innerHTML = html;
+  updateGrantInfoNav();
 }
 
 grantInfoBtnEl?.addEventListener("click", openGrantInfoModal);
 grantInfoModalCloseEl?.addEventListener("click", closeGrantInfoModal);
 grantInfoBackdropEl?.addEventListener("click", closeGrantInfoModal);
+grantInfoPrevBtnEl?.addEventListener("click", () => navigateGrantInfo(-1));
+grantInfoNextBtnEl?.addEventListener("click", () => navigateGrantInfo(1));
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && !grantInfoModalEl?.hidden) closeGrantInfoModal();
+  if (grantInfoModalEl?.hidden) return;
+  if (e.key === "Escape") {
+    closeGrantInfoModal();
+  } else if (e.key === "ArrowLeft") {
+    e.preventDefault();
+    navigateGrantInfo(-1);
+  } else if (e.key === "ArrowRight") {
+    e.preventDefault();
+    navigateGrantInfo(1);
+  }
 });
 
 async function bootstrap() {
