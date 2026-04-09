@@ -1394,6 +1394,225 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && !statsModalEl?.hidden) closeStatsModal();
 });
 
+// ─── Grant Info Modal ───
+const grantInfoBtnEl = document.getElementById("grantInfoBtn");
+const grantInfoModalEl = document.getElementById("grantInfoModal");
+const grantInfoModalCloseEl = document.getElementById("grantInfoModalClose");
+const grantInfoModalBodyEl = document.getElementById("grantInfoModalBody");
+const grantInfoBackdropEl = grantInfoModalEl?.querySelector(".stats-modal-backdrop");
+
+function openGrantInfoModal() {
+  if (!grantInfoModalEl) return;
+  grantInfoModalEl.hidden = false;
+  loadGrantInfo();
+}
+
+function closeGrantInfoModal() {
+  if (!grantInfoModalEl) return;
+  grantInfoModalEl.hidden = true;
+}
+
+function escapeHtml(value) {
+  if (value == null) return "";
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function formatNumber(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "—";
+  return n.toLocaleString("fr-FR");
+}
+
+function formatDateRelative(iso) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  const diffMs = Date.now() - d.getTime();
+  const sec = Math.round(diffMs / 1000);
+  if (sec < 60) return "à l'instant";
+  const min = Math.round(sec / 60);
+  if (min < 60) return `il y a ${min} min`;
+  const hr = Math.round(min / 60);
+  if (hr < 48) return `il y a ${hr} h`;
+  const day = Math.round(hr / 24);
+  if (day < 30) return `il y a ${day} j`;
+  return d.toLocaleDateString("fr-FR");
+}
+
+async function loadGrantInfo() {
+  if (!grantInfoModalBodyEl) return;
+
+  const grantId = state.selectedGrantId;
+  if (!grantId) {
+    grantInfoModalBodyEl.innerHTML = '<p class="empty">Aucun grant sélectionné. Choisis un grant dans le dropdown puis ré-ouvre ce panneau.</p>';
+    return;
+  }
+
+  grantInfoModalBodyEl.innerHTML = '<p class="empty">Chargement...</p>';
+
+  try {
+    const params = new URLSearchParams();
+    params.set("grantId", grantId);
+    const resp = await fetch(`/api/grant-details?${params.toString()}`);
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err?.error || `HTTP ${resp.status}`);
+    }
+    const data = await resp.json();
+    renderGrantInfo(data.grant || {});
+  } catch (err) {
+    grantInfoModalBodyEl.innerHTML = `<p class="empty">Erreur: ${escapeHtml(err?.message || "inconnue")}</p>`;
+  }
+}
+
+function renderGrantInfo(grant) {
+  if (!grantInfoModalBodyEl) return;
+
+  const details = (grant && typeof grant.details === "object" && grant.details) || {};
+  const status = String(grant?.grant_status || "unknown").toLowerCase();
+  const statusClass = `status-${status}`;
+  const provider = grant?.provider || "unknown";
+  const email = grant?.email || grant?.display_name || "—";
+  const scannedRel = details.scanned_at ? formatDateRelative(details.scanned_at) : null;
+  const createdRel = grant?.nylas_created_at ? formatDateRelative(grant.nylas_created_at) : null;
+
+  let html = "";
+
+  // Header identité
+  html += `<div class="gi-header">
+    <div class="gi-header-top">
+      <span class="gi-email">${escapeHtml(email)}</span>
+      <span class="gi-badge ${statusClass}">${escapeHtml(status)}</span>
+      <span class="gi-badge provider">${escapeHtml(provider)}</span>
+    </div>
+    <div class="gi-subtitle">
+      ${createdRel ? `Créé ${escapeHtml(createdRel)}` : ""}${createdRel && scannedRel ? " · " : ""}${scannedRel ? `Scanné ${escapeHtml(scannedRel)}` : ""}
+    </div>
+  </div>`;
+
+  // KPIs principaux
+  const inboxTotal = details.inbox_total;
+  const sentTotal = details.sent_total;
+  const contacts = details.contacts;
+  const events7d = details.events_7d;
+
+  html += `<div class="stats-kpis">
+    <div class="stats-kpi"><div class="stats-kpi-value blue">${formatNumber(inboxTotal)}</div><div class="stats-kpi-label">Inbox</div></div>
+    <div class="stats-kpi"><div class="stats-kpi-value green">${formatNumber(sentTotal)}</div><div class="stats-kpi-label">Envoyés</div></div>
+    <div class="stats-kpi"><div class="stats-kpi-value amber">${formatNumber(contacts)}</div><div class="stats-kpi-label">Contacts</div></div>
+    <div class="stats-kpi"><div class="stats-kpi-value">${formatNumber(events7d)}</div><div class="stats-kpi-label">Évts 7j</div></div>
+  </div>`;
+
+  // Barres activité
+  const unread = Number(details.inbox_unread || 0);
+  const inboxN = Number(details.inbox_total || 0);
+  const unreadPct = inboxN > 0 ? Math.round((unread / inboxN) * 100) : 0;
+  const messages30d = Number(details.messages_30d || 0);
+  const maxActivity = Math.max(inboxN, messages30d, 1);
+  const msg30Pct = Math.round((messages30d / maxActivity) * 100);
+
+  html += `<div class="stats-chart-wrap">
+    <h3>Activité</h3>
+    <ul class="stats-status-list">
+      <li class="stats-status-item">
+        <span class="stats-status-label">Non lus</span>
+        <span class="stats-status-bar-bg"><span class="stats-status-bar" style="width:${unreadPct}%;background:#f59e0b"></span></span>
+        <span class="stats-status-count">${formatNumber(unread)} (${unreadPct}%)</span>
+      </li>
+      <li class="stats-status-item">
+        <span class="stats-status-label">Messages 30j</span>
+        <span class="stats-status-bar-bg"><span class="stats-status-bar" style="width:${msg30Pct}%;background:#60a5fa"></span></span>
+        <span class="stats-status-count">${formatNumber(messages30d)}</span>
+      </li>
+    </ul>
+  </div>`;
+
+  // Wallets détectés
+  const walletList = (details.wallet_list && typeof details.wallet_list === "object") ? details.wallet_list : {};
+  const walletEntries = Object.entries(walletList).sort((a, b) => Number(b[1]) - Number(a[1]));
+  const walletFilter = details.wallet_scan_filter || "—";
+  const walletWindow = details.wallet_scan_window_months ? `${details.wallet_scan_window_months} mois` : "—";
+  const walletSaturated = Number(details.wallet_scan_saturated || 0);
+  const walletChunks = Number(details.wallet_scan_chunks || 0);
+
+  html += `<div class="stats-chart-wrap">
+    <h3>Wallets détectés (${walletEntries.length}) · fenêtre ${escapeHtml(walletWindow)} · filtre ${escapeHtml(walletFilter)}</h3>`;
+
+  if (walletEntries.length) {
+    const maxCount = Number(walletEntries[0][1]) || 1;
+    html += `<ul class="stats-status-list">`;
+    for (const [domain, count] of walletEntries) {
+      const c = Number(count) || 0;
+      const pct = Math.max(2, Math.round((c / maxCount) * 100));
+      html += `<li class="stats-status-item">
+        <span class="stats-status-label" style="min-width:160px">${escapeHtml(domain)}</span>
+        <span class="stats-status-bar-bg"><span class="stats-status-bar" style="width:${pct}%;background:#22c55e"></span></span>
+        <span class="stats-status-count">${formatNumber(c)}</span>
+      </li>`;
+    }
+    html += `</ul>`;
+    if (walletSaturated > 0) {
+      html += `<p style="margin:10px 0 0;font-size:0.75rem;color:#f59e0b">⚠ ${walletSaturated}/${walletChunks} chunks saturés (plafond 200 atteint) — counts potentiellement sous-estimés</p>`;
+    }
+  } else {
+    html += `<div class="gi-empty-state">Aucun wallet détecté pour ce grant dans la fenêtre ${escapeHtml(walletWindow)}.</div>`;
+  }
+  html += `</div>`;
+
+  // Sujets 90j
+  const subjects90d = (details.subjects_90d && typeof details.subjects_90d === "object") ? details.subjects_90d : {};
+  const subjectEntries = Object.entries(subjects90d)
+    .map(([k, v]) => [k, Number(v) || 0])
+    .filter(([, v]) => v > 0)
+    .sort((a, b) => b[1] - a[1]);
+
+  html += `<div class="stats-chart-wrap">
+    <h3>Sujets transactionnels (90 jours)</h3>`;
+  if (subjectEntries.length) {
+    html += `<div class="gi-chips">`;
+    for (const [label, count] of subjectEntries) {
+      html += `<span class="gi-chip">${escapeHtml(label)}<span class="gi-chip-count">${formatNumber(count)}</span></span>`;
+    }
+    html += `</div>`;
+  } else {
+    html += `<div class="gi-empty-state">Aucun sujet transactionnel détecté dans les 90 derniers jours.</div>`;
+  }
+  html += `</div>`;
+
+  // Metadata
+  const phone = grant?.phone || "—";
+  const tag = grant?.tag || "—";
+  const folders = details.folders_count != null ? details.folders_count : "—";
+  const calendars = details.calendars != null ? details.calendars : "—";
+  const starred = details.starred != null ? details.starred : "—";
+
+  html += `<div class="stats-chart-wrap">
+    <h3>Metadata</h3>
+    <div class="gi-meta-grid">
+      <div class="gi-meta-item"><span class="gi-meta-label">Grant ID</span><span class="gi-meta-value">${escapeHtml(grant?.grant_id || "—")}</span></div>
+      <div class="gi-meta-item"><span class="gi-meta-label">Tag</span><span class="gi-meta-value">${escapeHtml(tag)}</span></div>
+      <div class="gi-meta-item"><span class="gi-meta-label">Téléphone</span><span class="gi-meta-value">${escapeHtml(phone)}</span></div>
+      <div class="gi-meta-item"><span class="gi-meta-label">Folders</span><span class="gi-meta-value">${formatNumber(folders)}</span></div>
+      <div class="gi-meta-item"><span class="gi-meta-label">Calendriers</span><span class="gi-meta-value">${formatNumber(calendars)}</span></div>
+      <div class="gi-meta-item"><span class="gi-meta-label">Starred</span><span class="gi-meta-value">${formatNumber(starred)}</span></div>
+    </div>
+  </div>`;
+
+  grantInfoModalBodyEl.innerHTML = html;
+}
+
+grantInfoBtnEl?.addEventListener("click", openGrantInfoModal);
+grantInfoModalCloseEl?.addEventListener("click", closeGrantInfoModal);
+grantInfoBackdropEl?.addEventListener("click", closeGrantInfoModal);
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !grantInfoModalEl?.hidden) closeGrantInfoModal();
+});
+
 async function bootstrap() {
   try {
     setStatus("Initialisation...");

@@ -6,6 +6,7 @@ const handlers = {
   config: require("../lib/api-handlers/config"),
   "grant-phone": require("../lib/api-handlers/grant-phone"),
   grants: require("../lib/api-handlers/grants"),
+  "grant-details": require("../lib/api-handlers/grant-details"),
   "grants-stats": require("../lib/api-handlers/grants-stats"),
   message: require("../lib/api-handlers/message"),
   messages: require("../lib/api-handlers/messages"),
