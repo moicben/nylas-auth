@@ -1412,16 +1412,6 @@ function closeGrantInfoModal() {
   grantInfoModalEl.hidden = true;
 }
 
-function escapeHtml(value) {
-  if (value == null) return "";
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
 function formatNumber(value) {
   const n = Number(value);
   if (!Number.isFinite(n)) return "—";
