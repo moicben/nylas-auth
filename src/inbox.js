@@ -1394,6 +1394,17 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && !statsModalEl?.hidden) closeStatsModal();
 });
 
+const grantCopyEmailBtn = document.getElementById("grantCopyEmailBtn");
+grantCopyEmailBtn?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const ref = (state.allGrantRefs || []).find((r) => r.grantId === state.selectedGrantId);
+  if (!ref?.displayName) return;
+  navigator.clipboard.writeText(ref.displayName).then(() => {
+    grantCopyEmailBtn.classList.add("copied");
+    setTimeout(() => grantCopyEmailBtn.classList.remove("copied"), 1200);
+  });
+});
+
 async function bootstrap() {
   try {
     setStatus("Initialisation...");
