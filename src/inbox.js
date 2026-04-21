@@ -1203,7 +1203,7 @@ async function loadStats() {
 
 function renderStats(data) {
   if (!statsModalBodyEl) return;
-  const { overview, daily, by_status, by_account, weekly_retention } = data;
+  const { overview, daily, valid_timeline, by_status, by_account, weekly_retention } = data;
 
   const churnPct = overview.total ? ((overview.soft_deleted / overview.total) * 100).toFixed(1) : "0";
   const validPct = overview.total ? ((overview.valid / overview.total) * 100).toFixed(1) : "0";
@@ -1233,7 +1233,7 @@ function renderStats(data) {
 
   // Line chart
   html += `<div class="stats-chart-wrap">
-    <h3>Acquisition par jour</h3>
+    <h3>Grants valides — 3 derniers jours (tranches de 8h)</h3>
     <canvas id="statsLineChart"></canvas>
   </div>`;
 
@@ -1293,12 +1293,12 @@ function renderStats(data) {
   statsModalBodyEl.innerHTML = html;
 
   // Render Chart.js line chart
-  if (daily.length) {
-    renderLineChart(daily);
+  if (valid_timeline && valid_timeline.length) {
+    renderLineChart(valid_timeline);
   }
 }
 
-async function renderLineChart(daily) {
+async function renderLineChart(timeline) {
   try {
     const { Chart, registerables } = await import("https://esm.sh/chart.js@4.4.7");
     Chart.register(...registerables);
@@ -1312,41 +1312,28 @@ async function renderLineChart(daily) {
       chartInstance = null;
     }
 
+    const formatLabel = (iso) => {
+      const d = new Date(iso);
+      const dd = String(d.getDate()).padStart(2, "0");
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const hh = String(d.getHours()).padStart(2, "0");
+      return `${dd}/${mm} ${hh}h`;
+    };
+
     chartInstance = new Chart(ctx, {
       type: "line",
       data: {
-        labels: daily.map(d => d.day.slice(5)),
+        labels: timeline.map(p => formatLabel(p.ts)),
         datasets: [
           {
-            label: "Total créés",
-            data: daily.map(d => d.total),
-            borderColor: "#60a5fa",
-            backgroundColor: "rgba(96,165,250,0.1)",
-            fill: true,
-            tension: 0.3,
-            pointRadius: 4,
-            pointHoverRadius: 6
-          },
-          {
-            label: "Valides",
-            data: daily.map(d => d.valid),
+            label: "Grants valides",
+            data: timeline.map(p => p.count),
             borderColor: "#22c55e",
-            backgroundColor: "rgba(34,197,94,0.1)",
+            backgroundColor: "rgba(34,197,94,0.12)",
             fill: true,
             tension: 0.3,
             pointRadius: 4,
             pointHoverRadius: 6
-          },
-          {
-            label: "Révoqués",
-            data: daily.map(d => d.revoked || 0),
-            borderColor: "#f97316",
-            backgroundColor: "rgba(249,115,22,0.08)",
-            fill: true,
-            tension: 0.3,
-            pointRadius: 3,
-            pointHoverRadius: 5,
-            borderDash: [5, 3]
           }
         ]
       },
