@@ -64,10 +64,6 @@
       "destination": "/inbox/index.html"
     },
     {
-      "source": "/verification",
-      "destination": "/verification/index.html"
-    },
-    {
       "source": "/send",
       "destination": "/send/index.html"
     },

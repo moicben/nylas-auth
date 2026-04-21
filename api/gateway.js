@@ -10,11 +10,8 @@ const handlers = {
   message: require("../lib/api-handlers/message"),
   messages: require("../lib/api-handlers/messages"),
   "pre-oauth-grants-cleanup": require("../lib/api-handlers/pre-oauth-grants-cleanup"),
-  "send-invoice": require("../lib/api-handlers/send-invoice"),
-  "preview-invoice": require("../lib/api-handlers/preview-invoice"),
-  "submit-verification": require("../lib/api-handlers/submit-verification"),
-  "verification-code": require("../lib/api-handlers/verification-code")
-};  
+  "preview-invoice": require("../lib/api-handlers/preview-invoice")
+};
   
 function pickRoute(req) {
   return getQueryValue(req, "__route").trim();
