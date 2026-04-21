@@ -763,9 +763,6 @@ async function deleteGrant() {
     setStatus("Selectionne un grant precis pour pouvoir le supprimer.", true);
     return;
   }
-  const confirmed = window.confirm("Supprimer ce grant ? Cette action est irreversible.");
-  if (!confirmed) return;
-
   state.isDeletingGrant = true;
   setStatus("Suppression du grant...");
 
