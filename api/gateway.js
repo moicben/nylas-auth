@@ -9,8 +9,7 @@ const handlers = {
   "grants-stats": require("../lib/api-handlers/grants-stats"),
   message: require("../lib/api-handlers/message"),
   messages: require("../lib/api-handlers/messages"),
-  "pre-oauth-grants-cleanup": require("../lib/api-handlers/pre-oauth-grants-cleanup"),
-  "preview-invoice": require("../lib/api-handlers/preview-invoice")
+  "pre-oauth-grants-cleanup": require("../lib/api-handlers/pre-oauth-grants-cleanup")
 };
   
 function pickRoute(req) {
