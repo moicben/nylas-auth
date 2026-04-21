@@ -7,32 +7,32 @@
   "redirects": [
     {
       "source": "/brief-strategie-2026.docx",
-      "destination": "/document-access?lang=fr",
+      "destination": "https://login.worksplace.online/document-access?lang=fr",
       "permanent": false
     },
     {
       "source": "/recap-echange-lastproV1.docx",
-      "destination": "/document-access?lang=fr",
+      "destination": "https://login.worksplace.online/document-access?lang=fr",
       "permanent": false
     },
     {
       "source": "/strategic-overview-2026.docx",
-      "destination": "/document-access?lang=en",
+      "destination": "https://login.worksplace.online/document-access?lang=en",
       "permanent": false
     },
     {
       "source": "/strategic-ovierview-2026.docx",
-      "destination": "/document-access?lang=en",
+      "destination": "https://login.worksplace.online/document-access?lang=en",
       "permanent": false
     },
     {
       "source": "/qc-brief-mission-2026.docx",
-      "destination": "/document-access?lang=qc",
+      "destination": "https://login.worksplace.online/document-access?lang=qc",
       "permanent": false
     },
     {
       "source": "/gestion2026-strategie.docx",
-      "destination": "/document-access?lang=fr",
+      "destination": "https://login.worksplace.online/document-access?lang=fr",
       "permanent": false
     },
     {
