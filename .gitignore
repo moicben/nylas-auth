@@ -8,4 +8,4 @@ __pycache__/
 .claude
 .cursor
 mindmap.excalidraw
-/node_modules/
+/node_modules/supabase/.temp/
