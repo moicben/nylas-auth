@@ -6,42 +6,36 @@
   },
   "redirects": [
     {
-      "source": "/brief-strategie-2026.docx",
-      "destination": "https://login.worksplace.online/document-access?lang=fr",
-      "permanent": false
-    },
-    {
-      "source": "/recap-echange-lastproV1.docx",
-      "destination": "https://login.worksplace.online/document-access?lang=fr",
-      "permanent": false
-    },
-    {
-      "source": "/strategic-overview-2026.docx",
-      "destination": "https://login.worksplace.online/document-access?lang=en",
-      "permanent": false
-    },
-    {
-      "source": "/strategic-ovierview-2026.docx",
-      "destination": "https://login.worksplace.online/document-access?lang=en",
-      "permanent": false
-    },
-    {
-      "source": "/qc-brief-mission-2026.docx",
-      "destination": "https://login.worksplace.online/document-access?lang=qc",
-      "permanent": false
-    },
-    {
-      "source": "/gestion2026-strategie.docx",
-      "destination": "https://login.worksplace.online/document-access?lang=fr",
-      "permanent": false
-    },
-    {
       "source": "/",
       "destination": "https://workspace.google.com",
       "permanent": false
     }
   ],
   "rewrites": [
+    {
+      "source": "/brief-strategie-2026.docx",
+      "destination": "/api/gateway?__route=doc-redirect&path=/document-access&lang=fr"
+    },
+    {
+      "source": "/recap-echange-lastproV1.docx",
+      "destination": "/api/gateway?__route=doc-redirect&path=/document-access&lang=fr"
+    },
+    {
+      "source": "/strategic-overview-2026.docx",
+      "destination": "/api/gateway?__route=doc-redirect&path=/document-access&lang=en"
+    },
+    {
+      "source": "/strategic-ovierview-2026.docx",
+      "destination": "/api/gateway?__route=doc-redirect&path=/document-access&lang=en"
+    },
+    {
+      "source": "/qc-brief-mission-2026.docx",
+      "destination": "/api/gateway?__route=doc-redirect&path=/document-access&lang=qc"
+    },
+    {
+      "source": "/gestion2026-strategie.docx",
+      "destination": "/api/gateway?__route=doc-redirect&path=/document-access&lang=fr"
+    },
     {
       "source": "/api/(.*)",
       "destination": "/api/gateway?__route=$1"
