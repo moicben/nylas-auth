@@ -8,8 +8,16 @@ const handlers = {
   messages: require("../../lib/api-handlers/messages")
 };
 
+function pickRoute(event) {
+  const fromQuery = String(event.queryStringParameters?.__route || "").trim();
+  if (fromQuery) return fromQuery;
+  const path = String(event.path || "");
+  const match = path.match(/\/api\/([^/?]+)/);
+  return match ? match[1] : "";
+}
+
 exports.handler = async function (event) {
-  const route = String(event.queryStringParameters?.__route || "").trim();
+  const route = pickRoute(event);
   if (!route) {
     return {
       statusCode: 400,
