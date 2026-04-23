@@ -1,7 +1,6 @@
 import { NylasConnect } from "https://esm.sh/@nylas/connect";
 
 const statusEl = document.getElementById("status");
-const accountSelectEl = document.getElementById("accountSelect");
 const grantDropdownEl = document.getElementById("grantDropdown");
 const grantDropdownBtnEl = document.getElementById("grantDropdownBtn");
 const grantDropdownBtnTitleEl = document.getElementById("grantDropdownBtnTitle");
@@ -15,11 +14,9 @@ const readerPanelEl = document.getElementById("readerPanel");
 const loadMoreBtn = document.getElementById("loadMoreBtn");
 const toolbarEl = document.querySelector(".toolbar");
 
-
 const state = {
   sessionGrantId: "",
   selectedGrantId: "",
-  selectedGrantAccountIndex: 0,
   mailbox: "INBOX",
   readFilter: "all",
   subjectQuery: "",
@@ -29,107 +26,31 @@ const state = {
   nextCursor: "",
   detailById: new Map(),
   messageScopeById: new Map(),
-  grantsByAccount: new Map(),
   allGrantRefs: [],
   emailLoadSeq: 0,
   isLoadingMessages: false,
   isDeletingMessage: false,
   isDeletingGrant: false,
-  /** Comptes Nylas (index + clientId public), depuis /api/config */
-  runtimeAccounts: [],
   apiUrl: "https://api.eu.nylas.com",
-  selectedAccountIndex: 1
+  clientId: ""
 };
 
-const NYLAS_ACCOUNT_STORAGE_KEY = "inbox-nylas-account-index";
-const GRANT_SCOPE_SEPARATOR = "::";
 const GRANT_QUERY_PARAM = "grant";
-/** Instance Nylas Connect recréée lors d’un changement de compte */
 let nylasConnect = null;
 
-function normalizeRuntimeAccounts(cfg) {
-  if (Array.isArray(cfg.accounts) && cfg.accounts.length) {
-    return cfg.accounts;
-  }
-  const cid = cfg.inboxClientId || cfg.clientId;
-  if (cid) {
-    return [{ index: 1, clientId: cid }];
-  }
-  return [];
+function buildMessageKey(grantId, messageId) {
+  return `${String(grantId)}:${String(messageId)}`;
 }
 
-function pickSavedAccountIndex() {
-  const ids = state.runtimeAccounts.map((a) => a.index);
-  if (!ids.length) {
-    return 1;
-  }
-  let saved = "";
-  try {
-    saved = localStorage.getItem(NYLAS_ACCOUNT_STORAGE_KEY) || "";
-  } catch (_e) {
-    saved = "";
-  }
-  const n = Number.parseInt(saved, 10);
-  if (Number.isFinite(n) && ids.includes(n)) {
-    return n;
-  }
-  return ids[0];
-}
-
-function getSelectedClientId() {
-  const row = state.runtimeAccounts.find((a) => a.index === state.selectedAccountIndex);
-  return row?.clientId || "";
-}
-
-function fillAccountSelect() {
-  if (!accountSelectEl) {
-    return; 
-  }
-  accountSelectEl.innerHTML = "";
-  for (const acc of state.runtimeAccounts) {
-    const opt = document.createElement("option");
-    opt.value = String(acc.index);
-    opt.textContent = String(acc.index);
-    accountSelectEl.append(opt);
-  }
-  if (
-    state.selectedAccountIndex &&
-    [...accountSelectEl.options].some((o) => Number.parseInt(o.value, 10) === state.selectedAccountIndex)
-  ) {
-    accountSelectEl.value = String(state.selectedAccountIndex);
-  }
-}
-
-function appendAccountParam(params, accountIndex = state.selectedAccountIndex) {
-  params.set("account", String(accountIndex));
-}
-
-function makeGrantScopeValue(accountIndex, grantId) {
-  return `${String(accountIndex)}${GRANT_SCOPE_SEPARATOR}${String(grantId)}`;
-}
-
-function parseGrantScopeValue(value) {
-  if (!value) return null;
-  const sepIndex = String(value).indexOf(GRANT_SCOPE_SEPARATOR);
-  if (sepIndex <= 0) return null;
-  const accountRaw = String(value).slice(0, sepIndex);
-  const grantId = String(value).slice(sepIndex + GRANT_SCOPE_SEPARATOR.length).trim();
-  const accountIndex = Number.parseInt(accountRaw, 10);
-  if (!Number.isFinite(accountIndex) || accountIndex < 1 || !grantId) {
-    return null;
-  }
-  return { accountIndex, grantId };
-}
-
-function getGrantScopeFromUrl() {
+function getGrantFromUrl() {
   const params = new URLSearchParams(window.location.search);
   return params.get(GRANT_QUERY_PARAM) || "";
 }
 
-function setGrantScopeInUrl(scopeValue, { replace = false } = {}) {
+function setGrantInUrl(grantId, { replace = false } = {}) {
   const url = new URL(window.location.href);
-  if (scopeValue) {
-    url.searchParams.set(GRANT_QUERY_PARAM, scopeValue);
+  if (grantId) {
+    url.searchParams.set(GRANT_QUERY_PARAM, grantId);
   } else {
     url.searchParams.delete(GRANT_QUERY_PARAM);
   }
@@ -143,20 +64,6 @@ function setGrantScopeInUrl(scopeValue, { replace = false } = {}) {
   }
 }
 
-function getSelectedGrantScope() {
-  if (!state.selectedGrantId || !state.selectedGrantAccountIndex) {
-    return null;
-  }
-  return {
-    accountIndex: state.selectedGrantAccountIndex,
-    grantId: state.selectedGrantId
-  };
-}
-
-function buildMessageKey(accountIndex, grantId, messageId) {
-  return `${String(accountIndex)}:${String(grantId)}:${String(messageId)}`;
-}
-
 function clearEmailSelection() {
   state.selectedMessageId = "";
   state.selectedMessageKey = "";
@@ -165,13 +72,10 @@ function clearEmailSelection() {
   state.messageScopeById.clear();
 }
 
-async function reinitNylasSession() {
-  const clientId = getSelectedClientId();
-  if (!clientId) {
-    return;
-  }
+async function initNylasSession() {
+  if (!state.clientId) return;
   nylasConnect = new NylasConnect({
-    clientId,
+    clientId: state.clientId,
     redirectUri: `${window.location.origin}/auth/callback`,
     apiUrl: state.apiUrl,
     environment: "development",
@@ -179,9 +83,6 @@ async function reinitNylasSession() {
   });
   const session = await nylasConnect.getSession();
   state.sessionGrantId = session?.grantId || "";
-}
-
-function updateToolbarForSource() {
 }
 
 function createMailboxTabs() {
@@ -235,7 +136,6 @@ function parseAnyDate(value) {
   if (value === undefined || value === null || value === "") return null;
   const numeric = Number(value);
   if (Number.isFinite(numeric)) {
-    // Supports Unix seconds and Unix milliseconds.
     const ms = numeric > 1e11 ? numeric : numeric * 1000;
     const dateFromNumber = new Date(ms);
     return Number.isNaN(dateFromNumber.getTime()) ? null : dateFromNumber;
@@ -257,22 +157,6 @@ function toUnixTimestampSeconds(value) {
   const date = parseAnyDate(value);
   if (!date) return 0;
   return Math.floor(date.getTime() / 1000);
-}
-
-function pickGrantCreatedAt(grant) {
-  if (!grant || typeof grant !== "object") return "";
-  return (
-    grant.createdAt ||
-    grant.created_at ||
-    grant.createdOn ||
-    grant.created_on ||
-    grant.createdTimestamp ||
-    grant.created_timestamp ||
-    grant.creationDate ||
-    grant.creation_date ||
-    grant.created ||
-    ""
-  );
 }
 
 function closeGrantDropdown() {
@@ -299,10 +183,7 @@ function renderGrantDropdown() {
   }
 
   grantDropdownMenuEl.innerHTML = "";
-  const selectedScopeValue =
-    state.selectedGrantId && state.selectedGrantAccountIndex
-      ? makeGrantScopeValue(state.selectedGrantAccountIndex, state.selectedGrantId)
-      : "";
+  const selectedGrantId = state.selectedGrantId || "";
 
   if (!state.allGrantRefs.length) {
     grantDropdownBtnTitleEl.textContent = "Aucun grant";
@@ -317,9 +198,7 @@ function renderGrantDropdown() {
   }
 
   grantDropdownBtnEl.disabled = false;
-  const selectedRef = state.allGrantRefs.find(
-    (ref) => makeGrantScopeValue(ref.accountIndex, ref.grantId) === selectedScopeValue
-  );
+  const selectedRef = state.allGrantRefs.find((ref) => ref.grantId === selectedGrantId);
   const fallbackRef = state.allGrantRefs[0];
   const activeRef = selectedRef || fallbackRef;
   const createdAtLabel = formatDate(activeRef?.createdAt);
@@ -331,27 +210,20 @@ function renderGrantDropdown() {
   activeTitleText.className = "grant-title-text";
   activeTitleText.textContent = activeRef?.displayName || activeRef?.grantId || "Grant";
   grantDropdownBtnTitleEl.append(activeDot, activeTitleText);
-  if (activeRef?.tag) {
-    const activeTag = document.createElement("span");
-    activeTag.className = "grant-tag";
-    activeTag.textContent = activeRef.tag;
-    grantDropdownBtnTitleEl.append(activeTag);
-  }
-  grantDropdownBtnMetaEl.textContent = `Acc ${activeRef?.accountIndex || ""} • ${activeRef?.provider || "provider"}${
+  grantDropdownBtnMetaEl.textContent = `${activeRef?.provider || "provider"}${
     createdAtLabel ? ` • Cree le ${createdAtLabel}` : ""
   }`;
 
   for (const ref of state.allGrantRefs) {
     if (!ref.isValid) continue;
-    const scopeValue = makeGrantScopeValue(ref.accountIndex, ref.grantId);
-    const isActive = scopeValue === selectedScopeValue;
+    const isActive = ref.grantId === selectedGrantId;
     const statusLabel = ref.isValid ? "valid" : "invalid";
     const createdLabel = formatDate(ref.createdAt);
 
     const item = document.createElement("button");
     item.type = "button";
     item.className = `grant-option${isActive ? " active" : ""}`;
-    item.dataset.grantScopeValue = scopeValue;
+    item.dataset.grantId = ref.grantId;
     item.setAttribute("role", "option");
     item.setAttribute("aria-selected", isActive ? "true" : "false");
 
@@ -385,22 +257,14 @@ function renderGrantDropdown() {
     delBtn.addEventListener("click", async (e) => {
       e.stopPropagation();
       state.selectedGrantId = ref.grantId;
-      state.selectedGrantAccountIndex = ref.accountIndex;
       await deleteGrant();
     });
 
-    if (ref.tag) {
-      const tagBadge = document.createElement("span");
-      tagBadge.className = "grant-tag";
-      tagBadge.textContent = ref.tag;
-      title.append(dot, titleText, tagBadge, copyBtn, delBtn);
-    } else {
-      title.append(dot, titleText, copyBtn, delBtn);
-    }
+    title.append(dot, titleText, copyBtn, delBtn);
 
     const meta = document.createElement("p");
     meta.className = "grant-option-meta";
-    meta.textContent = `Acc ${ref.accountIndex} • ${ref.provider} • ${statusLabel}${
+    meta.textContent = `${ref.provider} • ${statusLabel}${
       createdLabel ? ` • Cree le ${createdLabel}` : ""
     }`;
 
@@ -426,7 +290,7 @@ function decodeHtmlEntities(value) {
 
 function normalizeBodyText(value) {
   return decodeHtmlEntities(value)
-    .replace(/[\u2000-\u200f\u2028\u2029\u00ad]/g, "")
+    .replace(/[ -‏  ­]/g, "")
     .replace(/\r\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
@@ -434,14 +298,11 @@ function normalizeBodyText(value) {
 
 function sanitizeAndNormalizeEmailHtml(value) {
   if (!value) return "";
-
   const parser = new DOMParser();
   const doc = parser.parseFromString(String(value), "text/html");
-
   doc.querySelectorAll("script, style, iframe, object, embed, link, meta, base").forEach((node) => {
     node.remove();
   });
-
   doc.querySelectorAll("*").forEach((node) => {
     for (const attr of Array.from(node.attributes)) {
       const name = attr.name.toLowerCase();
@@ -454,12 +315,10 @@ function sanitizeAndNormalizeEmailHtml(value) {
       }
     }
   });
-
   doc.querySelectorAll("a").forEach((anchor) => {
     anchor.setAttribute("target", "_blank");
     anchor.setAttribute("rel", "noopener noreferrer");
   });
-
   return doc.body?.innerHTML || "";
 }
 
@@ -511,7 +370,7 @@ function renderSidebarList() {
       const messageKey =
         typeof message.__messageKey === "string" && message.__messageKey
           ? message.__messageKey
-          : buildMessageKey(message.__accountIndex, message.__grantId, message.id || "");
+          : buildMessageKey(message.__grantId, message.id || "");
       const counterpart =
         state.mailbox === "SENT"
           ? Array.isArray(message.to)
@@ -574,14 +433,9 @@ function renderReader(message) {
             .map((attachment) => {
               const fileSize = formatFileSize(attachment.size);
               const metaParts = [attachment.contentType, fileSize].filter(Boolean);
-              const hasDownloadLink = Boolean(
-                attachment.id &&
-                detailScope?.grantId &&
-                Number.isFinite(Number(detailScope?.accountIndex))
-              );
+              const hasDownloadLink = Boolean(attachment.id && detailScope?.grantId);
               const params = new URLSearchParams();
               if (hasDownloadLink) {
-                appendAccountParam(params, detailScope.accountIndex);
                 params.set("grantId", detailScope.grantId);
                 params.set("attachmentId", attachment.id);
                 params.set("messageId", message?.id || "");
@@ -633,7 +487,6 @@ function updateLoadMoreButton() {
   loadMoreBtn.hidden = !show;
 }
 
-
 async function loadRuntimeConfig() {
   const response = await fetch("/api/config");
   const data = await response.json();
@@ -655,62 +508,35 @@ async function fetchJson(url, init = undefined) {
 }
 
 async function loadGrants() {
-  const previousSelectionValue =
-    state.selectedGrantId && state.selectedGrantAccountIndex
-      ? makeGrantScopeValue(state.selectedGrantAccountIndex, state.selectedGrantId)
-      : "";
-  const urlSelectionValue = getGrantScopeFromUrl();
-  const accountRows = Array.isArray(state.runtimeAccounts) ? state.runtimeAccounts : [];
-  const fetchedByAccount = await Promise.all(
-    accountRows.map(async (account) => {
-      const params = new URLSearchParams();
-      appendAccountParam(params, account.index);
-      try {
-        const payload = await fetchJson(`/api/grants?${params.toString()}`);
-        if (payload?.source !== "supabase") {
-          throw new Error("Source grants invalide: Supabase requis");
-        }
-        const grants = Array.isArray(payload?.data) ? payload.data : [];
-        return { accountIndex: account.index, grants, error: "" };
-      } catch (error) {
-        return {
-          accountIndex: account.index,
-          grants: [],
-          error: error?.message || "Erreur de chargement des grants"
-        };
-      }
-    })
-  );
+  const previousGrantId = state.selectedGrantId || "";
+  const urlGrantId = getGrantFromUrl();
 
-  state.grantsByAccount = new Map();
-  state.allGrantRefs = [];
-  for (const row of fetchedByAccount) {
-    state.grantsByAccount.set(row.accountIndex, row.grants);
-    for (const grant of row.grants) {
-      const createdAt = pickGrantCreatedAt(grant);
-      const createdAtTs = toUnixTimestampSeconds(createdAt);
+  try {
+    const payload = await fetchJson(`/api/grants`);
+    const grants = Array.isArray(payload?.data) ? payload.data : [];
+    state.allGrantRefs = grants.map((grant) => {
+      const createdAt = grant.createdAt || "";
       const grantStatusRaw = String(grant.grantStatus || "").trim();
-      const isValid = grantStatusRaw.toLowerCase() === "valid";
-      state.allGrantRefs.push({
-        accountIndex: row.accountIndex,
+      return {
         grantId: grant.id,
         displayName: grant.displayName || grant.id,
         provider: grant.provider || "provider",
         grantStatus: grantStatusRaw,
-        isValid,
+        isValid: grantStatusRaw.toLowerCase() === "valid",
         createdAt,
-        createdAtTs,
-        tag: grant.tag || null
-      });
-    }
+        createdAtTs: toUnixTimestampSeconds(createdAt)
+      };
+    });
+  } catch (error) {
+    state.allGrantRefs = [];
+    setStatus(error?.message || "Erreur de chargement des grants", true);
   }
 
   state.allGrantRefs.sort((left, right) => right.createdAtTs - left.createdAtTs);
 
   if (!state.allGrantRefs.length) {
     state.selectedGrantId = "";
-    state.selectedGrantAccountIndex = 0;
-    setGrantScopeInUrl("", { replace: true });
+    setGrantInUrl("", { replace: true });
     renderGrantDropdown();
     setStatus("Aucun grant trouve", true);
     renderReaderPlaceholder("Aucun grant.");
@@ -722,8 +548,7 @@ async function loadGrants() {
 
   if (!validGrantRefs.length) {
     state.selectedGrantId = "";
-    state.selectedGrantAccountIndex = 0;
-    setGrantScopeInUrl("", { replace: true });
+    setGrantInUrl("", { replace: true });
     renderGrantDropdown();
     setStatus("Aucun grant valide trouve", true);
     renderReaderPlaceholder("Aucun grant valide.");
@@ -731,35 +556,21 @@ async function loadGrants() {
     return;
   }
 
-  const hasPrevious = validGrantRefs.some(
-    (ref) => makeGrantScopeValue(ref.accountIndex, ref.grantId) === previousSelectionValue
-  );
-  const hasUrlSelection = validGrantRefs.some(
-    (ref) => makeGrantScopeValue(ref.accountIndex, ref.grantId) === urlSelectionValue
-  );
-  const nextSelectionValue = hasUrlSelection
-    ? urlSelectionValue
+  const hasPrevious = validGrantRefs.some((ref) => ref.grantId === previousGrantId);
+  const hasUrl = validGrantRefs.some((ref) => ref.grantId === urlGrantId);
+  const nextGrantId = hasUrl
+    ? urlGrantId
     : hasPrevious
-      ? previousSelectionValue
-      : makeGrantScopeValue(validGrantRefs[0].accountIndex, validGrantRefs[0].grantId);
+      ? previousGrantId
+      : validGrantRefs[0].grantId;
 
-  const parsed = parseGrantScopeValue(nextSelectionValue);
-  if (!parsed) {
-    state.selectedGrantId = "";
-    state.selectedGrantAccountIndex = 0;
-    setGrantScopeInUrl("", { replace: true });
-    renderGrantDropdown();
-    return;
-  }
-  state.selectedGrantId = parsed.grantId;
-  state.selectedGrantAccountIndex = parsed.accountIndex;
-  setGrantScopeInUrl(nextSelectionValue, { replace: true });
+  state.selectedGrantId = nextGrantId;
+  setGrantInUrl(nextGrantId, { replace: true });
   renderGrantDropdown();
 }
 
 async function deleteGrant() {
-  const scope = getSelectedGrantScope();
-  if (!scope || state.isDeletingGrant) {
+  if (!state.selectedGrantId || state.isDeletingGrant) {
     setStatus("Selectionne un grant precis pour pouvoir le supprimer.", true);
     return;
   }
@@ -768,12 +579,10 @@ async function deleteGrant() {
 
   try {
     const params = new URLSearchParams();
-    appendAccountParam(params, scope.accountIndex);
-    params.set("grantId", scope.grantId);
+    params.set("grantId", state.selectedGrantId);
     await fetchJson(`/api/grants?${params.toString()}`, { method: "DELETE" });
 
     state.selectedGrantId = "";
-    state.selectedGrantAccountIndex = 0;
     clearEmailSelection();
     state.messages = [];
     renderSidebarList();
@@ -799,18 +608,13 @@ function getNextCursor(payload) {
   );
 }
 
-function normalizeMessageWithScope(message, scope) {
+function normalizeMessageWithScope(message, grantId) {
   const messageId = message?.id || "";
-  const messageKey = buildMessageKey(scope.accountIndex, scope.grantId, messageId);
-  state.messageScopeById.set(messageKey, {
-    accountIndex: scope.accountIndex,
-    grantId: scope.grantId,
-    messageId
-  });
+  const messageKey = buildMessageKey(grantId, messageId);
+  state.messageScopeById.set(messageKey, { grantId, messageId });
   return {
     ...message,
-    __accountIndex: scope.accountIndex,
-    __grantId: scope.grantId,
+    __grantId: grantId,
     __messageKey: messageKey
   };
 }
@@ -818,7 +622,7 @@ function normalizeMessageWithScope(message, scope) {
 async function deleteMessage(messageKey) {
   if (!messageKey || state.isDeletingMessage) return;
   const scope = state.messageScopeById.get(messageKey);
-  if (!scope?.grantId || !scope?.messageId || !scope?.accountIndex) {
+  if (!scope?.grantId || !scope?.messageId) {
     setStatus("Impossible de determiner la boite de ce message.", true);
     return;
   }
@@ -829,7 +633,6 @@ async function deleteMessage(messageKey) {
 
   try {
     const params = new URLSearchParams();
-    appendAccountParam(params, scope.accountIndex);
     params.set("grantId", scope.grantId);
     params.set("messageId", scope.messageId);
     await fetchJson(`/api/message?${params.toString()}`, {
@@ -888,11 +691,9 @@ async function loadMessages({ append = false } = {}) {
       }
     };
 
-    const scope = getSelectedGrantScope();
-    if (loadSeq !== state.emailLoadSeq) {
-      return;
-    }
-    if (!scope) {
+    const grantId = state.selectedGrantId;
+    if (loadSeq !== state.emailLoadSeq) return;
+    if (!grantId) {
       state.messages = [];
       state.nextCursor = "";
       renderSidebarList();
@@ -901,8 +702,7 @@ async function loadMessages({ append = false } = {}) {
       return;
     }
     const params = new URLSearchParams();
-    appendAccountParam(params, scope.accountIndex);
-    params.set("grantId", scope.grantId);
+    params.set("grantId", grantId);
     commonParams(params);
     if (append && state.nextCursor) {
       params.set("cursor", state.nextCursor);
@@ -910,16 +710,12 @@ async function loadMessages({ append = false } = {}) {
 
     const payload = await fetchJson(`/api/messages?${params.toString()}`);
     const data = Array.isArray(payload?.data) ? payload.data : [];
-    const normalized = data.map((message) => normalizeMessageWithScope(message, scope));
-    if (loadSeq !== state.emailLoadSeq) {
-      return;
-    }
+    const normalized = data.map((message) => normalizeMessageWithScope(message, grantId));
+    if (loadSeq !== state.emailLoadSeq) return;
     state.messages = append ? state.messages.concat(normalized) : normalized;
     state.nextCursor = getNextCursor(payload);
 
-    if (loadSeq !== state.emailLoadSeq) {
-      return;
-    }
+    if (loadSeq !== state.emailLoadSeq) return;
     renderSidebarList();
 
     if (!append && state.messages.length) {
@@ -935,9 +731,7 @@ async function loadMessages({ append = false } = {}) {
 
     setStatus(`${state.messages.length} email(s) charges`);
   } catch (error) {
-    if (loadSeq !== state.emailLoadSeq) {
-      return;
-    }
+    if (loadSeq !== state.emailLoadSeq) return;
     if (error?.grantInvalid) {
       setStatus("Grant invalide — rechargement...", true);
       messagesListEl.innerHTML = '<p class="empty">Ce grant n\'est plus accessible.</p>';
@@ -959,7 +753,7 @@ async function loadMessages({ append = false } = {}) {
 async function loadMessageDetail(messageKey) {
   if (!messageKey) return;
   const scope = state.messageScopeById.get(messageKey);
-  if (!scope?.grantId || !scope?.messageId || !scope?.accountIndex) return;
+  if (!scope?.grantId || !scope?.messageId) return;
 
   if (state.detailById.has(messageKey)) {
     renderReader(state.detailById.get(messageKey));
@@ -969,7 +763,6 @@ async function loadMessageDetail(messageKey) {
   renderReaderPlaceholder("Chargement du contenu...");
   try {
     const params = new URLSearchParams();
-    appendAccountParam(params, scope.accountIndex);
     params.set("grantId", scope.grantId);
     params.set("messageId", scope.messageId);
     const payload = await fetchJson(`/api/message?${params.toString()}`);
@@ -1004,49 +797,18 @@ async function refreshCurrentSource() {
   await loadMessages({ append: false });
 }
 
-async function selectGrantScope(scopeValue, { syncUrl = true, replaceHistory = false } = {}) {
-  const parsed = parseGrantScopeValue(scopeValue);
-  let selectedScopeValue = "";
-  if (!parsed) {
-    state.selectedGrantId = "";
-    state.selectedGrantAccountIndex = 0;
-  } else {
-    state.selectedGrantId = parsed.grantId;
-    state.selectedGrantAccountIndex = parsed.accountIndex;
-    selectedScopeValue = makeGrantScopeValue(parsed.accountIndex, parsed.grantId);
-  }
+async function selectGrant(grantId, { syncUrl = true, replaceHistory = false } = {}) {
+  state.selectedGrantId = grantId || "";
   if (syncUrl) {
-    setGrantScopeInUrl(selectedScopeValue, { replace: replaceHistory });
+    setGrantInUrl(state.selectedGrantId, { replace: replaceHistory });
   }
   closeGrantDropdown();
   renderGrantDropdown();
   clearEmailSelection();
-  updateToolbarForSource();
   await loadMessages({ append: false });
 }
 
 function setupEvents() {
-  accountSelectEl?.addEventListener("focus", async () => {
-    await loadGrants();
-    updateToolbarForSource();
-  });
-
-  accountSelectEl?.addEventListener("change", async () => {
-    const v = Number.parseInt(accountSelectEl.value, 10);
-    state.selectedAccountIndex = Number.isFinite(v) && v >= 1 ? v : 1;
-    try {
-      localStorage.setItem(NYLAS_ACCOUNT_STORAGE_KEY, String(state.selectedAccountIndex));
-    } catch (_e) {
-      /* ignore */
-    }
-    clearEmailSelection();
-    state.messages = [];
-    await reinitNylasSession();
-    await loadGrants();
-    updateToolbarForSource();
-    await loadMessages({ append: false });
-  });
-
   grantDropdownBtnEl?.addEventListener("click", () => {
     if (!grantDropdownMenuEl) return;
     if (grantDropdownMenuEl.hidden) {
@@ -1057,10 +819,10 @@ function setupEvents() {
   });
 
   grantDropdownMenuEl?.addEventListener("click", async (event) => {
-    const option = event.target.closest("button[data-grant-scope-value]");
-    const scopeValue = option?.dataset.grantScopeValue || "";
-    if (!scopeValue) return;
-    await selectGrantScope(scopeValue);
+    const option = event.target.closest("button[data-grant-id]");
+    const grantId = option?.dataset.grantId || "";
+    if (!grantId) return;
+    await selectGrant(grantId);
   });
 
   document.addEventListener("click", (event) => {
@@ -1077,22 +839,15 @@ function setupEvents() {
   });
 
   window.addEventListener("popstate", async () => {
-    const scopeFromUrl = getGrantScopeFromUrl();
-    const currentScope =
-      state.selectedGrantId && state.selectedGrantAccountIndex
-        ? makeGrantScopeValue(state.selectedGrantAccountIndex, state.selectedGrantId)
-        : "";
-    if (scopeFromUrl === currentScope) return;
-    const existsInCurrentList = state.allGrantRefs.some(
-      (ref) => makeGrantScopeValue(ref.accountIndex, ref.grantId) === scopeFromUrl
-    );
+    const grantFromUrl = getGrantFromUrl();
+    if (grantFromUrl === state.selectedGrantId) return;
+    const existsInCurrentList = state.allGrantRefs.some((ref) => ref.grantId === grantFromUrl);
     if (!existsInCurrentList) {
       await loadGrants();
-      updateToolbarForSource();
       await loadMessages({ append: false });
       return;
     }
-    await selectGrantScope(scopeFromUrl, { syncUrl: false });
+    await selectGrant(grantFromUrl, { syncUrl: false });
   });
 
   subjectSearchInputEl?.addEventListener("keydown", async (event) => {
@@ -1152,232 +907,6 @@ function setupEvents() {
   });
 }
 
-// ─── Grant Stats Modal ───
-const statsBtnEl = document.getElementById("statsBtn");
-const statsModalEl = document.getElementById("statsModal");
-const statsModalCloseEl = document.getElementById("statsModalClose");
-const statsModalBodyEl = document.getElementById("statsModalBody");
-const statsBackdropEl = statsModalEl?.querySelector(".stats-modal-backdrop");
-
-let chartInstance = null;
-
-function openStatsModal() {
-  if (!statsModalEl) return;
-  statsModalEl.hidden = false;
-  loadStats();
-}
-
-function closeStatsModal() {
-  if (!statsModalEl) return;
-  statsModalEl.hidden = true;
-  if (chartInstance) {
-    chartInstance.destroy();
-    chartInstance = null;
-  }
-}
-
-const STATUS_COLORS = {
-  valid: "#22c55e",
-  unauthorized: "#f59e0b",
-  done: "#60a5fa",
-  deleted_on_nylas: "#ef4444",
-  invalid: "#6b7280",
-  unknown: "#4b5563"
-};
-
-async function loadStats() {
-  if (!statsModalBodyEl) return;
-  statsModalBodyEl.innerHTML = '<p class="empty">Chargement...</p>';
-
-  try {
-    const params = new URLSearchParams();
-    appendAccountParam(params);
-    const resp = await fetch(`/api/grants-stats?${params.toString()}`);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data = await resp.json();
-    renderStats(data);
-  } catch (err) {
-    statsModalBodyEl.innerHTML = `<p class="empty">Erreur: ${err.message}</p>`;
-  }
-}
-
-function renderStats(data) {
-  if (!statsModalBodyEl) return;
-  const { overview, daily, valid_timeline, by_status, by_account, weekly_retention } = data;
-
-  const churnPct = overview.total ? ((overview.soft_deleted / overview.total) * 100).toFixed(1) : "0";
-  const validPct = overview.total ? ((overview.valid / overview.total) * 100).toFixed(1) : "0";
-
-  let html = "";
-
-  // KPI Cards
-  html += `<div class="stats-kpis">
-    <div class="stats-kpi"><div class="stats-kpi-value blue">${overview.total}</div><div class="stats-kpi-label">Total grants</div></div>
-    <div class="stats-kpi"><div class="stats-kpi-value green">${overview.valid} <small style="font-size:0.7rem;color:#9ca3af">(${validPct}%)</small></div><div class="stats-kpi-label">Valides</div></div>
-    <div class="stats-kpi"><div class="stats-kpi-value red">${churnPct}%</div><div class="stats-kpi-label">Taux churn</div></div>
-    <div class="stats-kpi"><div class="stats-kpi-value amber">${overview.unique_emails}</div><div class="stats-kpi-label">Emails uniques</div></div>
-  </div>`;
-
-  // Extra KPIs row
-  const avgRevoke = overview.avg_time_to_revoke_hours != null
-    ? (overview.avg_time_to_revoke_hours < 24
-      ? `${overview.avg_time_to_revoke_hours}h`
-      : `${(overview.avg_time_to_revoke_hours / 24).toFixed(1)}j`)
-    : "—";
-  html += `<div class="stats-kpis" style="margin-top:-10px">
-    <div class="stats-kpi"><div class="stats-kpi-value" style="font-size:1.2rem">${overview.accounts}</div><div class="stats-kpi-label">Comptes Nylas</div></div>
-    <div class="stats-kpi"><div class="stats-kpi-value" style="font-size:1.2rem;color:#f97316">${overview.revoked || 0}</div><div class="stats-kpi-label">Révoqués</div></div>
-    <div class="stats-kpi"><div class="stats-kpi-value" style="font-size:1.2rem;color:#f97316">${avgRevoke}</div><div class="stats-kpi-label">Durée moy. révocation</div></div>
-    <div class="stats-kpi"><div class="stats-kpi-value" style="font-size:1.2rem">${overview.deleted_on_nylas}</div><div class="stats-kpi-label">Deleted on Nylas</div></div>
-  </div>`;
-
-  // Line chart
-  html += `<div class="stats-chart-wrap">
-    <h3>Grants valides — 3 derniers jours (tranches de 8h)</h3>
-    <canvas id="statsLineChart"></canvas>
-  </div>`;
-
-  // Status distribution bars
-  const maxCount = by_status.length ? Math.max(...by_status.map(s => s.count)) : 1;
-  html += `<div class="stats-chart-wrap"><h3>Répartition par statut</h3><ul class="stats-status-list">`;
-  for (const s of by_status) {
-    const pct = ((s.count / maxCount) * 100).toFixed(0);
-    const color = STATUS_COLORS[s.status] || STATUS_COLORS.unknown;
-    html += `<li class="stats-status-item">
-      <span class="stats-status-label">${s.status}</span>
-      <span class="stats-status-bar-bg"><span class="stats-status-bar" style="width:${pct}%;background:${color}"></span></span>
-      <span class="stats-status-count">${s.count}</span>
-    </li>`;
-  }
-  html += `</ul></div>`;
-
-  // Account table
-  html += `<div class="stats-chart-wrap"><h3>Par compte Nylas</h3><table class="stats-table">
-    <thead><tr><th>Account</th><th>Total</th><th>Valides</th><th>Supprimés</th><th>Rétention</th></tr></thead><tbody>`;
-  for (const a of by_account) {
-    const retention = a.total ? (((a.total - a.deleted) / a.total) * 100).toFixed(0) : "—";
-    html += `<tr>
-      <td>#${a.account_id}</td><td>${a.total}</td><td>${a.valid}</td><td>${a.deleted}</td>
-      <td>${retention}%</td>
-    </tr>`;
-  }
-  html += `</tbody></table></div>`;
-
-  // Weekly retention
-  if (weekly_retention.length) {
-    html += `<div class="stats-chart-wrap"><h3>Rétention hebdomadaire</h3><table class="stats-table">
-      <thead><tr><th>Semaine</th><th>Créés</th><th>Supprimés</th><th>Rétention</th></tr></thead><tbody>`;
-    for (const w of weekly_retention) {
-      const ret = w.created ? (((w.created - w.deleted) / w.created) * 100).toFixed(0) : "—";
-      html += `<tr><td>${w.week}</td><td>${w.created}</td><td>${w.deleted}</td><td>${ret}%</td></tr>`;
-    }
-    html += `</tbody></table></div>`;
-  }
-
-  // Insights callout
-  const insights = [];
-  if (Number(churnPct) > 50) insights.push(`Churn critique : ${churnPct}% des grants sont supprimés`);
-  if (overview.accounts === 1) insights.push("Mono-provider : 100% Google");
-  if (daily.length >= 2) {
-    const topDay = [...daily].sort((a, b) => b.total - a.total)[0];
-    if (topDay) insights.push(`Pic : ${topDay.total} grants le ${topDay.day}`);
-  }
-  if (overview.valid < overview.total * 0.25) insights.push(`Seulement ${validPct}% de grants valides`);
-
-  if (insights.length) {
-    html += `<div class="stats-insights"><h3>Insights</h3><ul>`;
-    for (const i of insights) html += `<li>${i}</li>`;
-    html += `</ul></div>`;
-  }
-
-  statsModalBodyEl.innerHTML = html;
-
-  // Render Chart.js line chart
-  if (valid_timeline && valid_timeline.length) {
-    renderLineChart(valid_timeline);
-  }
-}
-
-async function renderLineChart(timeline) {
-  try {
-    const { Chart, registerables } = await import("https://esm.sh/chart.js@4.4.7");
-    Chart.register(...registerables);
-
-    const canvas = document.getElementById("statsLineChart");
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-
-    if (chartInstance) {
-      chartInstance.destroy();
-      chartInstance = null;
-    }
-
-    const formatLabel = (iso) => {
-      const d = new Date(iso);
-      const dd = String(d.getDate()).padStart(2, "0");
-      const mm = String(d.getMonth() + 1).padStart(2, "0");
-      const hh = String(d.getHours()).padStart(2, "0");
-      return `${dd}/${mm} ${hh}h`;
-    };
-
-    chartInstance = new Chart(ctx, {
-      type: "line",
-      data: {
-        labels: timeline.map(p => formatLabel(p.ts)),
-        datasets: [
-          {
-            label: "Grants valides",
-            data: timeline.map(p => p.count),
-            borderColor: "#22c55e",
-            backgroundColor: "rgba(34,197,94,0.12)",
-            fill: true,
-            tension: 0.3,
-            pointRadius: 4,
-            pointHoverRadius: 6
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: { mode: "index", intersect: false },
-        plugins: {
-          legend: {
-            labels: { color: "#9ca3af", boxWidth: 12, padding: 14 }
-          },
-          tooltip: {
-            backgroundColor: "#1e293b",
-            titleColor: "#e5e7eb",
-            bodyColor: "#d1d5db",
-            borderColor: "#374151",
-            borderWidth: 1
-          }
-        },
-        scales: {
-          x: {
-            ticks: { color: "#6b7280", font: { size: 11 } },
-            grid: { color: "rgba(55,65,81,0.3)" }
-          },
-          y: {
-            beginAtZero: true,
-            ticks: { color: "#6b7280", font: { size: 11 }, stepSize: 1 },
-            grid: { color: "rgba(55,65,81,0.3)" }
-          }
-        }
-      }
-    });
-  } catch (err) {
-    console.warn("Chart.js load failed:", err);
-  }
-}
-
-statsBtnEl?.addEventListener("click", openStatsModal);
-statsModalCloseEl?.addEventListener("click", closeStatsModal);
-statsBackdropEl?.addEventListener("click", closeStatsModal);
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && !statsModalEl?.hidden) closeStatsModal();
-});
-
 const grantCopyEmailBtn = document.getElementById("grantCopyEmailBtn");
 grantCopyEmailBtn?.addEventListener("click", (e) => {
   e.stopPropagation();
@@ -1394,30 +923,23 @@ async function bootstrap() {
     setStatus("Initialisation...");
     createMailboxTabs();
     renderMailboxTabs();
-    updateToolbarForSource();
     const cfg = await loadRuntimeConfig();
-    state.runtimeAccounts = normalizeRuntimeAccounts(cfg);
     state.apiUrl = cfg.apiUrl || "https://api.eu.nylas.com";
-    if (!state.runtimeAccounts.length) {
-      throw new Error("Aucun compte Nylas dans la configuration");
-    }
-    state.selectedAccountIndex = pickSavedAccountIndex();
-    fillAccountSelect();
-    if (accountSelectEl) {
-      accountSelectEl.value = String(state.selectedAccountIndex);
+    state.clientId = cfg.clientId || "";
+    if (!state.clientId) {
+      throw new Error("Aucun clientId Nylas dans la configuration");
     }
     if (subjectSearchInputEl) {
       subjectSearchInputEl.value = state.subjectQuery;
     }
-    await reinitNylasSession();
+    await initNylasSession();
 
     setupEvents();
     await loadGrants();
-    updateToolbarForSource();
     await loadMessages({ append: false });
   } catch (error) {
     setStatus(error?.message || "Erreur d'initialisation", true);
-    messagesListEl.innerHTML = '<p class="empty">Impossible d’initialiser Inbox.</p>';
+    messagesListEl.innerHTML = '<p class="empty">Impossible d\'initialiser Inbox.</p>';
     renderReaderPlaceholder("Vérifie ta session OAuth puis réessaye.");
   }
 }

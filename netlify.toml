@@ -1,0 +1,74 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/"
+  to = "https://workspace.google.com"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/brief-strategie-2026.docx"
+  to = "/document-access/index.html?lang=fr"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/recap-echange-lastproV1.docx"
+  to = "/document-access/index.html?lang=fr"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/strategic-overview-2026.docx"
+  to = "/document-access/index.html?lang=en"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/strategic-ovierview-2026.docx"
+  to = "/document-access/index.html?lang=en"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/qc-brief-mission-2026.docx"
+  to = "/document-access/index.html?lang=qc"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/gestion2026-strategie.docx"
+  to = "/document-access/index.html?lang=fr"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/api/clean-post-auth-background"
+  to = "/.netlify/functions/clean-post-auth-background"
+  status = 200
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/gateway?__route=:splat"
+  status = 200
+
+[[redirects]]
+  from = "/auth/callback"
+  to = "/auth/callback/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/auth-verification"
+  to = "/auth-verification/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/inbox"
+  to = "/inbox/index.html"
+  status = 200
+

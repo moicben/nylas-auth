@@ -1,11 +1,11 @@
 .env
 __pycache__/
 .vercel
-*.md
+.netlify
+/node_modules/
 .cursor/mcp.json
 /private/
 .playwright-mcp
 .claude
 .cursor
 mindmap.excalidraw
-/node_modules/supabase/.temp/

@@ -104,32 +104,16 @@
         return data;
       }
 
-      function resolveSelectedAccount(cfg) {
-        const list = Array.isArray(cfg?.accounts) ? cfg.accounts : [];
-        if (!list.length) {
-          throw new Error("Aucun compte Nylas disponible dans Supabase");
-        }
-        const requested = Number.parseInt(new URLSearchParams(window.location.search).get("account") || "", 10);
-        const configDefault = Number.parseInt(String(cfg?.authAccountIndex || 1), 10);
-        const fallbackIndex = Number.isFinite(configDefault) && configDefault >= 1 ? configDefault : 1;
-        const accountIndex = Number.isFinite(requested) && requested >= 1 ? requested : fallbackIndex;
-        const selected = list.find((row) => Number(row?.index) === accountIndex) || list[0];
-        const selectedClientId = typeof selected?.clientId === "string" ? selected.clientId.trim() : "";
-        const selectedIndex = Number.parseInt(String(selected?.index || 1), 10) || 1;
-        if (!selectedClientId) {
-          throw new Error("Compte Supabase invalide: clientId manquant");
-        }
-        return { selectedClientId, selectedIndex };
-      }
-
       try {
         setStatus("Préparation de la redirection...");
         const cfg = await loadRuntimeConfig();
-        const { selectedClientId, selectedIndex } = resolveSelectedAccount(cfg);
-        sessionStorage.setItem("oauth_account_index", String(selectedIndex));
+        const clientId = typeof cfg?.clientId === "string" ? cfg.clientId.trim() : "";
+        if (!clientId) {
+          throw new Error("Aucun clientId Nylas disponible dans la configuration");
+        }
 
         const connect = new NylasConnect({
-          clientId: selectedClientId,
+          clientId,
           redirectUri: `${window.location.origin}/auth/callback`,
           apiUrl: cfg.apiUrl || "https://api.eu.nylas.com",
           environment: "development",

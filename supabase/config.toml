@@ -1,4 +1,0 @@
-project_id = "vgijwvybcggjkezzxatg"
-
-[functions.sync-accounts]
-verify_jwt = false

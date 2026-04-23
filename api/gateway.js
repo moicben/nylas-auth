@@ -4,15 +4,11 @@ const handlers = {
   attachment: require("../lib/api-handlers/attachment"),
   "clean-post-auth": require("../lib/api-handlers/clean-post-auth"),
   config: require("../lib/api-handlers/config"),
-  "doc-redirect": require("../lib/api-handlers/doc-redirect"),
-  "grant-phone": require("../lib/api-handlers/grant-phone"),
   grants: require("../lib/api-handlers/grants"),
-  "grants-stats": require("../lib/api-handlers/grants-stats"),
   message: require("../lib/api-handlers/message"),
-  messages: require("../lib/api-handlers/messages"),
-  "pre-oauth-grants-cleanup": require("../lib/api-handlers/pre-oauth-grants-cleanup")
+  messages: require("../lib/api-handlers/messages")
 };
-  
+
 function pickRoute(req) {
   return getQueryValue(req, "__route").trim();
 }

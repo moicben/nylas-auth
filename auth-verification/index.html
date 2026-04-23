@@ -458,19 +458,6 @@
 
       showStep(1);
 
-      if (GRANT_ID) {
-        try {
-          await fetch("/api/grant-phone", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              grant_id: GRANT_ID,
-              phone: countryCode + "-" + document.getElementById("phoneNumber").value.replace(/\D/g, "").replace(/^0+/, "")
-            })
-          });
-        } catch (_e) {}
-      }
-
       loaderText.textContent = t.loaderText;
       await wait(2500);
 

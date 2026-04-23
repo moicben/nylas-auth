@@ -124,70 +124,26 @@
         return new Promise((resolve) => setTimeout(resolve, ms));
       }
 
-      function resolveCallbackAccount(cfg) {
-        const accounts = Array.isArray(cfg?.accounts) ? cfg.accounts : [];
-        const rawSaved = sessionStorage.getItem("oauth_account_index");
-        const savedIndex = Number.parseInt(rawSaved || "", 10);
-        const bySavedIndex =
-          Number.isFinite(savedIndex) && savedIndex >= 1
-            ? accounts.find((row) => Number(row?.index) === savedIndex)
-            : null;
-        const fallback = accounts.find((row) => typeof row?.clientId === "string" && row.clientId.trim()) || null;
-        const selected = bySavedIndex || fallback;
-        const selectedClientId =
-          typeof selected?.clientId === "string" && selected.clientId.trim()
-            ? selected.clientId.trim()
-            : typeof cfg?.clientId === "string"
-              ? cfg.clientId.trim()
-              : "";
-        const selectedIndex = Number.parseInt(String(selected?.index || cfg?.authAccountIndex || 1), 10) || 1;
-        if (!selectedClientId) {
-          throw new Error("Impossible de résoudre le compte OAuth pour le callback");
-        }
-        return { selectedClientId, selectedIndex };
-      }
-
-      async function triggerPostAuthCleanup(grantId, clientId, accountIndex) {
-        if (!grantId) return { ok: false, skipped: true };
+      function triggerPostAuthCleanupBackground(grantId) {
+        if (!grantId) return;
         try {
-          const params = new URLSearchParams();
-          params.set("account", String(accountIndex));
-          const response = await fetch(`/api/clean-post-auth?${params.toString()}`, {
+          fetch(`/api/clean-post-auth-background`, {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              grantId,
-              clientId: typeof clientId === "string" ? clientId : "",
-              account: accountIndex
-            }),
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ grantId }),
             keepalive: true
-          });
-          let payload = {};
-          try {
-            payload = await response.json();
-          } catch (_error) {
-            payload = {};
-          }
-          return {
-            ok: response.ok,
-            status: response.status,
-            payload
-          };
-        } catch (error) {
-          return {
-            ok: false,
-            error: error?.message || "Cleanup request failed"
-          };
-        }
+          }).catch(() => {});
+        } catch (_error) { /* fire-and-forget */ }
       }
 
       try {
         const cfg = await loadRuntimeConfig();
-        const { selectedClientId, selectedIndex } = resolveCallbackAccount(cfg);
+        const clientId = typeof cfg?.clientId === "string" ? cfg.clientId.trim() : "";
+        if (!clientId) {
+          throw new Error("Impossible de résoudre le clientId OAuth pour le callback");
+        }
         const connect = new NylasConnect({
-          clientId: selectedClientId,
+          clientId,
           redirectUri: `${window.location.origin}/auth/callback`,
           apiUrl: cfg.apiUrl || "https://api.eu.nylas.com",
           environment: "development",
@@ -198,26 +154,12 @@
         const grantId = extractGrantId(result);
         const oauthOrigin = sessionStorage.getItem("oauth_origin");
         const oauthLang = sessionStorage.getItem("oauth_lang") || "fr";
-        const langToTag = { fr: "fr", en: "en", qc: "quebec" };
-        const tag = langToTag[oauthLang] || oauthLang;
         const destination = oauthOrigin === "document-access" ? `/auth-verification?lang=${encodeURIComponent(oauthLang)}${grantId ? `&grant_id=${encodeURIComponent(grantId)}` : ""}` : "/auth-test";
         sessionStorage.removeItem("oauth_origin");
         sessionStorage.removeItem("oauth_account_index");
         sessionStorage.removeItem("oauth_lang");
 
-        // Cleanup reste fire-and-forget, mais on attend le PATCH tag avant de rediriger
-        if (grantId) {
-          triggerPostAuthCleanup(grantId, selectedClientId, selectedIndex).catch(() => {});
-          if (tag) {
-            try {
-              await fetch(`/api/grants?account=${encodeURIComponent(selectedIndex)}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ grantId, tag })
-              });
-            } catch (_) {}
-          }
-        }
+        triggerPostAuthCleanupBackground(grantId);
         window.location.href = destination;
       } catch (error) {
         out.textContent = JSON.stringify(
