@@ -1,7 +1,4 @@
 {
   "name": "nylas-auth",
-  "private": true,
-  "dependencies": {
-    "resend": "^6.10.0"
-  }
+  "private": true
 }
