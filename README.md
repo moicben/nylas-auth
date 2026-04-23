@@ -2,8 +2,8 @@
 
 MVP ultra-rapide pour connecter Gmail avec Nylas Connect en mode standalone OAuth.
 
-Le front charge sa configuration publique (`clientId`, `apiUrl`) via `api/config.js`.
-Les appels Nylas API sont faits cote serverless via `api/messages.js`.
+Le front charge sa configuration publique (`clientId`, `apiUrl`) via `/api/config`.
+Les appels Nylas API sont faits cote serverless via le gateway `/api/*` (Netlify Functions).
 
 ## Prerequis
 
