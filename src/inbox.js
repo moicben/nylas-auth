@@ -918,6 +918,13 @@ grantCopyEmailBtn?.addEventListener("click", (e) => {
   });
 });
 
+const grantDeleteBtn = document.getElementById("grantDeleteBtn");
+grantDeleteBtn?.addEventListener("click", async (e) => {
+  e.stopPropagation();
+  if (!state.selectedGrantId) return;
+  await deleteGrant();
+});
+
 async function bootstrap() {
   try {
     setStatus("Initialisation...");
