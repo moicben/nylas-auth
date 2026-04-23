@@ -290,7 +290,7 @@ function decodeHtmlEntities(value) {
 
 function normalizeBodyText(value) {
   return decodeHtmlEntities(value)
-    .replace(/[ -‏  ­]/g, "")
+    .replace(/[\u2000-\u200f\u2028\u2029\u00ad]/g, "")
     .replace(/\r\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
